@@ -2,6 +2,7 @@
 #include "Calendar.h"
 #include "Date.h"
 #include "Event.h"
+#include "ExternalCalendar.h"
 #include "Store.h"
 #include "Time.h"
 #include "TimeZone.h"

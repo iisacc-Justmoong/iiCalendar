@@ -13,12 +13,12 @@
 
 | 객체 | 의미 |
 |---|---|
-| Date | 선행 그레고리력, 천문학적 연도 -999999..999999, 연도 0 포함 |
+|Date| 선행 그레고리력, 천문학적 연도 -999999..999999, 연도 0 포함 |
 | CalendarDate | 역법의 확장 연도·월·일·윤월·시대·시대 내 연도 |
 | WeekDate | ISO 주차 연도·주차·요일, 월요일 1부터 일요일 7 |
-| Time | 하루 내 초 0..86399 및 소수 18자리 |
-| Instant | Unix epoch 기준 signed 64-bit 초 + 소수부 0..10¹⁸−1 |
-| Duration | 동일한 정수 쌍으로 표현한 경과 시간 |
+|Time| 하루 내 초 0..86399 및 소수 18자리 |
+|Instant| Unix epoch 기준 signed 64-bit 초 + 소수부 0..10¹⁸−1 |
+|지속 시간| 동일한 정수 쌍으로 표현한 경과 시간 |
 | LocalDateTime | 시간대가 결합되지 않은 지역 날짜·시각 |
 | ZonedDateTime | 지역 날짜·시각, UTC 오프셋, DST 여부, 시간대 ID |
 | TimeRange | 시작 포함·종료 제외. 양끝이 같으면 단일 시점 이벤트 |
@@ -81,7 +81,9 @@ EventKind는 일정·할 일·활동·메모·알림이다. 컬렉션 ID, 역법
 제외·추가 시점을 지원한다. 음수 일자는 월말 기준이다. 월 주기는 역법의 실제 윤월·13번째 월
 경계를 따라 계산하며 연 주기는 확장 연도를 사용한다. 시작일은 규칙의 기준점이며 필터에도
 일치해야 회차가 생성된다. 이 모델은 명시된 규칙 부분집합이며 RFC 5545 전체 구현은 아니다.
-초·분·시간 단위 반복, BYSETPOS, 개별 회차 수정 객체, ICS/CalDAV 및 계정 동기화는 포함하지 않는다.
+초·분·시간 단위 반복, BYSETPOS, 개별 회차 수정 객체, ICS 파서·독립 CalDAV 클라이언트는 포함하지 않는다.
+외부 계정의 조회는 별도 `CalendarObjectManager`·제공자를 사용한다. Google/EventKit에서 펼친 회차를
+기존 Event로 변환하며 로컬 반복 규칙으로 다시 펼치지 않는다.
 
 지역 시각을 유지하며 timed 이벤트는 경과 길이, 종일 이벤트는 날짜 수를 보존한다. DST 공백 회차는
 건너뛰고 중복 시각은 앞 시각을 사용한다. 최초 시점이 뒤 시각으로 지정됐다면 최초 시점은 유지한다.
@@ -106,7 +108,7 @@ events에는 절대 시작·종료의 정수 `(seconds, attoseconds)`, 지역 �
 
 | 인덱스 | 목적 |
 |---|---|
-| idx_events_start / end | 정밀 시간 구간 |
+|idx_events_start / end| 정밀 시간 구간 |
 | idx_events_calendar_start | 컬렉션별 시간순 |
 | idx_events_date_time / calendar_date | 저장된 지역 시작 날짜·시각 |
 | idx_events_kind_status | 유형·진행 상태 |
@@ -138,7 +140,13 @@ hasMoreFiles()도 제공한다. 동일 컬렉션의 동일 첨부 ID가 중복 �
 
 ## 1차 자료·의존성 고지
 
-- [ICU Calendar Services](https://unicode-org.github.io/icu/userguide/datetime/calendar/)
+외부 캘린더 의존 방향은 `ExternalCalendarProvider → CalendarObjectManager → 호출 애플리케이션`이다.
+제공자와 관리자는 기존 Event/TimeZone을 사용하고 상위 제품·로그인 프레임워크를 참조하지 않는다.
+Google의 비공개 JSON 변환과 libcurl 전송, Apple의 비공개 Objective-C++ EventKit 구현은 공개 C++23
+인터페이스 뒤에 둔다. 계정·캘린더·일정 ID, 부분 실패·로그아웃 계약은
+[외부 캘린더 문서](ExternalCalendars.md)에 정의한다.
+
+- [ICU 캘린더 서비스](https://unicode-org.github.io/icu/userguide/datetime/calendar/)
 - [ICU 78.3, tzdb 2026a 배포](https://github.com/unicode-org/icu/releases/tag/release-78.3)
 - [SQLite 데이터 형식](https://www.sqlite.org/datatype3.html)
 - [SQLite 정수 복합 값 비교](https://www.sqlite.org/rowvalue.html)

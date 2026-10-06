@@ -1,10 +1,8 @@
 # iiCalendar
 
-C++23 기반의 Qt 비의존 캘린더 SDK이다. 고정밀 시간, 국제 역법·시간대, 일정·할 일·활동,
-SQLite 인덱스와 화면 표시용 데이터 모델을 제공한다. UI 프레임워크를 참조하지 않는다.
+C++23-based Qt non-dependent calendar SDK. It provides high-precision time, international calendar and timezone, schedule, to-do, activity, SQLite index, and data models for screen display. It does not reference the UI framework.
 
-공개 API는 `include/iiCalendar/`에 있으며 구현은 기존 `src/Date`, `Time`, `Calendar`,
-`Event`, `Index`에 분리되어 있다. 사용 예제는 `examples/day_details.cpp`이다.
+The public API is located at `include/iiCalendar/` and the implementation is split into existing `src/Date`, `Time`, `Calendar`, `Event`, and `Index`. Usage examples are `examples/day_details.cpp`.
 
 ```sh
 python3 scripts/bootstrap_icu.py
@@ -15,19 +13,24 @@ ctest --test-dir build --output-on-failure
 cmake --install build --prefix "$PWD/build/install"
 ```
 
-ICU가 이미 있다면 bootstrap 없이 `-DICU_ROOT=/path/to/icu`를 지정한다.
-필수 의존성은 SQLite 3.37+, ICU 69+, C++23 컴파일러이다. bootstrap은 POSIX 호스트에서
-공식 ICU 78.3 소스를 SHA-256으로 검증하고 `build/deps/icu/`에만 정적으로 빌드한다.
-네트워크 다운로드는 명시적 bootstrap 실행에서만 수행한다. CMake는 다운로드하지 않는다.
+If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and C++23 compiler. Bootstrap validates official ICU 78.3 sources from POSIX host to SHA-256 and statically builds only at `build/deps/icu/`. Network download is performed only during explicit bootstrap execution. CMake is not downloaded.
 
 ```cmake
 find_package(iiCalendar 0.1 CONFIG REQUIRED)
 target_link_libraries(MyApplication PRIVATE iiCalendar::iiCalendar)
 ```
 
-설치 소비자는 SQLite와 ICU 개발 패키지 또는 `ICU_ROOT`가 필요하다.
-상위 SDK 설치기는 CMakeLists.txt를 통해 자동 발견한다. 호스트의 실제 사용자 설치본을
-갱신하려면 SDK 설치기의 `--only iiCalendar`와 원하는 prefix를 사용한다.
+Installation consumers require SQLite and ICU development package or `ICU_ROOT`. The top-level SDK installer is auto-discovered via CMakeLists.txt. To update the actual user installation on the host, use the SDK installer's `--only iiCalendar` and the desired prefix.
 
-구체적인 지원 범위, 시간 척도, 반복 규칙, 저장 계약은 [설계 문서](docs/Design.md),
-테스트와 플랫폼 검증 범위는 [검증 문서](docs/Validation.md)에 기록한다.
+The specific supported scope, time scales, recurrence rules, and storage contracts are recorded in [design documentation](docs/Design.md); the scope of tests and platform verification is recorded in [verification documentation](docs/Validation.md).
+
+## 외부 캘린더 객체 관리자
+
+`CalendarObjectManager`에 로그인 계정과 `GoogleCalendarProvider` 또는 `AppleCalendarProvider`를
+등록하면 해당 계정의 캘린더 목록을 불러온다. `loadEvents()`는 지정 기간의 일정을 기존 `Event`
+객체로 제공하며 `refresh()`·`logout()`으로 갱신과 계정별 객체 수명을 관리한다. Qt 의존성은 없다.
+
+Google은 호스트가 발급한 OAuth 토큰 콜백과 Calendar API를 사용한다. 기본 전송은 libcurl 7.85+이며
+`-DIICALENDAR_WITH_CURL=OFF`에서는 호스트의 `CalendarHttpGet`을 주입할 수 있다. Apple은 macOS/iOS
+EventKit으로 기기에 연결된 계정의 캘린더를 읽으며 OS full-access 권한이 필요하다.
+로그인 연결 예제, 조회·실패·캐시 계약과 지원 범위는 [외부 캘린더 문서](docs/ExternalCalendars.md)에 기록했다.
