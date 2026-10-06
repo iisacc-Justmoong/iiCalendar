@@ -88,7 +88,9 @@ if(BUILD_TESTING)
     endforeach()
     add_test(NAME iiCalendar.installed_consumer COMMAND ${CMAKE_COMMAND}
         -DPROJECT_BUILD=${CMAKE_CURRENT_BINARY_DIR} -DPROJECT_SOURCE=${CMAKE_CURRENT_SOURCE_DIR}
-        -DICU_ROOT=${ICU_ROOT} -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/installed_consumer.cmake)
+        "-DTOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}" "-DTARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}"
+        "-DHOST_TRIPLET=${VCPKG_HOST_TRIPLET}"
+        "-DGENERATOR=${CMAKE_GENERATOR}" "-DDEPENDENCY_PREFIX=${CMAKE_PREFIX_PATH}" "-DICU_ROOT=${ICU_ROOT}" -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/installed_consumer.cmake)
 endif()
 
 add_executable(iiCalendarExample examples/day_details.cpp)
