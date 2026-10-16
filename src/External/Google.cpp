@@ -122,6 +122,7 @@ GoogleCalendarProvider::GoogleCalendarProvider(CalendarAccessToken token, Calend
 CalendarHttpResponse GoogleCalendarProvider::request(const std::string &url) {
     std::string token;
     try { token = token_(); }
+    catch (const ExternalCalendarError &e) { throw ExternalCalendarError(e.code(), "Google Calendar credential is unavailable"); }
     catch (...) { throw ExternalCalendarError(ExternalCalendarErrorCode::AuthenticationRequired, "Google Calendar token is unavailable"); }
     if (token.empty() || token.size() > 16384 || token.find_first_not_of(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~+/=") != std::string::npos)

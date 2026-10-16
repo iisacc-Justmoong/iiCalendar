@@ -1,5 +1,63 @@
 # 검증
 
+## iisacc 필수 계정과 외부 계정 연결 (2026-10-16, 0.2.0)
+
+macOS arm64 Debug에서 Qt 검색을 비활성화한 네이티브 빌드와 libcurl OFF 빌드를
+검증했다. 각 구성은 계정·Microsoft Graph·기존 도메인·외부 제공자·설치 소비자를
+포함한 CTest 15/15이다. 계정 계약 검사 52개와 Microsoft 제공자 검사 29개가
+포함된다. 설치 소비자는 Qt6와 iiAcountManager 검색을 명시적으로 금지하고,
+설치된 공개 헤더·정적 라이브러리·CMake export만으로 새 계정 API를 빌드·실행한다.
+
+| 검증 | 범위 |
+| --- | --- |
+| accounts | iisacc 인증 필수, 기본 계정 보호, 선택적 userId, 소유자·제공자별 ID 격리, 동일 세션 갱신, 계정 전환·만료·로그아웃 정리, 연결 비활성화·복원, 다른 소유자의 문서 거부 |
+| 계정 자격 | Google OIDC·Microsoft Graph 프로필 조회, 새 토큰의 원래 외부 계정 바인딩, 다른 계정 토큰 거부, rate-limit 시 기존 데이터 보존, 인증 오류 시 해당 계정만 정리 |
+| 늦은 응답 | 소유자 교체, 같은 외부 ID의 연결 교체, 제공자 시작 중 비활성화·즉시 재활성화 뒤 이전 요청의 데이터 재게시 차단 |
+| 연결 저장 | iiFileProvider를 통한 파일 저장·읽기, iisacc origin/subject 귀속, 토큰·앱 세션 ID 제외, 복원 후 제공자 재연결 필요 |
+| external_microsoft | 목록 페이지·헤더·ID 인코딩, 반복 회차·소수초·시간대·종일 일정·DST 25시간·알림 변환, 취소 제외, HTTP 오류 분류, 중복·상한·반복/외부 페이지·헤더 주입 거부 |
+| iisacc_bridge | 실제 iiAcountManager 0.2.9와 합성 loopback 로그인 서비스, 표시용 프로필 비인증, 검증된 세션·실효 만료 전달, 외부 연결 소유자 바인딩, clear() 후 정리 |
+
+인증 브리지 검사는 Qt가 있는 별도 호스트 구성 `build/accounts-bridge`에서 1/1을
+실행한다. 네이티브 라이브러리의 Qt 의존성을 추가하는 구성이 아니다.
+iiAcountManager 자체의 모델·응답 계약 2/2와 네트워크의 새 실효 만료·기존 로컬 만료
+회귀 검사도 통과했다. 서버 세션보다 짧은 쿠키 만료를 네이티브 소비자에게 전달하며,
+미인증·만료 상태는 유효하지 않은 `QDateTime`을 반환한다.
+
+```sh
+cmake -S . -B build/accounts -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_DISABLE_FIND_PACKAGE_Qt6=ON -DCMAKE_PREFIX_PATH=/path/to/iiFileProvider
+cmake --build build/accounts --parallel 6
+ctest --test-dir build/accounts --output-on-failure
+cmake -S . -B build/accounts-no-curl -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_DISABLE_FIND_PACKAGE_Qt6=ON -DIICALENDAR_WITH_CURL=OFF \
+  -DCMAKE_PREFIX_PATH=/path/to/iiFileProvider
+cmake --build build/accounts-no-curl --parallel 6
+ctest --test-dir build/accounts-no-curl --output-on-failure
+# Optional real account-SDK integration; Qt belongs to this host/test only.
+cmake -S . -B build/accounts-bridge -DIICALENDAR_TEST_IISACC_BRIDGE=ON \
+  '-DCMAKE_PREFIX_PATH=/path/to/iiFileProvider;/path/to/iiAcountManager;/path/to/Qt'
+cmake --build build/accounts-bridge --target iiCalendarIisaccBridgeTests --parallel 6
+ctest --test-dir build/accounts-bridge -R '^iiCalendar.iisacc_bridge$' --output-on-failure
+```
+
+구현 전 계정 계약 실패는 `build/accounts-tdd-red.log`, 즉시 재활성화 경합의 회귀 실패는
+`build/accounts-toggle-tdd-red.log`이다. 최종 빌드·검사 로그는 `build/accounts-build.log`,
+`build/accounts-tests.log`, `build/accounts-no-curl-*.log`, `build/accounts-bridge-*.log`이며,
+각 빌드 디렉터리의 JUnit XML에도 결과를 보존한다. 계정 SDK의 근거는 해당 모듈의
+`build/calendar-bridge-build.log`, `build/calendar-bridge-model-tests.xml`,
+`build/calendar-bridge-network-tests.log`이다. SDK 설치 산출물은 Workspace의 `build/`
+아래에 두었다.
+
+`build/accounts-ownership.json`의 SDK/Product 파일 생성 경로 감사는 런타임 소스
+2,470개에서 우회 생성 0건·읽기 실패 0건이다. 새 연결 프로필도 iiFileProvider를
+거쳐 생성한다.
+
+외부 서비스 응답과 iisacc 로그인은 합성 fixture이다. 실제 Google/Microsoft OAuth,
+운영 iisacc 로그인, Apple 캘린더 권한 승인·실계정 일정 읽기는 수행하지 않았다.
+Apple의 실제 권한 상태 API·네이티브 변환 검사는 기존처럼 포함하지만 권한을 요청하지
+않는다. Windows/Linux/Android/iOS/WASM 빌드·실행 결과를 의미하지 않는다.
+외부 계정 인증 UI·토큰 발급·보안 저장소는 호스트가 소유한다.
+
 ## 외부 캘린더 객체 관리자 (2026-10-02)
 
 macOS arm64 Release 빌드에 관리자·Google·Apple EventKit 제공자와 네이티브 변환 검사를 추가했다.

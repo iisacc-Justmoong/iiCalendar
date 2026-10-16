@@ -1,6 +1,6 @@
 # nlohmann/json 3.12.0
 
-Google Calendar JSON 디코딩에만 사용하는 비공개 헤더이다. 공개 SDK 헤더나 설치 헤더에는 노출하지 않는다.
+외부 캘린더 응답 및 계정 연결 문서의 JSON 변환에 사용하는 비공개 헤더이다. 공개 SDK 헤더나 설치 헤더에는 노출하지 않는다.
 
 - 원본: https://github.com/nlohmann/json/releases/tag/v3.12.0
 - json.hpp: https://raw.githubusercontent.com/nlohmann/json/v3.12.0/single_include/nlohmann/json.hpp

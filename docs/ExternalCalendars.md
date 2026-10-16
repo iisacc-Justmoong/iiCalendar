@@ -1,5 +1,9 @@
 # 외부 캘린더 객체 관리자
 
+애플리케이션의 계정 연결은 [Accounts.md](Accounts.md)의 `CalendarAccountManager`를 사용한다.
+이 계층은 검증된 iisacc 로그인 세션을 필수 소유자로 두고 Google·Microsoft·Apple 계정을 연결한다.
+아래 `CalendarObjectManager` 예제는 이 계층이 사용하는 하위 제공자·객체 조회 계약이다.
+
 `CalendarObjectManager`는 외부 로그인 계정의 캘린더 목록과 일정 객체를 관리한다.
 `GoogleCalendarProvider`와 `AppleCalendarProvider`가 실제 조회를 담당한다. 공개 API는
 `include/iiCalendar/ExternalCalendar.h`에 있으며 Qt·LVRS·Society·iiAcountManager를 참조하지 않는다.

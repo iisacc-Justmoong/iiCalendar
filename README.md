@@ -16,7 +16,7 @@ cmake --install build --prefix "$PWD/build/install"
 If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and C++23 compiler. Bootstrap validates official ICU 78.3 sources from POSIX host to SHA-256 and statically builds only at `build/deps/icu/`. Network download is performed only during explicit bootstrap execution. CMake is not downloaded.
 
 ```cmake
-find_package(iiCalendar 0.1 CONFIG REQUIRED)
+find_package(iiCalendar 0.2 CONFIG REQUIRED)
 target_link_libraries(MyApplication PRIVATE iiCalendar::iiCalendar)
 ```
 
@@ -24,13 +24,22 @@ Installation consumers require SQLite and ICU development package or `ICU_ROOT`.
 
 The specific supported scope, time scales, recurrence rules, and storage contracts are recorded in [design documentation](docs/Design.md); the scope of tests and platform verification is recorded in [verification documentation](docs/Validation.md).
 
-## 외부 캘린더 객체 관리자
+## Accounts and external calendars
 
-`CalendarObjectManager`에 로그인 계정과 `GoogleCalendarProvider` 또는 `AppleCalendarProvider`를
-등록하면 해당 계정의 캘린더 목록을 불러온다. `loadEvents()`는 지정 기간의 일정을 기존 `Event`
-객체로 제공하며 `refresh()`·`logout()`으로 갱신과 계정별 객체 수명을 관리한다. Qt 의존성은 없다.
+`CalendarAccountManager` requires an authenticated iisacc owner and connects
+additional Google, Microsoft/Outlook and device-managed Apple calendar accounts.
+It manages account-scoped calendars/events, enable/disable, disconnect,
+credential-free connection restoration, expiry and stale-session isolation.
+The native library remains Qt-free. A header-only adapter reads verified
+iiAcountManager 0.2.9+ session bindings and their effective credential expiry.
+See [Accounts](docs/Accounts.md) for the public API and complete host wiring.
 
-Google은 호스트가 발급한 OAuth 토큰 콜백과 Calendar API를 사용한다. 기본 전송은 libcurl 7.85+이며
-`-DIICALENDAR_WITH_CURL=OFF`에서는 호스트의 `CalendarHttpGet`을 주입할 수 있다. Apple은 macOS/iOS
-EventKit으로 기기에 연결된 계정의 캘린더를 읽으며 OS full-access 권한이 필요하다.
-로그인 연결 예제, 조회·실패·캐시 계약과 지원 범위는 [외부 캘린더 문서](docs/ExternalCalendars.md)에 기록했다.
+The host owns OAuth, token refresh and secure credential custody. The SDK
+resolves/pins Google and Microsoft account identity, performs calendar reads and
+validates bounded snapshots. Apple uses the OS EventKit accounts and requires
+explicit full-access authorization. Default HTTPS uses libcurl 7.85+; with
+`-DIICALENDAR_WITH_CURL=OFF`, inject `CalendarHttpGet`.
+
+`CalendarObjectManager` remains the lower-level provider-object primitive used
+by the account facade. Its calendar/event formats, refresh rules and platform
+authorization contract are in [External calendars](docs/ExternalCalendars.md).

@@ -1,3 +1,4 @@
+#include <iiFileProviderStorage.h>
 #include "Codec.h"
 #include <algorithm>
 #include <iiCalendar/Store.h>
@@ -138,7 +139,7 @@ Store::Store(const std::filesystem::path &path, std::shared_ptr<const CalendarRe
     if (file.empty() || file.find('\0') != std::string::npos)
         throw std::invalid_argument("database path is required");
     sqlite3 *raw = nullptr;
-    const int opened = sqlite3_open_v2(
+    const int opened = iiFileProvider::native::openDatabase(
         file.c_str(), &raw, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
         nullptr);
     impl_->db.reset(raw);

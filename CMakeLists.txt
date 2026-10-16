@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.24)
-project(iiCalendar VERSION 0.1.0 LANGUAGES CXX)
+project(iiCalendar VERSION 0.2.0 LANGUAGES CXX)
+# File creation is owned by iiFileProvider.
+find_package(iiFileProviderNative 0.6 CONFIG REQUIRED HINTS "$ENV{IIFILEPROVIDER_PREFIX}" "$ENV{HOME}/.local/SDK/iiFileProvider")
+link_libraries(iiFileProvider::Native)
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(CTest)
@@ -19,14 +23,15 @@ set(calendar_curl_default ON)
 if(CMAKE_SYSTEM_NAME MATCHES "^(iOS|tvOS|watchOS|visionOS)$")
     set(calendar_curl_default OFF)
 endif()
-option(IICALENDAR_WITH_CURL "Built-in Google Calendar HTTPS transport (otherwise inject CalendarHttpGet)" ${calendar_curl_default})
+option(IICALENDAR_WITH_CURL "Built-in Google/Microsoft HTTPS transport (otherwise inject CalendarHttpGet)" ${calendar_curl_default})
+option(IICALENDAR_TEST_IISACC_BRIDGE "Test the optional host bridge against the real iiAcountManager SDK" OFF)
 
 add_library(iiCalendar STATIC
     src/Date/Date.cpp src/Time/Time.cpp src/Time/Clock.cpp
     src/Calendar/Calendar.cpp src/Calendar/TimeZone.cpp
     src/Event/Event.cpp src/Event/Recurrence.cpp
     src/Index/Codec.cpp src/Index/Store.cpp src/Calendar/View.cpp
-    src/External/Manager.cpp src/External/Google.cpp)
+    src/External/Manager.cpp src/External/Google.cpp src/External/Microsoft.cpp src/External/Accounts.cpp)
 add_library(iiCalendar::iiCalendar ALIAS iiCalendar)
 target_compile_features(iiCalendar PUBLIC cxx_std_23)
 target_include_directories(iiCalendar PUBLIC
@@ -61,6 +66,23 @@ else()
 endif()
 
 if(BUILD_TESTING)
+    if(IICALENDAR_TEST_IISACC_BRIDGE)
+        find_package(iiAcountManager 0.2.9 CONFIG REQUIRED)
+        add_executable(iiCalendarIisaccBridgeTests tests/iisacc_bridge.cpp)
+        target_link_libraries(iiCalendarIisaccBridgeTests PRIVATE iiCalendar::iiCalendar iiAcountManager::iiAcountManager)
+        target_compile_definitions(iiCalendarIisaccBridgeTests PRIVATE IISACC_ACCOUNT_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/../iiAcountManager/tests/fixtures/iisacc-account.json")
+        add_test(NAME iiCalendar.iisacc_bridge COMMAND iiCalendarIisaccBridgeTests)
+        set_tests_properties(iiCalendar.iisacc_bridge PROPERTIES TIMEOUT 30)
+    endif()
+    add_executable(iiCalendarAccountTests tests/account_tests.cpp)
+    target_link_libraries(iiCalendarAccountTests PRIVATE iiCalendar::iiCalendar iiFileProvider::Native)
+    add_test(NAME iiCalendar.accounts COMMAND iiCalendarAccountTests "${CMAKE_CURRENT_BINARY_DIR}")
+    set_tests_properties(iiCalendar.accounts PROPERTIES TIMEOUT 60)
+    add_executable(iiCalendarMicrosoftTests tests/microsoft_calendar_tests.cpp)
+    target_link_libraries(iiCalendarMicrosoftTests PRIVATE iiCalendar::iiCalendar)
+    target_include_directories(iiCalendarMicrosoftTests SYSTEM PRIVATE ThirdParty)
+    add_test(NAME iiCalendar.external_microsoft COMMAND iiCalendarMicrosoftTests)
+    set_tests_properties(iiCalendar.external_microsoft PROPERTIES TIMEOUT 60)
     if(IICALENDAR_WITH_CURL)
         # Explicit network integration executable, kept out of offline CTest.
         add_executable(iiCalendarHttpsSmoke tests/https_smoke.cpp)

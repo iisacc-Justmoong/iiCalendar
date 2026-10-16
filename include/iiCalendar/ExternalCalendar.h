@@ -96,6 +96,24 @@ class GoogleCalendarProvider final : public ExternalCalendarProvider {
     CalendarHttpResponse request(const std::string &url);
 };
 
+struct MicrosoftCalendarOptions {
+    std::size_t maximumPages = 100, maximumCalendars = 1000, maximumEvents = 10000;
+};
+// Delegated Microsoft Graph Calendars.Read. UTC/immutable-ID projections,
+// bounded pagination, and already-expanded calendarView occurrences.
+class MicrosoftCalendarProvider final : public ExternalCalendarProvider {
+public:
+    explicit MicrosoftCalendarProvider(CalendarAccessToken token, CalendarHttpGet get = {}, MicrosoftCalendarOptions options = {});
+    std::string id() const override { return "microsoft"; }
+    std::vector<RemoteCalendar> calendars() override;
+    std::vector<Event> events(const RemoteCalendar &calendar, TimeRange window) override;
+private:
+    CalendarAccessToken token_;
+    CalendarHttpGet get_;
+    MicrosoftCalendarOptions options_;
+    CalendarHttpResponse request(const std::string &url);
+};
+
 enum class AppleCalendarAuthorization { NotDetermined, FullAccess, Denied, Restricted, WriteOnly };
 struct AppleCalendarSource { std::string id, title; };
 struct AppleCalendarOptions {

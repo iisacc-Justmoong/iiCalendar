@@ -1,4 +1,5 @@
 #include <iiCalendar/iiCalendar.h>
+#include <iiCalendar/IisaccAccount.h>
 #include <iostream>
 #include <memory>
 
@@ -32,6 +33,17 @@ int main() {
     iiCalendar::GoogleCalendarProvider google([] { return "fixture-token"; },
         [](const iiCalendar::CalendarHttpRequest &) { return iiCalendar::CalendarHttpResponse{200, R"({"items":[]})"}; });
     if (!google.calendars().empty()) return 3;
+    iiCalendar::CalendarAccountManager accounts;
+    if (accounts.authenticated()) return 4;
+    accounts.setIisaccSession(iiCalendar::IisaccCalendarSession{"https://iisacc.com", "installed-owner", "", "session", "device", "", "Owner",
+        iiCalendar::Clock::sample().wallTime + iiCalendar::Duration(3600)});
+    const auto connected = accounts.connect({"installed-external", "consumer", "Work"}, std::make_shared<CalendarProvider>());
+    if (connected.ownerId != "installed-owner" || accounts.accounts().size() != 2 || accounts.calendars().size() != 1) return 5;
+    iiCalendar::MicrosoftCalendarProvider microsoft([] { return "fixture-token"; },
+        [](const iiCalendar::CalendarHttpRequest &) { return iiCalendar::CalendarHttpResponse{200, R"({"value":[]})"}; });
+    if (!microsoft.calendars().empty()) return 6;
+    accounts.setIisaccSession(std::nullopt);
+    if (!accounts.accounts().empty()) return 7;
     // Pull the native/fallback Apple object into the installed static link too.
     std::cout << "Apple Calendar backend available: " << iiCalendar::AppleCalendarProvider::available() << '\n';
     std::cout << "iiCalendar installed consumer: " << saved.due->toString() << '\n';
