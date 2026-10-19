@@ -1,5 +1,10 @@
 # iiCalendar
 
+Package release: **0.2.1** (2026-10-19). This patch packages the current
+source snapshot; build, test and installation evidence is recorded in the SDK
+patch-release report. Earlier versioned feature notes remain historical.
+
+
 C++23-based Qt non-dependent calendar SDK. It provides high-precision time, international calendar and timezone, schedule, to-do, activity, SQLite index, and data models for screen display. It does not reference the UI framework.
 
 The public API is located at `include/iiCalendar/` and the implementation is split into existing `src/Date`, `Time`, `Calendar`, `Event`, and `Index`. Usage examples are `examples/day_details.cpp`.
