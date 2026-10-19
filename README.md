@@ -1,5 +1,7 @@
 # iiCalendar
 
+[Windows 빌드 및 실행](docs/WindowsBuildAndRun.md)
+
 The installed consumer test uses the same build configuration as the SDK. This
 keeps the MSVC runtime and iterator ABI consistent for Debug and Release builds;
 consumer build failures include compiler and linker output in the test log.
