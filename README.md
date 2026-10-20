@@ -54,3 +54,11 @@ explicit full-access authorization. Default HTTPS uses libcurl 7.85+; with
 `CalendarObjectManager` remains the lower-level provider-object primitive used
 by the account facade. Its calendar/event formats, refresh rules and platform
 authorization contract are in [External calendars](docs/ExternalCalendars.md).
+
+## License
+
+SPDX-License-Identifier: MIT
+
+The original code and documentation in this repository are licensed under the
+[MIT License](LICENSE). Third-party code, libraries, fonts, tools, and model
+weights retain their respective licenses.
