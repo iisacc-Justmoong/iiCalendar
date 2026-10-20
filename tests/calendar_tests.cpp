@@ -225,6 +225,36 @@ void foldStart() {
     auto result = expand(e, {at("2026-11-01T00:00:00Z"), at("2026-11-03T00:00:00Z")}, r);
     CHECK(result.size() == 2 && result[0].range.start == later);
 }
+void recurrenceMonthWork() {
+    struct Counted final : CalendarSystem {
+        const CalendarSystem &base;
+        mutable unsigned calls=0;
+        explicit Counted(const CalendarSystem &calendar):base(calendar) {}
+        std::string id() const override { return "counted"; }
+        CalendarDate fromEpochDay(std::int64_t day) const override { return base.fromEpochDay(day); }
+        std::int64_t toEpochDay(CalendarDate day) const override { return base.toEpochDay(day); }
+        CalendarDate addMonths(CalendarDate day,int months,MonthOverflow policy) const override {
+            ++calls;return base.addMonths(day,months,policy);
+        }
+    };
+    CalendarRegistry registry;
+    auto counted=std::make_shared<Counted>(registry.get("gregorian"));
+    registry.add(counted);
+    auto event=example();
+    event.schedule=AllDaySchedule{Date(2024,1,1),Date(2024,1,2),"UTC"};
+    event.recurrence.frequency=Frequency::Daily;
+    event.recurrence.monthDays={-1};
+    const TimeRange window{at("2024-01-01T00:00:00Z"),at("2025-01-01T00:00:00Z")};
+    const auto expected=expand(event,window,registry);
+    event.calendarSystem="counted";
+    const auto actual=expand(event,window,registry);
+    CHECK(actual.size()==12 && actual.size()==expected.size());
+    for (std::size_t i=0;i<actual.size();++i) {
+        CHECK(actual[i].range==expected[i].range && actual[i].localDate==expected[i].localDate);
+    }
+    CHECK(actual[1].localDate==Date(2024,2,29));
+    CHECK(counted->calls<=13);
+}
 void storage() {
     const auto path = std::filesystem::current_path() / "calendar-test.sqlite";
     std::filesystem::remove(path);
@@ -418,6 +448,7 @@ int main(int argc, char **argv) {
         else if (suite == "recurrence") {
             recurrence();
             foldStart();
+            recurrenceMonthWork();
         } else if (suite == "storage")
             storage();
         else if (suite == "views")

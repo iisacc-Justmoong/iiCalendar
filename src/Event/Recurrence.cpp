@@ -47,6 +47,8 @@ std::vector<Occurrence> expand(const Event &event, TimeRange window,
         unsigned emitted = 0;
         std::int64_t monthIndex = 0;
         auto previous = anchor;
+        std::optional<CalendarDate> measuredMonth;
+        std::int64_t daysInMonth = 0;
         auto finalDate = zone.at(window.end).local.date.addDays(1);
         const auto weekAnchor =
             start.date.epochDay() -
@@ -93,10 +95,15 @@ std::vector<Occurrence> expand(const Event &event, TimeRange window,
                 rule.monthDays.empty() && rule.weekdays.empty() && cd.day != anchor.day)
                 continue;
             if (!rule.monthDays.empty() || !rule.weekdays.empty()) {
-                auto first = cd;
-                first.day = 1;
-                auto next = calendar.addMonths(first, 1, MonthOverflow::Clamp);
-                const auto days = calendar.toEpochDay(next) - calendar.toEpochDay(first);
+                if (!measuredMonth || measuredMonth->year != cd.year ||
+                    measuredMonth->month != cd.month || measuredMonth->leapMonth != cd.leapMonth) {
+                    auto first = cd;
+                    first.day = 1;
+                    auto next = calendar.addMonths(first, 1, MonthOverflow::Clamp);
+                    daysInMonth = calendar.toEpochDay(next) - calendar.toEpochDay(first);
+                    measuredMonth = cd;
+                }
+                const auto days = daysInMonth;
                 if (!rule.monthDays.empty() &&
                     std::none_of(rule.monthDays.begin(), rule.monthDays.end(),
                                  [&](int d) { return (d > 0 ? d : days + d + 1) == cd.day; }))
