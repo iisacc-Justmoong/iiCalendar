@@ -13,7 +13,7 @@ patch-release report. Earlier versioned feature notes remain historical.
 
 C++23-based Qt non-dependent calendar SDK. It provides high-precision time, international calendar and timezone, schedule, to-do, activity, SQLite index, and data models for screen display. It does not reference the UI framework.
 
-The public API is located at `include/iiCalendar/` and the implementation is split into existing `src/Date`, `Time`, `Calendar`, `Event`, and `Index`. Usage examples are `examples/day_details.cpp`.
+The public API and its implementation live together in `src/iiCalendar/`. Usage examples are `examples/day_details.cpp`. Consumers continue to use `<iiCalendar/...>` through the exported CMake target.
 
 ```sh
 python3 scripts/bootstrap_icu.py
@@ -62,3 +62,15 @@ SPDX-License-Identifier: MIT
 The original code and documentation in this repository are licensed under the
 [MIT License](LICENSE). Third-party code, libraries, fonts, tools, and model
 weights retain their respective licenses.
+
+## Source header layout
+
+Public headers and implementations live together in `src/iiCalendar/`.
+There is no separate authored `include/` tree. Existing public `#include` names
+and exported CMake targets are unchanged; installation still places only public
+headers in the package include directory. Generated export headers belong to
+`build/`, not to the authored source tree.
+
+Validate this layout from the SDK workspace with
+`python3 -B tests/test_source_header_layout.py`. Reconfigure, build, run CTest,
+and verify a staged installed consumer after changing source/header paths.

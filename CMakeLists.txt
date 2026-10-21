@@ -27,36 +27,36 @@ option(IICALENDAR_WITH_CURL "Built-in Google/Microsoft HTTPS transport (otherwis
 option(IICALENDAR_TEST_IISACC_BRIDGE "Test the optional host bridge against the real iiAcountManager SDK" OFF)
 
 add_library(iiCalendar STATIC
-    src/Date/Date.cpp src/Time/Time.cpp src/Time/Clock.cpp
-    src/Calendar/Calendar.cpp src/Calendar/TimeZone.cpp
-    src/Event/Event.cpp src/Event/Recurrence.cpp
-    src/Index/Codec.cpp src/Index/Store.cpp src/Calendar/View.cpp
-    src/External/Manager.cpp src/External/Google.cpp src/External/Microsoft.cpp src/External/Accounts.cpp)
+    src/iiCalendar/Date.cpp src/iiCalendar/Time.cpp src/iiCalendar/Clock.cpp
+    src/iiCalendar/Calendar.cpp src/iiCalendar/TimeZone.cpp
+    src/iiCalendar/Event.cpp src/iiCalendar/Recurrence.cpp
+    src/iiCalendar/Codec.cpp src/iiCalendar/Store.cpp src/iiCalendar/View.cpp
+    src/iiCalendar/Manager.cpp src/iiCalendar/Google.cpp src/iiCalendar/Microsoft.cpp src/iiCalendar/Accounts.cpp)
 add_library(iiCalendar::iiCalendar ALIAS iiCalendar)
 target_compile_features(iiCalendar PUBLIC cxx_std_23)
 target_include_directories(iiCalendar PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_link_libraries(iiCalendar PRIVATE ICU::i18n ICU::uc ICU::data SQLite3::SQLite3 Threads::Threads)
 target_include_directories(iiCalendar SYSTEM PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty)
 if(IICALENDAR_WITH_CURL)
     find_package(CURL 7.85 REQUIRED)
-    target_sources(iiCalendar PRIVATE src/External/Curl.cpp)
+    target_sources(iiCalendar PRIVATE src/iiCalendar/Curl.cpp)
     target_link_libraries(iiCalendar PRIVATE CURL::libcurl)
 else()
-    target_sources(iiCalendar PRIVATE src/External/NoCurl.cpp)
+    target_sources(iiCalendar PRIVATE src/iiCalendar/NoCurl.cpp)
 endif()
 if(APPLE AND CMAKE_SYSTEM_NAME MATCHES "^(Darwin|iOS)$")
     enable_language(OBJCXX)
-    target_sources(iiCalendar PRIVATE src/External/Apple.mm)
-    set_source_files_properties(src/External/Apple.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+    target_sources(iiCalendar PRIVATE src/iiCalendar/Apple.mm)
+    set_source_files_properties(src/iiCalendar/Apple.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
     set_target_properties(iiCalendar PROPERTIES OBJCXX_STANDARD 23 OBJCXX_STANDARD_REQUIRED ON OBJCXX_EXTENSIONS OFF)
     find_library(calendar_eventkit EventKit REQUIRED)
     find_library(calendar_foundation Foundation REQUIRED)
     find_library(calendar_coregraphics CoreGraphics REQUIRED)
     target_link_libraries(iiCalendar PRIVATE ${calendar_eventkit} ${calendar_foundation} ${calendar_coregraphics})
 else()
-    target_sources(iiCalendar PRIVATE src/External/NoApple.cpp)
+    target_sources(iiCalendar PRIVATE src/iiCalendar/NoApple.cpp)
 endif()
 set_target_properties(iiCalendar PROPERTIES CXX_EXTENSIONS OFF POSITION_INDEPENDENT_CODE ON)
 if(MSVC)
@@ -120,7 +120,19 @@ add_executable(iiCalendarExample examples/day_details.cpp)
 target_link_libraries(iiCalendarExample PRIVATE iiCalendar::iiCalendar)
 set(package_dir "${CMAKE_INSTALL_LIBDIR}/cmake/iiCalendar")
 install(TARGETS iiCalendar EXPORT iiCalendarTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES
+    src/iiCalendar/Accounts.h
+    src/iiCalendar/Calendar.h
+    src/iiCalendar/Date.h
+    src/iiCalendar/Event.h
+    src/iiCalendar/ExternalCalendar.h
+    src/iiCalendar/IisaccAccount.h
+    src/iiCalendar/Store.h
+    src/iiCalendar/Time.h
+    src/iiCalendar/TimeZone.h
+    src/iiCalendar/View.h
+    src/iiCalendar/iiCalendar.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/iiCalendar)
 install(FILES README.md DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar)
 install(DIRECTORY docs/ DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar/docs)
 install(FILES ThirdParty/nlohmann/LICENSE.MIT DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar/licenses/nlohmann-json)
