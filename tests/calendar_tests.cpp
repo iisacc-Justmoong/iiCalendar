@@ -2,6 +2,10 @@
 #include <cmath>
 #include <future>
 #include <iiCalendar/iiCalendar.h>
+#if defined(IICALENDAR_FILE_PROVIDER_TEST)
+#include "FileProviderAdapter.h"
+#include <iiFileProviderNative.h>
+#endif
 #include <iostream>
 #include <limits>
 #include <sqlite3.h>
@@ -255,9 +259,43 @@ void recurrenceMonthWork() {
     CHECK(actual[1].localDate==Date(2024,2,29));
     CHECK(counted->calls<=13);
 }
+void storageMemory() {
+    {
+        auto convenience = Store::inMemory();
+        const auto saved = convenience.put(example("convenience"), 0);
+        CHECK(convenience.get(saved.id) == saved);
+    }
+    fails<std::invalid_argument>([] { (void)Store::inMemory({}); });
+    sqlite3 *raw = nullptr;
+    const int opened = sqlite3_open_v2(":memory:", &raw,
+        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
+    std::shared_ptr<sqlite3> connection(raw, [](sqlite3 *value) { (void)sqlite3_close_v2(value); });
+    CHECK(opened == SQLITE_OK && connection);
+    {
+        Store store(connection);
+        auto saved = store.put(example("memory-event"), 0);
+        CHECK(saved.revision == 1);
+        CHECK(store.get(saved.id) == saved);
+        CHECK(store.erase(saved.id, saved.revision));
+        CHECK(!store.get(saved.id));
+    }
+    CHECK(sqlite3_exec(connection.get(), "SELECT 1", nullptr, nullptr, nullptr) == SQLITE_OK);
+    fails<std::invalid_argument>([] { Store invalid(std::shared_ptr<sqlite3>{}); });
+    fails<std::invalid_argument>([&] { Store invalid(connection, {}); });
+
+    sqlite3 *otherRaw = nullptr;
+    const int otherOpened = sqlite3_open(":memory:", &otherRaw);
+    std::shared_ptr<sqlite3> other(otherRaw, [](sqlite3 *value) { (void)sqlite3_close_v2(value); });
+    CHECK(otherOpened == SQLITE_OK && other);
+    CHECK(sqlite3_exec(other.get(), "CREATE TABLE unrelated(id INTEGER)", nullptr, nullptr, nullptr) == SQLITE_OK);
+    fails<StorageError>([&] { Store invalid(other); });
+    CHECK(sqlite3_exec(other.get(), "INSERT INTO unrelated VALUES(1)", nullptr, nullptr, nullptr) == SQLITE_OK);
+}
+#if defined(IICALENDAR_FILE_PROVIDER_TEST)
 void storage() {
-    const auto path = std::filesystem::current_path() / "calendar-test.sqlite";
-    std::filesystem::remove(path);
+    iiFileProvider::native::TemporaryDirectory directory;
+    CHECK(directory.isValid());
+    const auto path = directory.path() / "calendar-test.sqlite";
     auto e = example();
     e.description = "Unicode: 일정 · 🗓️";
     e.url = "https://iisacc.com";
@@ -277,7 +315,7 @@ void storage() {
     e.links = {{"project", "society"}};
     e.due = at("2026-09-19T08:00:00.000000000000000002Z");
     {
-        Store store(path);
+        auto store = iiCalendarFileProvider::openStore(path);
         auto saved = store.put(e, 0);
         CHECK(saved.revision == 1);
         e = saved;
@@ -310,7 +348,7 @@ void storage() {
         boundary.tags = {"a", "a"};
         fails([&] { store.put(boundary); });
         CHECK(store.get("boundary")->tags.empty());
-        Store second(path);
+        auto second = iiCalendarFileProvider::openStore(path);
         auto copy = second.get(e.id).value();
         copy.title = "other connection";
         copy = second.put(copy, e.revision);
@@ -352,7 +390,7 @@ void storage() {
         sqlite3_close(raw);
     }
     {
-        Store store(path);
+        auto store = iiCalendarFileProvider::openStore(path);
         CHECK(store.get(e.id) == e);
         auto repeated = example("recurring");
         repeated.recurrence.frequency = Frequency::Daily;
@@ -377,8 +415,9 @@ void storage() {
     CHECK(plan.find("idx_events_start") != std::string::npos);
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-    std::filesystem::remove(path);
+    CHECK(iiFileProvider::native::File::remove(path));
 }
+#endif
 void views() {
     CalendarRegistry r;
     auto month =
@@ -396,7 +435,7 @@ void views() {
     }
     auto chinese = makeView({ViewKind::Month, Date(2024, 2, 10), "chinese"}, r);
     CHECK(chinese.start == Date(2024, 2, 10));
-    Store store(":memory:");
+    auto store = Store::inMemory();
     auto e = example();
     e.attachments = {{"f", "brief.pdf", "file:///brief.pdf", "application/pdf", 42}};
     store.put(e);
@@ -449,8 +488,13 @@ int main(int argc, char **argv) {
             recurrence();
             foldStart();
             recurrenceMonthWork();
-        } else if (suite == "storage")
+        }
+#if defined(IICALENDAR_FILE_PROVIDER_TEST)
+        else if (suite == "storage")
             storage();
+#endif
+        else if (suite == "storage_memory")
+            storageMemory();
         else if (suite == "views")
             views();
         else if (suite == "clock")

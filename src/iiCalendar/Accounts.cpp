@@ -1,6 +1,6 @@
 #include <iiCalendar/Accounts.h>
-#include <iiFileProviderNative.h>
 #include "Http.h"
+#include "Sha256.h"
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <set>
@@ -45,7 +45,7 @@ public:
         std::string token;
         try { token = source_(); } catch (...) { fail(Code::AuthenticationRequired, "calendar credential is unavailable"); }
         if (!validToken(token)) fail(Code::AuthenticationRequired, "calendar credential is invalid");
-        const auto fingerprint = iiFileProvider::native::sha256(token);
+        const auto fingerprint = detail::sha256(std::as_bytes(std::span(token)));
         if (fingerprint == fingerprint_) return token;
         const auto url = provider_ == "google" ? "https://openidconnect.googleapis.com/v1/userinfo"
             : "https://graph.microsoft.com/v1.0/me?$select=id,displayName,mail,userPrincipalName";
@@ -336,11 +336,5 @@ void CalendarAccountManager::restoreConnections(const std::string &document) {
     std::lock_guard lock(impl_->mutex); impl_->check(context);
     if (!context->connections.empty()) fail(Code::Busy, "restore connections before attaching providers");
     context->connections = std::move(connections);
-}
-void CalendarAccountManager::saveConnections(const std::filesystem::path &file) const {
-    iiFileProvider::native::File::write(file, connectionDocument());
-}
-void CalendarAccountManager::loadConnections(const std::filesystem::path &file) {
-    (void)impl_->capture(); restoreConnections(iiFileProvider::native::File::read(file, maximumConnectionBytes));
 }
 } // namespace iiCalendar

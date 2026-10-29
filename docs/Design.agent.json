@@ -1,0 +1,1027 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:24cb178a3998a9767e1f99a780231a46f4e02e482a4d023cdbf826ace69b0e06",
+  "project": {
+    "id": "urn:iisacc:project:SDK%2FiiCalendar",
+    "name": "iiCalendar",
+    "root": "SDK/iiCalendar",
+    "kind": "sdk"
+  },
+  "source": {
+    "path": "docs/Design.md",
+    "sha256": "ed2630d513fcac8081bc593caa0ad5b3a202b83231169157b116cb438dadc1ee",
+    "bytes": 12734,
+    "line_count": 170,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "iiCalendar 0.1 설계 및 지원 계약",
+    "role": "reference",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# iiCalendar 0.1 설계 및 지원 계약\n",
+      "level": 1,
+      "title": "iiCalendar 0.1 설계 및 지원 계약"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "heading",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "## 의존 방향\n",
+      "level": 2,
+      "title": "의존 방향"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "`Date / Time → Calendar / TimeZone → Event / Recurrence → Store → View / DayDetails`\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 7,
+      "end_line": 12,
+      "raw": "화살표는 상위 기능이 앞선 하위 기능을 사용한다는 뜻이다. Society, LVRS, Qt 및 다른 상위 SDK를\n참조하지 않는다. 공개 헤더에 ICU 자료형은 노출하지 않으며, 저장소 연결 주입을 위해 SQLite의\n불투명 `sqlite3` 선언은 노출한다. `CalendarSystem`은 사용자 정의 역법의 교체 경계이고,\n`Store::Impl`은 스키마와 나머지 연결 관리를 숨긴다. 레지스트리 등록은 공유·사용 전에 완료해야\n한다. 같은 Store 객체의 접근은 mutex로 직렬화된다. 파일 제공자와 계정 SDK는 애플리케이션이\n별도 소비자에서 조합하며 iiCalendar 본체의 의존성이 아니다.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 13,
+      "end_line": 13,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "heading",
+      "start_line": 14,
+      "end_line": 14,
+      "raw": "## 날짜·시각·정밀도\n",
+      "level": 2,
+      "title": "날짜·시각·정밀도"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 15,
+      "end_line": 15,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "table",
+      "start_line": 16,
+      "end_line": 26,
+      "raw": "| 객체 | 의미 |\n|---|---|\n|Date| 선행 그레고리력, 천문학적 연도 -999999..999999, 연도 0 포함 |\n| CalendarDate | 역법의 확장 연도·월·일·윤월·시대·시대 내 연도 |\n| WeekDate | ISO 주차 연도·주차·요일, 월요일 1부터 일요일 7 |\n|Time| 하루 내 초 0..86399 및 소수 18자리 |\n|Instant| Unix epoch 기준 signed 64-bit 초 + 소수부 0..10¹⁸−1 |\n|지속 시간| 동일한 정수 쌍으로 표현한 경과 시간 |\n| LocalDateTime | 시간대가 결합되지 않은 지역 날짜·시각 |\n| ZonedDateTime | 지역 날짜·시각, UTC 오프셋, DST 여부, 시간대 ID |\n| TimeRange | 시작 포함·종료 제외. 양끝이 같으면 단일 시점 이벤트 |\n",
+      "columns": [
+        "객체",
+        "의미"
+      ],
+      "rows": [
+        [
+          "Date",
+          "선행 그레고리력, 천문학적 연도 -999999..999999, 연도 0 포함"
+        ],
+        [
+          "CalendarDate",
+          "역법의 확장 연도·월·일·윤월·시대·시대 내 연도"
+        ],
+        [
+          "WeekDate",
+          "ISO 주차 연도·주차·요일, 월요일 1부터 일요일 7"
+        ],
+        [
+          "Time",
+          "하루 내 초 0..86399 및 소수 18자리"
+        ],
+        [
+          "Instant",
+          "Unix epoch 기준 signed 64-bit 초 + 소수부 0..10¹⁸−1"
+        ],
+        [
+          "지속 시간",
+          "동일한 정수 쌍으로 표현한 경과 시간"
+        ],
+        [
+          "LocalDateTime",
+          "시간대가 결합되지 않은 지역 날짜·시각"
+        ],
+        [
+          "ZonedDateTime",
+          "지역 날짜·시각, UTC 오프셋, DST 여부, 시간대 ID"
+        ],
+        [
+          "TimeRange",
+          "시작 포함·종료 제외. 양끝이 같으면 단일 시점 이벤트"
+        ]
+      ]
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 27,
+      "end_line": 27,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "paragraph",
+      "start_line": 28,
+      "end_line": 32,
+      "raw": "`Instant(-1, 999999999999999999)`는 epoch 직전 1 attosecond이다. 정밀 연산과 저장에\n부동소수점을 사용하지 않는다. 정규화 후 표현 범위를 넘으면 `std::overflow_error`를 발생시킨다.\nISO 문자열은 필요한 소수부만 최대 18자리까지 표시한다. 초과 자릿수, 오프셋 없는 절대 시각,\n알 수 없는 오프셋 `-00:00`은 반올림·추정 없이 거부한다.\n직렬화 형식은 프로세스 전역 로케일의 숫자 그룹 구분자에 영향을 받지 않는다.\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "paragraph",
+      "start_line": 34,
+      "end_line": 38,
+      "raw": "**표현 정밀도와 물리 시계 정확도는 다르다.** `Clock::sample()`은 macOS/Linux의\n`clock_gettime`·`clock_getres`, Windows의 `GetSystemTimePreciseAsFileTime`·QPC를 사용한다.\n벽시계·단조 시계·관측 구간·출처를 반환한다. `wallResolution`은 OS가 제공한 분해능이며,\nWindows에서는 알 수 없음(`nullopt`)이다. FILETIME의 100 ns 표현 단위를 UTC 정확도로 주장하지\n않는다. OS 시계 설정을 변경하지 않는다.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 39,
+      "end_line": 39,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "paragraph",
+      "start_line": 40,
+      "end_line": 42,
+      "raw": "시각 척도는 POSIX/Unix 시간이다. 윤초 `23:59:60`을 거부한다. TAI/TT/UT1/GPS 변환,\nNTP 동기화 정확도 보장은 포함하지 않는다. 그레고리·율리우스력은 선행 역법이며 국가별 역사적\n개력 날짜를 자동 적용하지 않는다.\n"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 43,
+      "end_line": 43,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "heading",
+      "start_line": 44,
+      "end_line": 44,
+      "raw": "## 역법·시간대\n",
+      "level": 2,
+      "title": "역법·시간대"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 45,
+      "end_line": 45,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "paragraph",
+      "start_line": 46,
+      "end_line": 47,
+      "raw": "자체 정수 구현은 `gregorian`, `iso8601`, `julian`이다. ISO 주차는 `WeekDate`로 제공한다.\n국제 역법은 ICU의 실제 등록 목록에서 발견한다. 이번 ICU 78.3 빌드의 19종은 다음과 같다.\n"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 48,
+      "end_line": 48,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "fenced_code",
+      "start_line": 49,
+      "end_line": 53,
+      "raw": "```text\nbuddhist, chinese, coptic, dangi, ethiopic, ethiopic-amete-alem,\ngregorian, hebrew, indian, islamic, islamic-civil, islamic-rgsa,\nislamic-tbla, islamic-umalqura, iso8601, japanese, julian, persian, roc\n```\n",
+      "language": "text",
+      "code": "buddhist, chinese, coptic, dangi, ethiopic, ethiopic-amete-alem,\ngregorian, hebrew, indian, islamic, islamic-civil, islamic-rgsa,\nislamic-tbla, islamic-umalqura, iso8601, japanese, julian, persian, roc\n",
+      "closed": true
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 54,
+      "end_line": 54,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "paragraph",
+      "start_line": 55,
+      "end_line": 57,
+      "raw": "`CalendarRegistry::ids()`가 현재 지원 목록을 반환한다. 한국 음력은 `dangi` 어댑터이며 윤월을\n별도 필드로 보존한다. 역사적·관측적 변형까지 모두 같은 달력이라고 간주하지 않는다. 추가 역법은\n`CalendarSystem`을 구현해 `add()`로 등록한다. 알 수 없는 역법을 그레고리력으로 대체하지 않는다.\n"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 58,
+      "end_line": 58,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 59,
+      "end_line": 62,
+      "raw": "ICU에는 완전한 초를 정확한 정수 밀리초로 전달하고, 소수 18자리는 별도 보존한 뒤 다시 결합한다.\nICU 역법·시간대 변환 한계는 epoch 기준 ±100,000,000일이다. 핵심 Instant 범위와 Date·문자열·\nICU 변환 범위는 다르며 각 경계를 검사한다. 날짜는 지역 자정 기준이다. 일몰 시작 종교일의 관측\n시각을 자동 계산하지 않는다.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 63,
+      "end_line": 63,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "paragraph",
+      "start_line": 64,
+      "end_line": 65,
+      "raw": "`TimeZone::system()`은 현재 호스트 시간대, `available()`은 지원 목록, `databaseVersion()`은\ntzdb 버전을 반환한다. 잘못된 시간대 ID를 거부한다.\n"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 66,
+      "end_line": 66,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "list",
+      "start_line": 67,
+      "end_line": 70,
+      "raw": "- DST 중복 시각: `Reject / Earlier / Later` 중 선택한다.\n- 존재하지 않는 지역 시각: `Reject / ShiftForward` 중 선택한다.\n- `dayRange()`는 지역 자정 경계를 계산한다. 하루는 23/25시간이거나 생략된 날의 경우 길이 0이다.\n- `AllDaySchedule`은 끝 날짜를 제외하는 날짜 범위이다. 하루를 고정 86400초로 취급하지 않는다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "DST 중복 시각: `Reject / Earlier / Later` 중 선택한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "존재하지 않는 지역 시각: `Reject / ShiftForward` 중 선택한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`dayRange()`는 지역 자정 경계를 계산한다. 하루는 23/25시간이거나 생략된 날의 경우 길이 0이다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`AllDaySchedule`은 끝 날짜를 제외하는 날짜 범위이다. 하루를 고정 86400초로 취급하지 않는다.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 71,
+      "end_line": 71,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "heading",
+      "start_line": 72,
+      "end_line": 72,
+      "raw": "## 이벤트·반복\n",
+      "level": 2,
+      "title": "이벤트·반복"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 73,
+      "end_line": 73,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "paragraph",
+      "start_line": 74,
+      "end_line": 76,
+      "raw": "EventKind는 일정·할 일·활동·메모·알림이다. 컬렉션 ID, 역법 ID, 제목·설명·URL·색상·소유자,\n공개 범위, busy, 우선순위, 완료율, 생성·수정·마감·완료 시각, 장소·좌표, 참석자·응답,\n파일, 알림, 태그, 확장 속성, 관계 링크를 포함한다. `calendarId`는 컬렉션이고 `calendarSystem`은 역법이다.\n"
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 77,
+      "end_line": 77,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "paragraph",
+      "start_line": 78,
+      "end_line": 80,
+      "raw": "일정은 시간 구간·종일 날짜 구간·미지정 중 하나이다. 미지정 이벤트에 마감이 있으면 마감 시점에\n배치한다. 시간 일정과 마감이 모두 있으면 달력 배치는 시간 일정 기준이다. 둘 다 없는 할 일은\n저장·필터 조회할 수 있지만 특정 날짜에 자동 배치하지 않는다.\n"
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 81,
+      "end_line": 81,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "paragraph",
+      "start_line": 82,
+      "end_line": 88,
+      "raw": "반복은 일·주·월·연, 간격, 횟수 또는 종료 시각, 요일·월·월의 일자, 월의 n번째/마지막 요일,\n제외·추가 시점을 지원한다. 음수 일자는 월말 기준이다. 월 주기는 역법의 실제 윤월·13번째 월\n경계를 따라 계산하며 연 주기는 확장 연도를 사용한다. 시작일은 규칙의 기준점이며 필터에도\n일치해야 회차가 생성된다. 이 모델은 명시된 규칙 부분집합이며 RFC 5545 전체 구현은 아니다.\n초·분·시간 단위 반복, BYSETPOS, 개별 회차 수정 객체, ICS 파서·독립 CalDAV 클라이언트는 포함하지 않는다.\n외부 계정의 조회는 별도 `CalendarObjectManager`·제공자를 사용한다. Google/EventKit에서 펼친 회차를\n기존 Event로 변환하며 로컬 반복 규칙으로 다시 펼치지 않는다.\n"
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 89,
+      "end_line": 89,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
+      "kind": "paragraph",
+      "start_line": 90,
+      "end_line": 93,
+      "raw": "지역 시각을 유지하며 timed 이벤트는 경과 길이, 종일 이벤트는 날짜 수를 보존한다. DST 공백 회차는\n건너뛰고 중복 시각은 앞 시각을 사용한다. 최초 시점이 뒤 시각으로 지정됐다면 최초 시점은 유지한다.\n제외 회차도 규칙 횟수에 포함한다. 추가 회차는 횟수·종료 조건 밖에서도 추가 가능하다. 같은 시점은\n중복 제거하며 제외가 우선한다. 종료 시각은 포함한다.\n"
+    },
+    {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 94,
+      "end_line": 94,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "paragraph",
+      "start_line": 95,
+      "end_line": 97,
+      "raw": "ExpansionLimits 기본값은 반환 10,000건·날짜 스캔 1,000,000회이다. 초과하면 조용히 자르지 않고\n`std::length_error`를 발생시킨다. 현재 시작점부터 날짜를 순회하므로 매우 오래된 대규모 반복은\n조회 범위나 제한을 조정해야 한다.\n"
+    },
+    {
+      "id": "b000044",
+      "kind": "blank",
+      "start_line": 98,
+      "end_line": 98,
+      "raw": "\n"
+    },
+    {
+      "id": "b000045",
+      "kind": "heading",
+      "start_line": 99,
+      "end_line": 99,
+      "raw": "## SQLite\n",
+      "level": 2,
+      "title": "SQLite"
+    },
+    {
+      "id": "b000046",
+      "kind": "blank",
+      "start_line": 100,
+      "end_line": 100,
+      "raw": "\n"
+    },
+    {
+      "id": "b000047",
+      "kind": "paragraph",
+      "start_line": 101,
+      "end_line": 104,
+      "raw": "STRICT 테이블, 가능한 경우 WAL, FULL 동기화, foreign key, 5초 busy timeout을 사용한다. 메모리\n데이터베이스의 저널 모드는 SQLite의 메모리 모드이다. application_id와\nuser_version=1을 확인하며 타 애플리케이션 DB·미지원 스키마를 거부한다. 부모 디렉터리를 자동\n생성하거나 기존 DB를 삭제하지 않는다. `:memory:`를 지원한다.\n"
+    },
+    {
+      "id": "b000048",
+      "kind": "blank",
+      "start_line": 105,
+      "end_line": 105,
+      "raw": "\n"
+    },
+    {
+      "id": "b000049",
+      "kind": "paragraph",
+      "start_line": 106,
+      "end_line": 115,
+      "raw": "`Store(std::shared_ptr<sqlite3>, calendars)`는 애플리케이션이 미리 열어 둔 읽기·쓰기 연결을\n받는다. 호출자는 `sqlite3_close_v2`와 같은 연결 종료 deleter를 지정하고, 활성 트랜잭션이 없는\n연결을 넘기며, Store가 살아 있는 동안 그 연결을 다른 Store나 외부 코드가 사용하지 않게 해야\n한다. 공유 포인터가 연결 수명을\n유지하며 Store가 파괴되어도 호출자가 보유한 연결은 닫히지 않는다. Store는 연결의 busy timeout,\nforeign key 설정과 스키마를 검사·설정한다. 연결이 null이거나 달력 레지스트리가 null이면\n`invalid_argument`를, 무관하거나 지원되지 않는 데이터베이스는 `StorageError`를 반환한다.\n`Store::inMemory()`는 파일을 만들지 않는다. 파일 기반 저장소는 별도 소비자의\n`iiCalendarFileProvider::openStore(path)`처럼 iiFileProvider로 연결을 열어 주입한다. 기존\n`Store(path)`는 제거됐으므로 애플리케이션을 다시 빌드하고 호출을 이전해야 한다.\n"
+    },
+    {
+      "id": "b000050",
+      "kind": "blank",
+      "start_line": 116,
+      "end_line": 116,
+      "raw": "\n"
+    },
+    {
+      "id": "b000051",
+      "kind": "paragraph",
+      "start_line": 117,
+      "end_line": 121,
+      "raw": "events에는 절대 시작·종료의 정수 `(seconds, attoseconds)`, 지역 날짜 epoch day,\n하루 내 초·소수부, 시간대, 종일 여부, 컬렉션·유형·상태·제목·revision을 함께 저장한다.\n전체 객체는 버전이 있는 little-endian payload로 보존한다. payload 최대 16 MiB,\n각 텍스트 1 MiB, 개별 컬렉션 10,000개이다. 읽을 때 길이·타입·객체 불변조건과 ID/revision을 검사한다.\n쓰기 도중에도 누적 payload 상한을 검사해 과대 입력을 끝까지 할당하지 않는다.\n"
+    },
+    {
+      "id": "b000052",
+      "kind": "blank",
+      "start_line": 122,
+      "end_line": 122,
+      "raw": "\n"
+    },
+    {
+      "id": "b000053",
+      "kind": "table",
+      "start_line": 123,
+      "end_line": 131,
+      "raw": "| 인덱스 | 목적 |\n|---|---|\n|idx_events_start / end| 정밀 시간 구간 |\n| idx_events_calendar_start | 컬렉션별 시간순 |\n| idx_events_date_time / calendar_date | 저장된 지역 시작 날짜·시각 |\n| idx_events_kind_status | 유형·진행 상태 |\n| idx_events_due | 마감 시각 |\n| idx_events_recurring | 반복 후보 |\n| idx_tags_lookup | 태그 → 이벤트 |\n",
+      "columns": [
+        "인덱스",
+        "목적"
+      ],
+      "rows": [
+        [
+          "idx_events_start / end",
+          "정밀 시간 구간"
+        ],
+        [
+          "idx_events_calendar_start",
+          "컬렉션별 시간순"
+        ],
+        [
+          "idx_events_date_time / calendar_date",
+          "저장된 지역 시작 날짜·시각"
+        ],
+        [
+          "idx_events_kind_status",
+          "유형·진행 상태"
+        ],
+        [
+          "idx_events_due",
+          "마감 시각"
+        ],
+        [
+          "idx_events_recurring",
+          "반복 후보"
+        ],
+        [
+          "idx_tags_lookup",
+          "태그 → 이벤트"
+        ]
+      ]
+    },
+    {
+      "id": "b000054",
+      "kind": "blank",
+      "start_line": 132,
+      "end_line": 132,
+      "raw": "\n"
+    },
+    {
+      "id": "b000055",
+      "kind": "paragraph",
+      "start_line": 133,
+      "end_line": 135,
+      "raw": "SQLite REAL·julianday()·날짜 함수로 소수초를 변환하지 않는다. 정수 쌍의 사전식 비교를 사용한다.\nput()은 payload·시간 인덱스·태그를 BEGIN IMMEDIATE 트랜잭션에서 갱신한다. 실패하면 전체\n롤백한다. expectedRevision=0은 신규 생성 전용이고, revision이 다르면 RevisionConflict를 반환한다.\n"
+    },
+    {
+      "id": "b000056",
+      "kind": "blank",
+      "start_line": 136,
+      "end_line": 136,
+      "raw": "\n"
+    },
+    {
+      "id": "b000057",
+      "kind": "list",
+      "start_line": 137,
+      "end_line": 142,
+      "raw": "- query(): 원본 이벤트 조회. 반복 회차를 펼치지 않으며 취소 이벤트도 조회 가능하다.\n- onLocalDate(): 각 이벤트 시간대에서 **저장된 시작 날짜**를 조회한다. 날짜를 가로지르는 일정,\n  다른 시간대, 반복 회차의 겹침은 scheduled() 또는 dayDetails()를 사용한다.\n- scheduled(): 하나의 SQLite 읽기 스냅샷에서 후보 객체를 얻어 반복을 확장한다. 취소 항목을 제외한다.\n- query() 페이지는 최대 10,000건이다. onLocalDate()와 scheduled() 후보도 10,000건으로\n  제한하며 초과 시 실패한다. 부분 집계를 완전한 결과로 반환하지 않는다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "query(): 원본 이벤트 조회. 반복 회차를 펼치지 않으며 취소 이벤트도 조회 가능하다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "onLocalDate(): 각 이벤트 시간대에서 **저장된 시작 날짜**를 조회한다. 날짜를 가로지르는 일정,",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "scheduled(): 하나의 SQLite 읽기 스냅샷에서 후보 객체를 얻어 반복을 확장한다. 취소 항목을 제외한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "query() 페이지는 최대 10,000건이다. onLocalDate()와 scheduled() 후보도 10,000건으로",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000058",
+      "kind": "blank",
+      "start_line": 143,
+      "end_line": 143,
+      "raw": "\n"
+    },
+    {
+      "id": "b000059",
+      "kind": "heading",
+      "start_line": 144,
+      "end_line": 144,
+      "raw": "## 표시 모델\n",
+      "level": 2,
+      "title": "표시 모델"
+    },
+    {
+      "id": "b000060",
+      "kind": "blank",
+      "start_line": 145,
+      "end_line": 145,
+      "raw": "\n"
+    },
+    {
+      "id": "b000061",
+      "kind": "paragraph",
+      "start_line": 146,
+      "end_line": 148,
+      "raw": "ViewKind는 일·주·월·연·agenda·timeline·사용자 지정 기간을 지원한다. 월은 42셀, 다른 뷰는\n실제 기간의 날짜 배열을 제공한다. 주 시작 요일·오늘·역법을 인자로 받고 한 셀에 그레고리 날짜와\n선택 역법의 날짜를 함께 제공한다. UI 위젯을 그리는 라이브러리는 아니다.\n"
+    },
+    {
+      "id": "b000062",
+      "kind": "blank",
+      "start_line": 149,
+      "end_line": 149,
+      "raw": "\n"
+    },
+    {
+      "id": "b000063",
+      "kind": "paragraph",
+      "start_line": 150,
+      "end_line": 153,
+      "raw": "dayDetails()는 선택 날짜·시간대의 일정·할 일·활동·메모·알림을 집계한다. 각 영역은 전체 건수,\n지정 길이의 미리보기, hasMore()를 반환한다. 완료된 할 일 수, 중복 제거된 파일 목록·건수,\nhasMoreFiles()도 제공한다. 동일 컬렉션의 동일 첨부 ID가 중복 제거 기준이다. 여러 날에 걸친\n일정은 겹치는 각 날에 나타난다. Figma의 View all … 버튼에 이 상태를 연결할 수 있다.\n"
+    },
+    {
+      "id": "b000064",
+      "kind": "blank",
+      "start_line": 154,
+      "end_line": 154,
+      "raw": "\n"
+    },
+    {
+      "id": "b000065",
+      "kind": "heading",
+      "start_line": 155,
+      "end_line": 155,
+      "raw": "## 1차 자료·의존성 고지\n",
+      "level": 2,
+      "title": "1차 자료·의존성 고지"
+    },
+    {
+      "id": "b000066",
+      "kind": "blank",
+      "start_line": 156,
+      "end_line": 156,
+      "raw": "\n"
+    },
+    {
+      "id": "b000067",
+      "kind": "paragraph",
+      "start_line": 157,
+      "end_line": 161,
+      "raw": "외부 캘린더 의존 방향은 `ExternalCalendarProvider → CalendarObjectManager → 호출 애플리케이션`이다.\n제공자와 관리자는 기존 Event/TimeZone을 사용하고 상위 제품·로그인 프레임워크를 참조하지 않는다.\nGoogle의 비공개 JSON 변환과 libcurl 전송, Apple의 비공개 Objective-C++ EventKit 구현은 공개 C++23\n인터페이스 뒤에 둔다. 계정·캘린더·일정 ID, 부분 실패·로그아웃 계약은\n[외부 캘린더 문서](ExternalCalendars.md)에 정의한다.\n"
+    },
+    {
+      "id": "b000068",
+      "kind": "blank",
+      "start_line": 162,
+      "end_line": 162,
+      "raw": "\n"
+    },
+    {
+      "id": "b000069",
+      "kind": "list",
+      "start_line": 163,
+      "end_line": 167,
+      "raw": "- [ICU 캘린더 서비스](https://unicode-org.github.io/icu/userguide/datetime/calendar/)\n- [ICU 78.3, tzdb 2026a 배포](https://github.com/unicode-org/icu/releases/tag/release-78.3)\n- [SQLite 데이터 형식](https://www.sqlite.org/datatype3.html)\n- [SQLite 정수 복합 값 비교](https://www.sqlite.org/rowvalue.html)\n- [Windows 고정밀 시계](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsystemtimepreciseasfiletime)\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "[ICU 캘린더 서비스](https://unicode-org.github.io/icu/userguide/datetime/calendar/)",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "[ICU 78.3, tzdb 2026a 배포](https://github.com/unicode-org/icu/releases/tag/release-78.3)",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "[SQLite 데이터 형식](https://www.sqlite.org/datatype3.html)",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "[SQLite 정수 복합 값 비교](https://www.sqlite.org/rowvalue.html)",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "[Windows 고정밀 시계](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsystemtimepreciseasfiletime)",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000070",
+      "kind": "blank",
+      "start_line": 168,
+      "end_line": 168,
+      "raw": "\n"
+    },
+    {
+      "id": "b000071",
+      "kind": "paragraph",
+      "start_line": 169,
+      "end_line": 170,
+      "raw": "ICU의 Unicode 라이선스 원문은 bootstrap 소스의 build/deps/icu/LICENSE에 포함된다.\nICU 재배포 시 관련 고지를 유지해야 한다. SQLite는 공급 배포본의 고지를 확인한다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "iiCalendar 0.1 설계 및 지원 계약",
+      "anchor": "iicalendar-01-설계-및-지원-계약",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000003",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "의존 방향",
+      "anchor": "의존-방향",
+      "start_line": 3
+    },
+    {
+      "block_id": "b000009",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "날짜·시각·정밀도",
+      "anchor": "날짜시각정밀도",
+      "start_line": 14
+    },
+    {
+      "block_id": "b000019",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "역법·시간대",
+      "anchor": "역법시간대",
+      "start_line": 44
+    },
+    {
+      "block_id": "b000033",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "이벤트·반복",
+      "anchor": "이벤트반복",
+      "start_line": 72
+    },
+    {
+      "block_id": "b000045",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "SQLite",
+      "anchor": "sqlite",
+      "start_line": 99
+    },
+    {
+      "block_id": "b000059",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "표시 모델",
+      "anchor": "표시-모델",
+      "start_line": 144
+    },
+    {
+      "block_id": "b000065",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "1차 자료·의존성 고지",
+      "anchor": "1차-자료의존성-고지",
+      "start_line": 155
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000007",
+        "line": 8,
+        "text": "참조하지 않는다. 공개 헤더에 ICU 자료형은 노출하지 않으며, 저장소 연결 주입을 위해 SQLite의",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000013",
+        "line": 29,
+        "text": "부동소수점을 사용하지 않는다. 정규화 후 표현 범위를 넘으면 `std::overflow_error`를 발생시킨다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000015",
+        "line": 38,
+        "text": "않는다. OS 시계 설정을 변경하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000017",
+        "line": 41,
+        "text": "NTP 동기화 정확도 보장은 포함하지 않는다. 그레고리·율리우스력은 선행 역법이며 국가별 역사적",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000017",
+        "line": 42,
+        "text": "개력 날짜를 자동 적용하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000025",
+        "line": 56,
+        "text": "별도 필드로 보존한다. 역사적·관측적 변형까지 모두 같은 달력이라고 간주하지 않는다. 추가 역법은",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000025",
+        "line": 57,
+        "text": "`CalendarSystem`을 구현해 `add()`로 등록한다. 알 수 없는 역법을 그레고리력으로 대체하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000027",
+        "line": 62,
+        "text": "시각을 자동 계산하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000031",
+        "line": 70,
+        "text": "- `AllDaySchedule`은 끝 날짜를 제외하는 날짜 범위이다. 하루를 고정 86400초로 취급하지 않는다.",
+        "basis": "lexical_match",
+        "context": "list"
+      },
+      {
+        "block_id": "b000037",
+        "line": 80,
+        "text": "저장·필터 조회할 수 있지만 특정 날짜에 자동 배치하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000039",
+        "line": 86,
+        "text": "초·분·시간 단위 반복, BYSETPOS, 개별 회차 수정 객체, ICS 파서·독립 CalDAV 클라이언트는 포함하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000043",
+        "line": 97,
+        "text": "조회 범위나 제한을 조정해야 한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000047",
+        "line": 104,
+        "text": "생성하거나 기존 DB를 삭제하지 않는다. `:memory:`를 지원한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000049",
+        "line": 115,
+        "text": "`Store(path)`는 제거됐으므로 애플리케이션을 다시 빌드하고 호출을 이전해야 한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000051",
+        "line": 121,
+        "text": "쓰기 도중에도 누적 payload 상한을 검사해 과대 입력을 끝까지 할당하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000055",
+        "line": 133,
+        "text": "SQLite REAL·julianday()·날짜 함수로 소수초를 변환하지 않는다. 정수 쌍의 사전식 비교를 사용한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000057",
+        "line": 142,
+        "text": "제한하며 초과 시 실패한다. 부분 집계를 완전한 결과로 반환하지 않는다.",
+        "basis": "lexical_match",
+        "context": "list"
+      },
+      {
+        "block_id": "b000067",
+        "line": 158,
+        "text": "제공자와 관리자는 기존 Event/TimeZone을 사용하고 상위 제품·로그인 프레임워크를 참조하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000071",
+        "line": 170,
+        "text": "ICU 재배포 시 관련 고지를 유지해야 한다. SQLite는 공급 배포본의 고지를 확인한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [
+      {
+        "block_id": "b000067",
+        "label": "외부 캘린더 문서",
+        "target": "ExternalCalendars.md",
+        "kind": "relative",
+        "line": 161
+      },
+      {
+        "block_id": "b000069",
+        "label": "ICU 캘린더 서비스",
+        "target": "https://unicode-org.github.io/icu/userguide/datetime/calendar/",
+        "kind": "external",
+        "line": 163
+      },
+      {
+        "block_id": "b000069",
+        "label": "ICU 78.3, tzdb 2026a 배포",
+        "target": "https://github.com/unicode-org/icu/releases/tag/release-78.3",
+        "kind": "external",
+        "line": 164
+      },
+      {
+        "block_id": "b000069",
+        "label": "SQLite 데이터 형식",
+        "target": "https://www.sqlite.org/datatype3.html",
+        "kind": "external",
+        "line": 165
+      },
+      {
+        "block_id": "b000069",
+        "label": "SQLite 정수 복합 값 비교",
+        "target": "https://www.sqlite.org/rowvalue.html",
+        "kind": "external",
+        "line": 166
+      },
+      {
+        "block_id": "b000069",
+        "label": "Windows 고정밀 시계",
+        "target": "https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsystemtimepreciseasfiletime",
+        "kind": "external",
+        "line": 167
+      }
+    ],
+    "tables": [
+      {
+        "block_id": "b000011",
+        "columns": [
+          "객체",
+          "의미"
+        ],
+        "rows": [
+          [
+            "Date",
+            "선행 그레고리력, 천문학적 연도 -999999..999999, 연도 0 포함"
+          ],
+          [
+            "CalendarDate",
+            "역법의 확장 연도·월·일·윤월·시대·시대 내 연도"
+          ],
+          [
+            "WeekDate",
+            "ISO 주차 연도·주차·요일, 월요일 1부터 일요일 7"
+          ],
+          [
+            "Time",
+            "하루 내 초 0..86399 및 소수 18자리"
+          ],
+          [
+            "Instant",
+            "Unix epoch 기준 signed 64-bit 초 + 소수부 0..10¹⁸−1"
+          ],
+          [
+            "지속 시간",
+            "동일한 정수 쌍으로 표현한 경과 시간"
+          ],
+          [
+            "LocalDateTime",
+            "시간대가 결합되지 않은 지역 날짜·시각"
+          ],
+          [
+            "ZonedDateTime",
+            "지역 날짜·시각, UTC 오프셋, DST 여부, 시간대 ID"
+          ],
+          [
+            "TimeRange",
+            "시작 포함·종료 제외. 양끝이 같으면 단일 시점 이벤트"
+          ]
+        ]
+      },
+      {
+        "block_id": "b000053",
+        "columns": [
+          "인덱스",
+          "목적"
+        ],
+        "rows": [
+          [
+            "idx_events_start / end",
+            "정밀 시간 구간"
+          ],
+          [
+            "idx_events_calendar_start",
+            "컬렉션별 시간순"
+          ],
+          [
+            "idx_events_date_time / calendar_date",
+            "저장된 지역 시작 날짜·시각"
+          ],
+          [
+            "idx_events_kind_status",
+            "유형·진행 상태"
+          ],
+          [
+            "idx_events_due",
+            "마감 시각"
+          ],
+          [
+            "idx_events_recurring",
+            "반복 후보"
+          ],
+          [
+            "idx_tags_lookup",
+            "태그 → 이벤트"
+          ]
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

@@ -1,6 +1,5 @@
 #pragma once
 #include "ExternalCalendar.h"
-#include <filesystem>
 
 namespace iiCalendar {
 // An already authenticated iisacc app session, not a display-only account JSON.
@@ -56,8 +55,6 @@ public:
     // using the host's secure credentials after restore; disabled stays disabled.
     [[nodiscard]] std::string connectionDocument() const;
     void restoreConnections(const std::string &document);
-    void saveConnections(const std::filesystem::path &file) const;
-    void loadConnections(const std::filesystem::path &file);
     static constexpr std::size_t maximumConnectionBytes = 256 * 1024;
 private:
     class Impl;

@@ -1,0 +1,16 @@
+if(NOT DEFINED IICALENDAR_SOURCE)
+    message(FATAL_ERROR "IICALENDAR_SOURCE is required")
+endif()
+file(READ "${IICALENDAR_SOURCE}/CMakeLists.txt" _calendar)
+string(REGEX REPLACE "#[^\n]*" "" _calendar "${_calendar}")
+if(_calendar MATCHES "find_package\\([ \t\n]*iiAccountManager"
+        OR _calendar MATCHES "target_link_libraries\\([^\\)]*iiAccountManager::")
+    message(FATAL_ERROR "Calendar CMake must not discover or link the account SDK")
+endif()
+file(READ "${IICALENDAR_SOURCE}/cmake/iiCalendarConfig.cmake.in" _package)
+file(READ "${IICALENDAR_SOURCE}/src/iiCalendar/Store.cpp" _store)
+file(READ "${IICALENDAR_SOURCE}/src/iiCalendar/Accounts.cpp" _accounts)
+if(_calendar MATCHES "iiFileProvider" OR _package MATCHES "iiFileProvider"
+        OR _store MATCHES "iiFileProvider" OR _accounts MATCHES "iiFileProvider")
+    message(FATAL_ERROR "Calendar must not discover, link, or include the file-provider SDK")
+endif()

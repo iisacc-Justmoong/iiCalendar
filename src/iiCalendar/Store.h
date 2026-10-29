@@ -1,8 +1,10 @@
 #pragma once
 #include "Event.h"
-#include <filesystem>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
+
+struct sqlite3;
 
 namespace iiCalendar {
 class StorageError : public std::runtime_error {
@@ -25,8 +27,14 @@ struct ScheduledEvent {
 };
 class Store {
   public:
+    // This convenience opens only an in-memory database and creates no file.
+    [[nodiscard]] static Store inMemory(
+        std::shared_ptr<const CalendarRegistry> calendars = std::make_shared<CalendarRegistry>());
+    // Share ownership of an already-open SQLite connection. The caller must
+    // supply its deleter, provide a connection with no active transaction, and
+    // give this Store exclusive use of the connection for its lifetime.
     explicit Store(
-        const std::filesystem::path &database,
+        std::shared_ptr<sqlite3> connection,
         std::shared_ptr<const CalendarRegistry> calendars = std::make_shared<CalendarRegistry>());
     ~Store();
     Store(const Store &) = delete;

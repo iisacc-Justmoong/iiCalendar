@@ -1,0 +1,115 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:bd74f6e0a650f5ad2061a3424ca8cf8f61ae99ec8054e7bab9bf3e14e11c561c",
+  "project": {
+    "id": "urn:iisacc:project:SDK%2FiiCalendar",
+    "name": "iiCalendar",
+    "root": "SDK/iiCalendar",
+    "kind": "sdk"
+  },
+  "source": {
+    "path": "docs/FILE_PROVIDER.md",
+    "sha256": "6bf8fe2fcb02202e5784c03f272b7e32cbacd148dcfa1975f0317e8ed0e48ea1",
+    "bytes": 996,
+    "line_count": 17,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "File creation ownership in iiCalendar",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# File creation ownership in iiCalendar\n",
+      "level": 1,
+      "title": "File creation ownership in iiCalendar"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 6,
+      "raw": "Calendar index databases and connection documents are opened by the separate\n`examples/file-provider` application adapter using the native provider. Calendar\nschema, queries, transactions, recurrence and calendar semantics stay in\niiCalendar, which has no provider SDK dependency.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 8,
+      "end_line": 11,
+      "raw": "The common [ownership contract](../../iiFileProvider/docs/FILE_OWNERSHIP.md) defines stream, staging, control-file and\ninstalled-package rules. Source regression tests remain with this module; the\nworkspace creation audit also checks these boundaries. Build/deployment and target\nruntime validation are separate evidence.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 12,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 13,
+      "end_line": 17,
+      "raw": "The application passes an already-open SQLite connection to `Store` and keeps\nexclusive use of it for the store lifetime. Account documents use the calendar\nmodule's metadata-only document API and provider-owned file publication.\nExisting applications using `Store(path)` or the removed account file methods\nmust migrate to this adapter and rebuild.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "File creation ownership in iiCalendar",
+      "anchor": "file-creation-ownership-in-iicalendar",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000007",
+        "line": 17,
+        "text": "must migrate to this adapter and rebuild.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [
+      {
+        "block_id": "b000005",
+        "label": "ownership contract",
+        "target": "../../iiFileProvider/docs/FILE_OWNERSHIP.md",
+        "kind": "relative",
+        "line": 8
+      }
+    ],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

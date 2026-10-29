@@ -1,0 +1,560 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:9349439802dd915625847f4cf00dc0bbcf8e3e6c99b98f8b500d074724afd1c4",
+  "project": {
+    "id": "urn:iisacc:project:SDK%2FiiCalendar",
+    "name": "iiCalendar",
+    "root": "SDK/iiCalendar",
+    "kind": "sdk"
+  },
+  "source": {
+    "path": "README.md",
+    "sha256": "cc34666fc0a39b52478c08477d0b6130377808b686706e528bfdca3eb48fe025",
+    "bytes": 5553,
+    "line_count": 99,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "iiCalendar",
+    "role": "overview",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# iiCalendar\n",
+      "level": 1,
+      "title": "iiCalendar"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "[Windows build and execution](docs/WindowsBuildAndRun.md)\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 7,
+      "raw": "The installed consumer test uses the same build configuration as the SDK. This\nkeeps the MSVC runtime and iterator ABI consistent for Debug and Release builds;\nconsumer build failures include compiler and linker output in the test log.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 9,
+      "end_line": 11,
+      "raw": "Package release: **0.2.1** (2026-10-19). This patch packages the current\nsource snapshot; build, test and installation evidence is recorded in the SDK\npatch-release report. Earlier versioned feature notes remain historical.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 13,
+      "raw": "\n\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 14,
+      "end_line": 14,
+      "raw": "C++23-based Qt non-dependent calendar SDK. It provides high-precision time, international calendar and timezone, schedule, to-do, activity, SQLite index, and data models for screen display. It does not reference the UI framework.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 15,
+      "end_line": 15,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 16,
+      "end_line": 16,
+      "raw": "The public API and its implementation live together in `src/iiCalendar/`. Usage examples are `examples/day_details.cpp`. Consumers continue to use `<iiCalendar/...>` through the exported CMake target.\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 17,
+      "end_line": 17,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "fenced_code",
+      "start_line": 18,
+      "end_line": 25,
+      "raw": "```sh\npython3 scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n./build/iiCalendarExample\ncmake --install build --prefix \"$PWD/build/install\"\n```\n",
+      "language": "sh",
+      "code": "python3 scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n./build/iiCalendarExample\ncmake --install build --prefix \"$PWD/build/install\"\n",
+      "closed": true
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "paragraph",
+      "start_line": 27,
+      "end_line": 27,
+      "raw": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and C++23 compiler. Bootstrap validates official ICU 78.3 sources from POSIX host to SHA-256 and statically builds only at `build/deps/icu/`. Network download is performed only during explicit bootstrap execution. CMake is not downloaded.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "fenced_code",
+      "start_line": 29,
+      "end_line": 32,
+      "raw": "```cmake\nfind_package(iiCalendar 0.2 CONFIG REQUIRED)\ntarget_link_libraries(MyApplication PRIVATE iiCalendar::iiCalendar)\n```\n",
+      "language": "cmake",
+      "code": "find_package(iiCalendar 0.2 CONFIG REQUIRED)\ntarget_link_libraries(MyApplication PRIVATE iiCalendar::iiCalendar)\n",
+      "closed": true
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "paragraph",
+      "start_line": 34,
+      "end_line": 34,
+      "raw": "Installation consumers require SQLite and ICU development package or `ICU_ROOT`. The top-level SDK installer is auto-discovered via CMakeLists.txt. To update the actual user installation on the host, use the SDK installer's `--only iiCalendar` and the desired prefix.\n"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "paragraph",
+      "start_line": 36,
+      "end_line": 36,
+      "raw": "The specific supported scope, time scales, recurrence rules, and storage contracts are recorded in [design documentation](docs/Design.md); the scope of tests and platform verification is recorded in [verification documentation](docs/Validation.md).\n"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 37,
+      "end_line": 37,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 38,
+      "end_line": 47,
+      "raw": "`Store` can also use an already-open `std::shared_ptr<sqlite3>` supplied by the\napplication. The application supplies a deleter that closes the connection and\nmust give the store exclusive use of that connection for its lifetime. This\npermits application-owned connection setup; `Store::inMemory()` opens an\nin-memory database without creating a file. For persistent databases and\naccount documents, the separately configured [file-provider consumer](examples/file-provider)\nshows application-owned composition with iiFileProvider. The former `Store(path)`\nand account `saveConnections(path)` / `loadConnections(path)` members have been\nremoved: applications must migrate to the consumer adapter or supply their own\nconnection and document I/O. Rebuild existing consumers against the new API.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 48,
+      "end_line": 48,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "heading",
+      "start_line": 49,
+      "end_line": 49,
+      "raw": "## Accounts and external calendars\n",
+      "level": 2,
+      "title": "Accounts and external calendars"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 50,
+      "end_line": 50,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 51,
+      "end_line": 60,
+      "raw": "`CalendarAccountManager` requires an authenticated iisacc owner and connects\nadditional Google, Microsoft/Outlook and device-managed Apple calendar accounts.\nIt manages account-scoped calendars/events, enable/disable, disconnect,\ncredential-free connection restoration, expiry and stale-session isolation.\nThe native library remains Qt-free. A header-only adapter reads verified\niiAccountManager 0.2.9+ session bindings and their effective credential expiry.\nSee [Accounts](docs/Accounts.md) for the public API and complete host wiring.\nThe account-SDK integration test is configured separately from\n`examples/iisacc-bridge`; iiCalendar's own CMake does not find or link that SDK.\nThe calendar library itself does not link iiFileProvider Native.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 61,
+      "end_line": 61,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "paragraph",
+      "start_line": 62,
+      "end_line": 66,
+      "raw": "The host owns OAuth, token refresh and secure credential custody. The SDK\nresolves/pins Google and Microsoft account identity, performs calendar reads and\nvalidates bounded snapshots. Apple uses the OS EventKit accounts and requires\nexplicit full-access authorization. Default HTTPS uses libcurl 7.85+; with\n`-DIICALENDAR_WITH_CURL=OFF`, inject `CalendarHttpGet`.\n"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 67,
+      "end_line": 67,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "paragraph",
+      "start_line": 68,
+      "end_line": 70,
+      "raw": "`CalendarObjectManager` remains the lower-level provider-object primitive used\nby the account facade. Its calendar/event formats, refresh rules and platform\nauthorization contract are in [External calendars](docs/ExternalCalendars.md).\n"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 71,
+      "end_line": 71,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "heading",
+      "start_line": 72,
+      "end_line": 72,
+      "raw": "## License\n",
+      "level": 2,
+      "title": "License"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 73,
+      "end_line": 73,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "paragraph",
+      "start_line": 74,
+      "end_line": 74,
+      "raw": "SPDX-License-Identifier: MIT\n"
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 75,
+      "end_line": 75,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "paragraph",
+      "start_line": 76,
+      "end_line": 78,
+      "raw": "The original code and documentation in this repository are licensed under the\n[MIT License](LICENSE). Third-party code, libraries, fonts, tools, and model\nweights retain their respective licenses.\n"
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 79,
+      "end_line": 79,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "heading",
+      "start_line": 80,
+      "end_line": 80,
+      "raw": "## Source header layout\n",
+      "level": 2,
+      "title": "Source header layout"
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 81,
+      "end_line": 81,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
+      "kind": "paragraph",
+      "start_line": 82,
+      "end_line": 86,
+      "raw": "Public headers and implementations live together in `src/iiCalendar/`.\nThere is no separate authored `include/` tree. Existing public `#include` names\nand exported CMake targets are unchanged; installation still places only public\nheaders in the package include directory. Generated export headers belong to\n`build/`, not to the authored source tree.\n"
+    },
+    {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 87,
+      "end_line": 87,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "paragraph",
+      "start_line": 88,
+      "end_line": 90,
+      "raw": "Validate this layout from the SDK workspace with\n`python3 -B tests/test_source_header_layout.py`. Reconfigure, build, run CTest,\nand verify a staged installed consumer after changing source/header paths.\n"
+    },
+    {
+      "id": "b000044",
+      "kind": "blank",
+      "start_line": 91,
+      "end_line": 91,
+      "raw": "\n"
+    },
+    {
+      "id": "b000045",
+      "kind": "html",
+      "start_line": 92,
+      "end_line": 92,
+      "raw": "<!-- workspace-docs:readme:start -->\n"
+    },
+    {
+      "id": "b000046",
+      "kind": "heading",
+      "start_line": 93,
+      "end_line": 93,
+      "raw": "## Documentation entry points\n",
+      "level": 2,
+      "title": "Documentation entry points"
+    },
+    {
+      "id": "b000047",
+      "kind": "blank",
+      "start_line": 94,
+      "end_line": 94,
+      "raw": "\n"
+    },
+    {
+      "id": "b000048",
+      "kind": "list",
+      "start_line": 95,
+      "end_line": 98,
+      "raw": "- Human overview: this English `README.md`.\n- Agent instructions: [AGENT.md](AGENT.md).\n- Human documentation: [documentation index](docs/README.md).\n- Structured agent documentation: [agent index](docs/agent-index.json).\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "Human overview: this English `README.md`.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Agent instructions: [AGENT.md](AGENT.md).",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Human documentation: [documentation index](docs/README.md).",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Structured agent documentation: [agent index](docs/agent-index.json).",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000049",
+      "kind": "html",
+      "start_line": 99,
+      "end_line": 99,
+      "raw": "<!-- workspace-docs:readme:end -->\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "iiCalendar",
+      "anchor": "iicalendar",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000025",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Accounts and external calendars",
+      "anchor": "accounts-and-external-calendars",
+      "start_line": 49
+    },
+    {
+      "block_id": "b000033",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "License",
+      "anchor": "license",
+      "start_line": 72
+    },
+    {
+      "block_id": "b000039",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Source header layout",
+      "anchor": "source-header-layout",
+      "start_line": 80
+    },
+    {
+      "block_id": "b000046",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Documentation entry points",
+      "anchor": "documentation-entry-points",
+      "start_line": 93
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000015",
+        "line": 27,
+        "text": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and C++23 compiler. Bootstrap validates official ICU 78.3 sources from POSIX host to SHA-256 and statically builds only at `build/deps/icu/`. Network download is performed only during explicit bootstrap execution. CMake is not downloaded.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000023",
+        "line": 40,
+        "text": "must give the store exclusive use of that connection for its lifetime. This",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000023",
+        "line": 46,
+        "text": "removed: applications must migrate to the consumer adapter or supply their own",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [
+      {
+        "block_id": "b000013",
+        "language": "sh",
+        "code": "python3 scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n./build/iiCalendarExample\ncmake --install build --prefix \"$PWD/build/install\"\n"
+      }
+    ],
+    "links": [
+      {
+        "block_id": "b000003",
+        "label": "Windows build and execution",
+        "target": "docs/WindowsBuildAndRun.md",
+        "kind": "relative",
+        "line": 3
+      },
+      {
+        "block_id": "b000021",
+        "label": "design documentation",
+        "target": "docs/Design.md",
+        "kind": "relative",
+        "line": 36
+      },
+      {
+        "block_id": "b000021",
+        "label": "verification documentation",
+        "target": "docs/Validation.md",
+        "kind": "relative",
+        "line": 36
+      },
+      {
+        "block_id": "b000023",
+        "label": "file-provider consumer",
+        "target": "examples/file-provider",
+        "kind": "relative",
+        "line": 43
+      },
+      {
+        "block_id": "b000027",
+        "label": "Accounts",
+        "target": "docs/Accounts.md",
+        "kind": "relative",
+        "line": 57
+      },
+      {
+        "block_id": "b000031",
+        "label": "External calendars",
+        "target": "docs/ExternalCalendars.md",
+        "kind": "relative",
+        "line": 70
+      },
+      {
+        "block_id": "b000037",
+        "label": "MIT License",
+        "target": "LICENSE",
+        "kind": "relative",
+        "line": 77
+      },
+      {
+        "block_id": "b000048",
+        "label": "AGENT.md",
+        "target": "AGENT.md",
+        "kind": "relative",
+        "line": 96
+      },
+      {
+        "block_id": "b000048",
+        "label": "documentation index",
+        "target": "docs/README.md",
+        "kind": "relative",
+        "line": 97
+      },
+      {
+        "block_id": "b000048",
+        "label": "agent index",
+        "target": "docs/agent-index.json",
+        "kind": "relative",
+        "line": 98
+      }
+    ],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

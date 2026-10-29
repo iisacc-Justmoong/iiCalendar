@@ -4,7 +4,7 @@
 int main() {
     using namespace iiCalendar;
     try {
-        Store store(":memory:");
+        auto store = Store::inMemory();
         Event review;
         review.id = "society-review";
         review.title = "Product review";

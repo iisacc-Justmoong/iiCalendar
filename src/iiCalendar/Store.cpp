@@ -1,4 +1,3 @@
-#include <iiFileProviderStorage.h>
 #include "Codec.h"
 #include <algorithm>
 #include <iiCalendar/Store.h>
@@ -111,7 +110,7 @@ PRAGMA application_id=1766409057;
 )SQL";
 } // namespace
 struct Store::Impl {
-    std::unique_ptr<sqlite3, decltype(&sqlite3_close_v2)> db{nullptr, sqlite3_close_v2};
+    std::shared_ptr<sqlite3> db;
     std::shared_ptr<const CalendarRegistry> calendars;
     mutable std::mutex mutex;
     Event read(sqlite3_stmt *row) const {
@@ -129,22 +128,27 @@ struct Store::Impl {
         }
     }
 };
-Store::Store(const std::filesystem::path &path, std::shared_ptr<const CalendarRegistry> calendars)
+Store Store::inMemory(std::shared_ptr<const CalendarRegistry> calendars) {
+    if (!calendars)
+        throw std::invalid_argument("calendar registry is required");
+    sqlite3 *raw = nullptr;
+    const int opened = sqlite3_open_v2(":memory:", &raw,
+        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
+    std::unique_ptr<sqlite3, decltype(&sqlite3_close_v2)> owned(raw, sqlite3_close_v2);
+    if (opened != SQLITE_OK)
+        throw StorageError(raw ? sqlite3_errmsg(raw) : "cannot allocate SQLite connection");
+    return Store(std::shared_ptr<sqlite3>(std::move(owned)), std::move(calendars));
+}
+
+Store::Store(std::shared_ptr<sqlite3> connection, std::shared_ptr<const CalendarRegistry> calendars)
     : impl_(std::make_unique<Impl>()) {
     if (!calendars)
         throw std::invalid_argument("calendar registry is required");
+    if (!connection)
+        throw std::invalid_argument("SQLite connection is required");
     impl_->calendars = std::move(calendars);
-    auto utf8 = path.u8string();
-    std::string file(reinterpret_cast<const char *>(utf8.data()), utf8.size());
-    if (file.empty() || file.find('\0') != std::string::npos)
-        throw std::invalid_argument("database path is required");
-    sqlite3 *raw = nullptr;
-    const int opened = iiFileProvider::native::openDatabase(
-        file.c_str(), &raw, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
-        nullptr);
-    impl_->db.reset(raw);
-    if (opened != SQLITE_OK)
-        throw StorageError(raw ? sqlite3_errmsg(raw) : "cannot allocate SQLite connection");
+    impl_->db = std::move(connection);
+    auto *raw = impl_->db.get();
     sqlCheck(raw, sqlite3_busy_timeout(raw, 5000));
     exec(raw, "PRAGMA foreign_keys=ON");
     // Serialize schema discovery with writers. Never claim a pre-existing unrelated DB.

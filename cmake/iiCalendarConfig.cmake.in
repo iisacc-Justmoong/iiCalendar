@@ -1,8 +1,5 @@
 @PACKAGE_INIT@
 include(CMakeFindDependencyMacro)
-find_dependency(iiFileProviderNative 0.6 CONFIG HINTS "$ENV{IIFILEPROVIDER_PREFIX}" "$ENV{HOME}/.local/SDK/iiFileProvider")
-
-
 find_dependency(ICU 69 COMPONENTS i18n uc data)
 find_dependency(SQLite3 3.37)
 if(NOT TARGET SQLite3::SQLite3)

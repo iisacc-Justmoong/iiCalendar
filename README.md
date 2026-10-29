@@ -1,6 +1,6 @@
 # iiCalendar
 
-[Windows 빌드 및 실행](docs/WindowsBuildAndRun.md)
+[Windows build and execution](docs/WindowsBuildAndRun.md)
 
 The installed consumer test uses the same build configuration as the SDK. This
 keeps the MSVC runtime and iterator ABI consistent for Debug and Release builds;
@@ -35,6 +35,17 @@ Installation consumers require SQLite and ICU development package or `ICU_ROOT`.
 
 The specific supported scope, time scales, recurrence rules, and storage contracts are recorded in [design documentation](docs/Design.md); the scope of tests and platform verification is recorded in [verification documentation](docs/Validation.md).
 
+`Store` can also use an already-open `std::shared_ptr<sqlite3>` supplied by the
+application. The application supplies a deleter that closes the connection and
+must give the store exclusive use of that connection for its lifetime. This
+permits application-owned connection setup; `Store::inMemory()` opens an
+in-memory database without creating a file. For persistent databases and
+account documents, the separately configured [file-provider consumer](examples/file-provider)
+shows application-owned composition with iiFileProvider. The former `Store(path)`
+and account `saveConnections(path)` / `loadConnections(path)` members have been
+removed: applications must migrate to the consumer adapter or supply their own
+connection and document I/O. Rebuild existing consumers against the new API.
+
 ## Accounts and external calendars
 
 `CalendarAccountManager` requires an authenticated iisacc owner and connects
@@ -42,8 +53,11 @@ additional Google, Microsoft/Outlook and device-managed Apple calendar accounts.
 It manages account-scoped calendars/events, enable/disable, disconnect,
 credential-free connection restoration, expiry and stale-session isolation.
 The native library remains Qt-free. A header-only adapter reads verified
-iiAcountManager 0.2.9+ session bindings and their effective credential expiry.
+iiAccountManager 0.2.9+ session bindings and their effective credential expiry.
 See [Accounts](docs/Accounts.md) for the public API and complete host wiring.
+The account-SDK integration test is configured separately from
+`examples/iisacc-bridge`; iiCalendar's own CMake does not find or link that SDK.
+The calendar library itself does not link iiFileProvider Native.
 
 The host owns OAuth, token refresh and secure credential custody. The SDK
 resolves/pins Google and Microsoft account identity, performs calendar reads and
@@ -74,3 +88,12 @@ headers in the package include directory. Generated export headers belong to
 Validate this layout from the SDK workspace with
 `python3 -B tests/test_source_header_layout.py`. Reconfigure, build, run CTest,
 and verify a staged installed consumer after changing source/header paths.
+
+<!-- workspace-docs:readme:start -->
+## Documentation entry points
+
+- Human overview: this English `README.md`.
+- Agent instructions: [AGENT.md](AGENT.md).
+- Human documentation: [documentation index](docs/README.md).
+- Structured agent documentation: [agent index](docs/agent-index.json).
+<!-- workspace-docs:readme:end -->

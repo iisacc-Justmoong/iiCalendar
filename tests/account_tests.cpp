@@ -1,6 +1,4 @@
 #include <iiCalendar/iiCalendar.h>
-#include <iiFileProviderNative.h>
-#include <iiFileProviderPresentation.h>
 #include <condition_variable>
 #include <future>
 #include <atomic>
@@ -68,16 +66,13 @@ void lifecycle() {
     expiring.setIisaccSession(expires); CHECK(expiring.authenticated()); time = time + Duration(2);
     CHECK(!expiring.authenticated() && expiring.accounts().empty());
 }
-void persistence(const std::filesystem::path &directory) {
+void persistence() {
     CalendarAccountManager owner; owner.setIisaccSession(session());
     const auto account = owner.connect({"external", "fixture", "Work"}, std::make_shared<Provider>());
     owner.setEnabled(account.id, false);
     const auto document = owner.connectionDocument();
     CHECK(document.find("accessToken") == std::string::npos && document.find("session-1") == std::string::npos);
-    const auto file = directory / "calendar-connections.json";
-    owner.saveConnections(file);
-    CHECK(iiFileProvider::native::File::read(file) == document);
-    CalendarAccountManager restored; restored.setIisaccSession(session()); restored.loadConnections(file);
+    CalendarAccountManager restored; restored.setIisaccSession(session()); restored.restoreConnections(document);
     CHECK(restored.accounts().size() == 2 && !restored.accounts()[1].enabled);
     CHECK(restored.calendars().empty());
     restored.setEnabled(account.id, true);
@@ -89,7 +84,6 @@ void persistence(const std::filesystem::path &directory) {
     CHECK(other.accounts().size() == 1);
     fails(ExternalCalendarErrorCode::InvalidResponse, [&] { other.restoreConnections("invalid"); });
     CHECK(owner.disconnect(account.id) && owner.accounts().size() == 1);
-    iiFileProvider::native::Presentation::cancelPending(file); std::filesystem::remove(file);
 }
 void stale() {
     class Blocking final : public Provider {
@@ -176,8 +170,9 @@ void replacingAConnectionWhileItsProviderIsStarting(bool toggleEnabled) {
     } else CHECK(accounts.calendars(id).at(0).remote.title == "Work");
 }
 }
-int main(int argc, char **argv) {
-    if (argc != 2) return 2;
-    try { lifecycle(); persistence(argv[1]); stale(); externalIdentities(); replacingAConnectionWhileItsProviderIsStarting(false); replacingAConnectionWhileItsProviderIsStarting(true); std::cout << checks << " account checks passed\n"; }
+int main() {
+    try {
+        lifecycle(); persistence(); stale(); externalIdentities(); replacingAConnectionWhileItsProviderIsStarting(false); replacingAConnectionWhileItsProviderIsStarting(true); std::cout << checks << " account checks passed\n";
+    }
     catch (const std::exception &e) { std::cerr << e.what() << '\n'; return 1; }
 }

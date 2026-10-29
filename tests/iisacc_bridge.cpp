@@ -1,15 +1,16 @@
 #include <iiCalendar/IisaccAccount.h>
-#include <iiAcountManager/AccountManager.h>
+#include <iiAccountManager/AccountManager.h>
+#include <iiFileProviderNative.h>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QElapsedTimer>
-#include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QThread>
 #include <iostream>
+#include <string_view>
 
 namespace {
 void check(bool condition, const char *message) { if (!condition) throw std::runtime_error(message); }
@@ -23,8 +24,11 @@ public:
 int main(int argc, char **argv) {
     QCoreApplication app(argc, argv); app.setApplicationName("iiCalendar.AccountBridgeTest");
     try {
-        QFile fixture(QStringLiteral(IISACC_ACCOUNT_FIXTURE)); check(fixture.open(QIODevice::ReadOnly), "account fixture");
-        const auto profile = QJsonDocument::fromJson(fixture.readAll()).object();
+        const std::string_view fixturePath = IISACC_ACCOUNT_FIXTURE;
+        const std::u8string_view utf8Path(reinterpret_cast<const char8_t *>(fixturePath.data()), fixturePath.size());
+        const auto fixture = iiFileProvider::native::File::read(std::filesystem::path(utf8Path), 1024 * 1024);
+        const auto profile = QJsonDocument::fromJson(QByteArray::fromStdString(fixture)).object();
+        check(!profile.isEmpty(), "account fixture contains a JSON profile");
         QTcpServer server; check(server.listen(QHostAddress::LocalHost), "local fixture server");
         QObject::connect(&server, &QTcpServer::newConnection, &server, [&] {
             while (auto *socket = server.nextPendingConnection()) {
@@ -70,6 +74,6 @@ int main(int argc, char **argv) {
         const auto connected = calendar.connect({"external", "fixture", "Work"}, std::make_shared<Provider>());
         check(connected.ownerId == calendar.iisaccSession()->subject && calendar.calendars().size() == 1, "external account bound to iisacc");
         source.clear(); check(!calendar.authenticated() && calendar.accounts().empty(), "account clear retires Calendar connections");
-        std::cout << "Verified iiAcountManager login, native binding, effective expiry and logout integration passed\n";
+        std::cout << "Verified iiAccountManager login, native binding, effective expiry and logout integration passed\n";
     } catch (const std::exception &e) { std::cerr << e.what() << '\n'; return 1; }
 }

@@ -50,7 +50,7 @@ void managerTests() {
     CHECK(ca.events.size() == 1 && ca.loadedWindow == window());
     CHECK(ca.events[0].id != cb.events[0].id);
     CHECK(ca.events[0].calendarId == ca.id && ca.events[0].ownerId == "a");
-    Store store(":memory:");
+    auto store = Store::inMemory();
     store.put(ca.events[0]); store.put(cb.events[0]);
     CHECK(store.query().size() == 2);
     CHECK(dayDetails(store, Date(2026, 10, 2), TimeZone("Asia/Seoul")).events.total == 2);

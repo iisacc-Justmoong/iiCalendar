@@ -10,16 +10,16 @@ Release 빌드·실행 검사·설치를 완료하였다. 등록 검사 14개 �
 
 ## 이 프로젝트의 의존성과 실행 범위
 
-선행 workspace SDK는 다음과 같다. 각각의 Windows 지침에 따라 실행 검증과 설치를 완료한 뒤 진행한다.
+파일 조합 소비자를 검증할 때는 iiFileProvider의 Windows 지침을 따른다. iiCalendar 본체를 빌드할 때 다른 SDK는 필요하지 않다.
 
 - [iiFileProvider](../../../SDK/iiFileProvider/docs/WindowsBuildAndRun.md)
 
-- iiFileProvider Native, ICU i18n/uc/data, SQLite 3.37 이상 및 CURL 7.85 이상이 필요하다.
+- iiCalendar 본체에는 ICU i18n/uc/data, SQLite 3.37 이상 및 CURL 7.85 이상이 필요하다. 파일 조합 소비자에는 iiFileProvider Native가 별도로 필요하다.
 - 현재 vcpkg x64-windows 설치를 사용한다. OAuth 계정과 외부 서비스 실연동은 fixture 실행과 구분한다.
 
 프로젝트별 Windows 조건은 다음과 같다.
 
-- `IICALENDAR_TEST_IISACC_BRIDGE=OFF`는 선택적 실제 iiAcountManager 호스트 브리지를 제외한 구성이다.
+- iisacc 계정 브리지는 `examples/iisacc-bridge`에서 별도 소비자로 구성한다. 기존 `IICALENDAR_TEST_IISACC_BRIDGE=ON` 캐시는 이전 안내와 함께 실패하며 `OFF`로 정리한다.
 - 설치 소비자는 SDK와 같은 Release 구성을 사용해야 MSVC iterator 및 런타임 ABI가 일치한다.
 
 ## 환경 준비

@@ -5,9 +5,11 @@
 `Date / Time → Calendar / TimeZone → Event / Recurrence → Store → View / DayDetails`
 
 화살표는 상위 기능이 앞선 하위 기능을 사용한다는 뜻이다. Society, LVRS, Qt 및 다른 상위 SDK를
-참조하지 않는다. 공개 헤더에 ICU·SQLite 자료형을 노출하지 않는다. `CalendarSystem`은 사용자 정의
-역법의 교체 경계이고, `Store::Impl`은 연결·스키마를 숨긴다. 레지스트리 등록은 공유·사용 전에
-완료해야 한다. 같은 Store 객체의 접근은 mutex로 직렬화된다.
+참조하지 않는다. 공개 헤더에 ICU 자료형은 노출하지 않으며, 저장소 연결 주입을 위해 SQLite의
+불투명 `sqlite3` 선언은 노출한다. `CalendarSystem`은 사용자 정의 역법의 교체 경계이고,
+`Store::Impl`은 스키마와 나머지 연결 관리를 숨긴다. 레지스트리 등록은 공유·사용 전에 완료해야
+한다. 같은 Store 객체의 접근은 mutex로 직렬화된다. 파일 제공자와 계정 SDK는 애플리케이션이
+별도 소비자에서 조합하며 iiCalendar 본체의 의존성이 아니다.
 
 ## 날짜·시각·정밀도
 
@@ -96,9 +98,21 @@ ExpansionLimits 기본값은 반환 10,000건·날짜 스캔 1,000,000회이다.
 
 ## SQLite
 
-STRICT 테이블, WAL, FULL 동기화, foreign key, 5초 busy timeout을 사용한다. application_id와
+STRICT 테이블, 가능한 경우 WAL, FULL 동기화, foreign key, 5초 busy timeout을 사용한다. 메모리
+데이터베이스의 저널 모드는 SQLite의 메모리 모드이다. application_id와
 user_version=1을 확인하며 타 애플리케이션 DB·미지원 스키마를 거부한다. 부모 디렉터리를 자동
 생성하거나 기존 DB를 삭제하지 않는다. `:memory:`를 지원한다.
+
+`Store(std::shared_ptr<sqlite3>, calendars)`는 애플리케이션이 미리 열어 둔 읽기·쓰기 연결을
+받는다. 호출자는 `sqlite3_close_v2`와 같은 연결 종료 deleter를 지정하고, 활성 트랜잭션이 없는
+연결을 넘기며, Store가 살아 있는 동안 그 연결을 다른 Store나 외부 코드가 사용하지 않게 해야
+한다. 공유 포인터가 연결 수명을
+유지하며 Store가 파괴되어도 호출자가 보유한 연결은 닫히지 않는다. Store는 연결의 busy timeout,
+foreign key 설정과 스키마를 검사·설정한다. 연결이 null이거나 달력 레지스트리가 null이면
+`invalid_argument`를, 무관하거나 지원되지 않는 데이터베이스는 `StorageError`를 반환한다.
+`Store::inMemory()`는 파일을 만들지 않는다. 파일 기반 저장소는 별도 소비자의
+`iiCalendarFileProvider::openStore(path)`처럼 iiFileProvider로 연결을 열어 주입한다. 기존
+`Store(path)`는 제거됐으므로 애플리케이션을 다시 빌드하고 호출을 이전해야 한다.
 
 events에는 절대 시작·종료의 정수 `(seconds, attoseconds)`, 지역 날짜 epoch day,
 하루 내 초·소수부, 시간대, 종일 여부, 컬렉션·유형·상태·제목·revision을 함께 저장한다.

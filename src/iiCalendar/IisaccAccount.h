@@ -3,7 +3,7 @@
 #include <type_traits>
 
 namespace iiCalendar {
-// Header-only integration with iiAcountManager >= 0.2.9. All account/Qt types
+// Header-only integration with iiAccountManager >= 0.2.9. All account/Qt types
 // are dependent: including this header never introduces a Qt dependency.
 // Call on the source manager's thread after authenticated/login-session changes
 // and clear on sessionEnding. The native calendar manager can serve I/O workers.

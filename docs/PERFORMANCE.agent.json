@@ -1,0 +1,85 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:03df0a2cf3e3f261f8d6d093e6bd0c267fc77e990d7113d086e713a9f99013ba",
+  "project": {
+    "id": "urn:iisacc:project:SDK%2FiiCalendar",
+    "name": "iiCalendar",
+    "root": "SDK/iiCalendar",
+    "kind": "sdk"
+  },
+  "source": {
+    "path": "docs/PERFORMANCE.md",
+    "sha256": "0ce6abb09cd10116f2f21fbcb51b56a634c02e440f6d6465634913ad2d69dfba",
+    "bytes": 772,
+    "line_count": 13,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "Recurrence expansion",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Recurrence expansion\n",
+      "level": 1,
+      "title": "Recurrence expansion"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 7,
+      "raw": "Expansion reuses the current calendar month's length when evaluating negative\nmonth days or ordinal weekdays. Calendar month arithmetic and epoch conversion\nrun once per encountered year/month/leap-month combination rather than once per\ncandidate day. The cache belongs to one expansion call and uses the selected\n`CalendarSystem`; it does not assume Gregorian month lengths.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 9,
+      "end_line": 13,
+      "raw": "The recurrence scan still counts every scanned day, preserving scan limits,\nCOUNT, exclusions, additional dates, DST handling and overlap behavior. The\ntests compare a custom counting calendar with Gregorian results across a leap\nyear, verify month-arithmetic call bounds and retain the existing non-Gregorian,\nordinal weekday, ambiguous-time and occurrence-limit cases.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Recurrence expansion",
+      "anchor": "recurrence-expansion",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

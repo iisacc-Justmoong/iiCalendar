@@ -6,7 +6,7 @@
 
 `CalendarObjectManager`는 외부 로그인 계정의 캘린더 목록과 일정 객체를 관리한다.
 `GoogleCalendarProvider`와 `AppleCalendarProvider`가 실제 조회를 담당한다. 공개 API는
-`src/iiCalendar/ExternalCalendar.h`에 있으며 Qt·LVRS·Society·iiAcountManager를 참조하지 않는다.
+`src/iiCalendar/ExternalCalendar.h`에 있으며 Qt·LVRS·Society·iiAccountManager를 참조하지 않는다.
 
 ## 로그인 후 Google 캘린더 불러오기
 

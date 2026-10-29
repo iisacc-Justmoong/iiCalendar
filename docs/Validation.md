@@ -1,11 +1,50 @@
 # 검증
 
+## SDK 독립 경계와 메모리 저장소 (2026-10-28)
+
+macOS arm64에서 iiAccountManager와 iiFileProvider 검색을 비활성화해 본체를
+구성·빌드하고, CTest 14/14를 통과했다. 계정 세션·토큰 교체·타 계정 거부,
+SHA-256의 빈 입력·`abc`·다중 블록 표준 벡터, 메모리 SQLite 연결의 소유권과
+기존 캘린더 도메인 계약이 포함된다. Apple 권한/네이티브 검사와 설치 소비자
+실행은 이 검사에서 제외했다. 검사의 기존 60초 제한은 유지했다.
+
+별도 파일 소비자는 격리 설치된 iiCalendar와 iiFileProvider Native 0.9.0을
+연결해 파일 데이터베이스 회귀와 계정 문서 저장·복원 검사 2/2를 재시도에서
+통과했다. 첫 시도에서는 두 검사 모두 기존 60초 제한에 걸렸으며, 파일 계정
+검사 중 수집한 표본은 테스트 본문 이전의 `_dyld_start`만 보였다. 원인은
+확정하지 않았다. 재시도의 소요 시간은 각각 35.71초와 10.46초였다. 설치된
+라이브러리의 미해결 심볼에는 iiFileProvider·iiAccountManager가 없었고,
+두 SDK와 Qt 검색을 차단한 별도 설치 소비자는 빌드만 확인했다.
+새 패키지에 다시 링크한 계정 SDK 브리지는 첫 시도에서 기존 30초 제한에
+걸렸고, 같은 조건의 재시도에서는 23.43초에 통과했다. 원인은 확인되지 않았다.
+
+## 주입된 SQLite 연결의 저장 계약 (2026-10-28)
+
+macOS arm64에서 연결 주입 구현을 전체 빌드한 후 계정 SDK 경계, 기존 계정
+저장, 기존 파일 저장, 주입된 메모리 저장의 CTest 4개가 통과했다. 메모리
+검사는 일정 생성·조회·삭제, Store 파괴 이후 호출자가 보유한 연결의 수명,
+null 연결·레지스트리 거부 및 다른 데이터베이스의 보존을 확인했다. 파일
+저장과 계정 저장은 iiFileProvider가 `resources/`에 만든 임시 디렉터리에서
+실행했다. 기존 60초 제한을 유지했으며 실제 계정·앱 실행은 수행하지 않았다.
+이 검사는 파일 제공자 의존성을 분리하기 전의 중간 구성에 대한 기록이다.
+
+## 계정 브리지의 독립 소비자 검증 (2026-10-28)
+
+계정 SDK 검색을 비활성화한 macOS arm64 구성에서 전체 빌드를 마쳤다.
+계정 경계 검사와 계정 저장 검사 2개가 통과했으며, 저장 검사는 기존 60초
+제한 안에서 54개 조건을 확인했다. 별도로 구성한 소비자는 설치된
+iiAccountManager 0.2.10, iiFileProvider Native 0.9.0 및 격리된 iiCalendar
+패키지를 조합해 합성 로컬 로그인·실효 만료·로그아웃 검사 1개를 기존 30초
+제한 안에서 통과했다. 실제 계정이나 외부 서비스를 사용하지 않았다.
+Qt와 계정 SDK 검색을 끈 설치 소비자는 컴파일했으며 실행하지 않았다.
+이 검사는 파일 제공자 의존성을 분리하기 전의 중간 구성에 대한 기록이다.
+
 ## iisacc 필수 계정과 외부 계정 연결 (2026-10-16, 0.2.0)
 
 macOS arm64 Debug에서 Qt 검색을 비활성화한 네이티브 빌드와 libcurl OFF 빌드를
 검증했다. 각 구성은 계정·Microsoft Graph·기존 도메인·외부 제공자·설치 소비자를
 포함한 CTest 15/15이다. 계정 계약 검사 52개와 Microsoft 제공자 검사 29개가
-포함된다. 설치 소비자는 Qt6와 iiAcountManager 검색을 명시적으로 금지하고,
+포함된다. 설치 소비자는 Qt6와 iiAccountManager 검색을 명시적으로 금지하고,
 설치된 공개 헤더·정적 라이브러리·CMake export만으로 새 계정 API를 빌드·실행한다.
 
 | 검증 | 범위 |
@@ -15,11 +54,11 @@ macOS arm64 Debug에서 Qt 검색을 비활성화한 네이티브 빌드와 libc
 | 늦은 응답 | 소유자 교체, 같은 외부 ID의 연결 교체, 제공자 시작 중 비활성화·즉시 재활성화 뒤 이전 요청의 데이터 재게시 차단 |
 | 연결 저장 | iiFileProvider를 통한 파일 저장·읽기, iisacc origin/subject 귀속, 토큰·앱 세션 ID 제외, 복원 후 제공자 재연결 필요 |
 | external_microsoft | 목록 페이지·헤더·ID 인코딩, 반복 회차·소수초·시간대·종일 일정·DST 25시간·알림 변환, 취소 제외, HTTP 오류 분류, 중복·상한·반복/외부 페이지·헤더 주입 거부 |
-| iisacc_bridge | 실제 iiAcountManager 0.2.9와 합성 loopback 로그인 서비스, 표시용 프로필 비인증, 검증된 세션·실효 만료 전달, 외부 연결 소유자 바인딩, clear() 후 정리 |
+| iisacc_bridge | 실제 iiAccountManager 0.2.9와 합성 loopback 로그인 서비스, 표시용 프로필 비인증, 검증된 세션·실효 만료 전달, 외부 연결 소유자 바인딩, clear() 후 정리 |
 
 인증 브리지 검사는 Qt가 있는 별도 호스트 구성 `build/accounts-bridge`에서 1/1을
 실행한다. 네이티브 라이브러리의 Qt 의존성을 추가하는 구성이 아니다.
-iiAcountManager 자체의 모델·응답 계약 2/2와 네트워크의 새 실효 만료·기존 로컬 만료
+iiAccountManager 자체의 모델·응답 계약 2/2와 네트워크의 새 실효 만료·기존 로컬 만료
 회귀 검사도 통과했다. 서버 세션보다 짧은 쿠키 만료를 네이티브 소비자에게 전달하며,
 미인증·만료 상태는 유효하지 않은 `QDateTime`을 반환한다.
 
@@ -33,12 +72,16 @@ cmake -S . -B build/accounts-no-curl -DCMAKE_BUILD_TYPE=Debug \
   -DCMAKE_PREFIX_PATH=/path/to/iiFileProvider
 cmake --build build/accounts-no-curl --parallel 6
 ctest --test-dir build/accounts-no-curl --output-on-failure
-# Optional real account-SDK integration; Qt belongs to this host/test only.
-cmake -S . -B build/accounts-bridge -DIICALENDAR_TEST_IISACC_BRIDGE=ON \
-  '-DCMAKE_PREFIX_PATH=/path/to/iiFileProvider;/path/to/iiAcountManager;/path/to/Qt'
+# Real account-SDK integration is a separate consumer project.
+cmake -S examples/iisacc-bridge -B build/accounts-bridge \
+  '-DCMAKE_PREFIX_PATH=/path/to/iiCalendar;/path/to/iiFileProvider;/path/to/iiAccountManager;/path/to/Qt'
 cmake --build build/accounts-bridge --target iiCalendarIisaccBridgeTests --parallel 6
 ctest --test-dir build/accounts-bridge -R '^iiCalendar.iisacc_bridge$' --output-on-failure
 ```
+
+이전 `IICALENDAR_TEST_IISACC_BRIDGE=ON` 설정은 명시적으로 실패하고 위의
+별도 소비자 구성을 안내한다. 계정 검사에서 생성하는 임시 저장물은
+`resources/`의 제공자 소유 임시 디렉터리에 두고 검사 후 정리한다.
 
 구현 전 계정 계약 실패는 `build/accounts-tdd-red.log`, 즉시 재활성화 경합의 회귀 실패는
 `build/accounts-toggle-tdd-red.log`이다. 최종 빌드·검사 로그는 `build/accounts-build.log`,

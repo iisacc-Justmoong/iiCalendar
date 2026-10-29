@@ -8,12 +8,12 @@ Apple sources are additional connections owned by that identity.
 
 ## iisacc integration
 
-Apps using iiAcountManager 0.2.9 or later can synchronize its verified session
+Apps using iiAccountManager 0.2.9 or later can synchronize its verified session
 without linking Qt into iiCalendar:
 
 ```cpp
 #include <iiCalendar/IisaccAccount.h>
-#include <iiAcountManager/AccountManager.h>
+#include <iiAccountManager/AccountManager.h>
 
 iiCalendar::CalendarAccountManager calendars;
 iisacc::accounts::AccountManager login;
@@ -33,7 +33,11 @@ Run the adapter on the account manager's thread. It copies native values, so
 calendar network work can run on an application I/O worker. Keep the calendar
 manager alive until its workers finish and disconnect observers before destroying
 it. `IisaccAccount.h` is a header-only dependent-type adapter; including it or
-linking the native calendar package does not discover/import Qt or iiAcountManager.
+linking the native calendar package does not discover/import Qt or iiAccountManager.
+The real account-manager contract test is a separately configured consumer at
+`examples/iisacc-bridge`. It uses the synthetic account fixture in `resources/`
+and keeps the existing 30-second test limit. `IICALENDAR_TEST_IISACC_BRIDGE=ON`
+in the SDK build now reports how to migrate instead of adding the peer SDK.
 
 The adapter requires `isAuthenticated()`, a current matching `sessionBinding()`
 and `authenticatedUntil()`. Display-only `readAccount()`/`readJson()` snapshots
@@ -119,9 +123,17 @@ session IDs, event data and access tokens are excluded. Restored enabled account
 report `AuthenticationRequired` until their providers/credentials are reattached;
 disabled connections stay disabled when reattached.
 
-`saveConnections(nativePath)` and `loadConnections(nativePath)` use iiFileProvider
-for atomic file publication and bounded reads. The host chooses its private,
-owner-specific application-state path and serializes writes to that path.
+An internal SHA-256 implementation preserves the credential fingerprint used
+to avoid repeating a profile lookup for an unchanged token. Its iisacc MIT
+counterpart license is installed with the package, and standard vectors are
+checked by `iiCalendar.sha256`. Neither the bearer token nor the fingerprint is
+written to the connection document.
+
+The former `saveConnections(nativePath)` and `loadConnections(nativePath)` members
+were removed. The separately configured `examples/file-provider` consumer uses
+`connectionDocument()` and `restoreConnections()` with iiFileProvider for atomic
+publication and bounded reads. The host chooses its private, owner-specific
+application-state path and serializes writes to that path.
 Session changes do not automatically choose or open another user's file.
 Default limits are 32 external connections and 256 KiB per profile document.
 Calendar/event/page limits retain the provider's independent bounds.

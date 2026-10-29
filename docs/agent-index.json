@@ -1,0 +1,111 @@
+{
+  "format": "iisacc.agent-document-index",
+  "schema_version": 1,
+  "project": {
+    "id": "urn:iisacc:project:SDK%2FiiCalendar",
+    "name": "iiCalendar",
+    "root": "SDK/iiCalendar",
+    "kind": "sdk"
+  },
+  "documentation_root": "docs",
+  "agent_schema": "docs/agent-document.schema.json",
+  "documents": [
+    {
+      "document_id": "urn:iisacc:document:4ccece19998eead30efc8391d48f313d87f308774ba9d28acd9594d4bc6075f1",
+      "source": "AGENT.md",
+      "agent_json": "docs/entrypoints/AGENT.agent.json",
+      "source_sha256": "fc9c2b84f67d0300cfeae4a535ba908761d78050953ec78ee6151af602f0117f",
+      "role": "instructions"
+    },
+    {
+      "document_id": "urn:iisacc:document:9349439802dd915625847f4cf00dc0bbcf8e3e6c99b98f8b500d074724afd1c4",
+      "source": "README.md",
+      "agent_json": "docs/entrypoints/README.agent.json",
+      "source_sha256": "cc34666fc0a39b52478c08477d0b6130377808b686706e528bfdca3eb48fe025",
+      "role": "overview"
+    },
+    {
+      "document_id": "urn:iisacc:document:355431a85386b8c877d6194f697d848ecf57a6c90d23072b8815409b23867709",
+      "source": "docs/Accounts.md",
+      "agent_json": "docs/Accounts.agent.json",
+      "source_sha256": "3bf3faa295cfeb018d4a3d68856eb458707c0c8be2aaaf84050d191e0c079eec",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:24cb178a3998a9767e1f99a780231a46f4e02e482a4d023cdbf826ace69b0e06",
+      "source": "docs/Design.md",
+      "agent_json": "docs/Design.agent.json",
+      "source_sha256": "ed2630d513fcac8081bc593caa0ad5b3a202b83231169157b116cb438dadc1ee",
+      "role": "reference"
+    },
+    {
+      "document_id": "urn:iisacc:document:ae0a84b06de613545bd246e9ce672ea6c1d8ab5386c19c5a50bdbc2dcbc0c4ee",
+      "source": "docs/ExternalCalendars.md",
+      "agent_json": "docs/ExternalCalendars.agent.json",
+      "source_sha256": "ba15958e12c73e31f9c58dff8580ae847290ab5e619de7d7113e1ca2e470917a",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:bd74f6e0a650f5ad2061a3424ca8cf8f61ae99ec8054e7bab9bf3e14e11c561c",
+      "source": "docs/FILE_PROVIDER.md",
+      "agent_json": "docs/FILE_PROVIDER.agent.json",
+      "source_sha256": "6bf8fe2fcb02202e5784c03f272b7e32cbacd148dcfa1975f0317e8ed0e48ea1",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:03df0a2cf3e3f261f8d6d093e6bd0c267fc77e990d7113d086e713a9f99013ba",
+      "source": "docs/PERFORMANCE.md",
+      "agent_json": "docs/PERFORMANCE.agent.json",
+      "source_sha256": "0ce6abb09cd10116f2f21fbcb51b56a634c02e440f6d6465634913ad2d69dfba",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:e128bc56c7d538a91bda8ce16222c6cb9ae1e841d3d3f9236f47de6ce9988cd6",
+      "source": "docs/README.md",
+      "agent_json": "docs/README.agent.json",
+      "source_sha256": "9a9e91ba177fc0fc4630ffc51d24eaac0aa450412ebd02cfd7764f2fd5a3eced",
+      "role": "overview"
+    },
+    {
+      "document_id": "urn:iisacc:document:8017417a3cf3fad09821400199eb7e963518bd7716b4b58833be8cea3cc85dac",
+      "source": "docs/Validation.md",
+      "agent_json": "docs/Validation.agent.json",
+      "source_sha256": "df22f6ceaefa6c10c16d4c4be1757ef39bb909f012fd179e6872ddd0a37c0977",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:b8d3c4df7c9ed281a9dcd557589ff87c91070072430ca96fb251fd2210ec624c",
+      "source": "docs/WindowsBuildAndRun.md",
+      "agent_json": "docs/WindowsBuildAndRun.agent.json",
+      "source_sha256": "ab216f91608c3a29045f74d76a11e170df611a423d7b26926aa3632fa0fc24e7",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:26220b97c96ce7941808b3c45b6284821c1fd44fdb8e68f18f8556e23901ca39",
+      "source": "docs/WindowsValidation.md",
+      "agent_json": "docs/WindowsValidation.agent.json",
+      "source_sha256": "87820b362aab7cbe015e3fc5f0bb493bcf5d45715b93993f46741df2c9932265",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:faa23d35cfa50ddf137fd383b85b0ff99f6887e1dcba821edaef55350ff060b8",
+      "source": "docs/documentation-structure.md",
+      "agent_json": "docs/documentation-structure.agent.json",
+      "source_sha256": "e28557473db5bb6b49ae33fcd6174c3feac952a287d5032b7b44d47d7910700b",
+      "role": "guide"
+    }
+  ],
+  "layout": {
+    "human_entry": "README.md",
+    "agent_entry": "AGENT.md",
+    "human_format": "markdown",
+    "agent_format": "structured_json",
+    "source_authority": "markdown"
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

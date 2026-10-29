@@ -1,5 +1,6 @@
 #include <iiCalendar/iiCalendar.h>
 #include <iiCalendar/IisaccAccount.h>
+#include <sqlite3.h>
 #include <iostream>
 #include <memory>
 
@@ -16,7 +17,12 @@ class CalendarProvider final : public iiCalendar::ExternalCalendarProvider {
 };
 
 int main() {
-    iiCalendar::Store store(":memory:");
+    sqlite3 *raw = nullptr;
+    const auto opened = sqlite3_open_v2(":memory:", &raw,
+        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
+    std::shared_ptr<sqlite3> connection(raw, [](sqlite3 *value) { (void)sqlite3_close_v2(value); });
+    if (opened != SQLITE_OK || !connection) return 8;
+    iiCalendar::Store store(connection);
     iiCalendar::Event event;
     event.id = "consumer";
     event.kind = iiCalendar::EventKind::Task;

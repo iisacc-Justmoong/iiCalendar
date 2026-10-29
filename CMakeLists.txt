@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
 project(iiCalendar VERSION 0.2.1 LANGUAGES CXX)
-# File creation is owned by iiFileProvider.
-find_package(iiFileProviderNative 0.6 CONFIG REQUIRED HINTS "$ENV{IIFILEPROVIDER_PREFIX}" "$ENV{HOME}/.local/SDK/iiFileProvider")
-link_libraries(iiFileProvider::Native)
-
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(CTest)
@@ -24,14 +20,18 @@ if(CMAKE_SYSTEM_NAME MATCHES "^(iOS|tvOS|watchOS|visionOS)$")
     set(calendar_curl_default OFF)
 endif()
 option(IICALENDAR_WITH_CURL "Built-in Google/Microsoft HTTPS transport (otherwise inject CalendarHttpGet)" ${calendar_curl_default})
-option(IICALENDAR_TEST_IISACC_BRIDGE "Test the optional host bridge against the real iiAcountManager SDK" OFF)
+option(IICALENDAR_TEST_IISACC_BRIDGE "Deprecated: build the iisacc bridge as a separate consumer" OFF)
+if(IICALENDAR_TEST_IISACC_BRIDGE)
+    message(FATAL_ERROR "The iisacc bridge is a separate consumer: configure examples/iisacc-bridge independently")
+endif()
 
 add_library(iiCalendar STATIC
     src/iiCalendar/Date.cpp src/iiCalendar/Time.cpp src/iiCalendar/Clock.cpp
     src/iiCalendar/Calendar.cpp src/iiCalendar/TimeZone.cpp
     src/iiCalendar/Event.cpp src/iiCalendar/Recurrence.cpp
     src/iiCalendar/Codec.cpp src/iiCalendar/Store.cpp src/iiCalendar/View.cpp
-    src/iiCalendar/Manager.cpp src/iiCalendar/Google.cpp src/iiCalendar/Microsoft.cpp src/iiCalendar/Accounts.cpp)
+    src/iiCalendar/Manager.cpp src/iiCalendar/Google.cpp src/iiCalendar/Microsoft.cpp src/iiCalendar/Accounts.cpp
+    src/iiCalendar/Sha256.cpp)
 add_library(iiCalendar::iiCalendar ALIAS iiCalendar)
 target_compile_features(iiCalendar PUBLIC cxx_std_23)
 target_include_directories(iiCalendar PUBLIC
@@ -66,18 +66,16 @@ else()
 endif()
 
 if(BUILD_TESTING)
-    if(IICALENDAR_TEST_IISACC_BRIDGE)
-        find_package(iiAcountManager 0.2.9 CONFIG REQUIRED)
-        add_executable(iiCalendarIisaccBridgeTests tests/iisacc_bridge.cpp)
-        target_link_libraries(iiCalendarIisaccBridgeTests PRIVATE iiCalendar::iiCalendar iiAcountManager::iiAcountManager)
-        target_compile_definitions(iiCalendarIisaccBridgeTests PRIVATE IISACC_ACCOUNT_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/../iiAcountManager/tests/fixtures/iisacc-account.json")
-        add_test(NAME iiCalendar.iisacc_bridge COMMAND iiCalendarIisaccBridgeTests)
-        set_tests_properties(iiCalendar.iisacc_bridge PROPERTIES TIMEOUT 30)
-    endif()
+    add_test(NAME iiCalendar.account_sdk_boundary COMMAND ${CMAKE_COMMAND}
+        "-DIICALENDAR_SOURCE=${CMAKE_CURRENT_SOURCE_DIR}" -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/account_sdk_boundary.cmake")
     add_executable(iiCalendarAccountTests tests/account_tests.cpp)
-    target_link_libraries(iiCalendarAccountTests PRIVATE iiCalendar::iiCalendar iiFileProvider::Native)
-    add_test(NAME iiCalendar.accounts COMMAND iiCalendarAccountTests "${CMAKE_CURRENT_BINARY_DIR}")
+    target_link_libraries(iiCalendarAccountTests PRIVATE iiCalendar::iiCalendar)
+    add_test(NAME iiCalendar.accounts COMMAND iiCalendarAccountTests)
     set_tests_properties(iiCalendar.accounts PROPERTIES TIMEOUT 60)
+    add_executable(iiCalendarHashTests tests/sha256_tests.cpp)
+    target_link_libraries(iiCalendarHashTests PRIVATE iiCalendar::iiCalendar)
+    add_test(NAME iiCalendar.sha256 COMMAND iiCalendarHashTests)
+    set_tests_properties(iiCalendar.sha256 PROPERTIES TIMEOUT 60)
     add_executable(iiCalendarMicrosoftTests tests/microsoft_calendar_tests.cpp)
     target_link_libraries(iiCalendarMicrosoftTests PRIVATE iiCalendar::iiCalendar)
     target_include_directories(iiCalendarMicrosoftTests SYSTEM PRIVATE ThirdParty)
@@ -104,7 +102,7 @@ if(BUILD_TESTING)
     endforeach()
     add_executable(iiCalendarTests tests/calendar_tests.cpp)
     target_link_libraries(iiCalendarTests PRIVATE iiCalendar::iiCalendar SQLite3::SQLite3)
-    foreach(suite precision calendars zones events recurrence storage views clock)
+    foreach(suite precision calendars zones events recurrence storage_memory views clock)
         add_test(NAME iiCalendar.${suite} COMMAND iiCalendarTests ${suite})
         set_tests_properties(iiCalendar.${suite} PROPERTIES TIMEOUT 60)
     endforeach()
@@ -136,6 +134,7 @@ install(FILES
 install(FILES README.md DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar)
 install(DIRECTORY docs/ DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar/docs)
 install(FILES ThirdParty/nlohmann/LICENSE.MIT DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar/licenses/nlohmann-json)
+install(FILES ThirdParty/licenses/iisacc-counterpart/LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar/licenses/iisacc-counterpart)
 install(EXPORT iiCalendarTargets NAMESPACE iiCalendar:: DESTINATION ${package_dir})
 configure_package_config_file(cmake/iiCalendarConfig.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/iiCalendarConfig.cmake" INSTALL_DESTINATION ${package_dir})
