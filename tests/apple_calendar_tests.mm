@@ -1,4 +1,4 @@
-#include "../src/iiCalendar/AppleEvent.h"
+#include "../src/Integration/AppleEvent.h"
 #include <iostream>
 
 // An Objective-C selector fixture exercises the same native conversion as EKEvent,

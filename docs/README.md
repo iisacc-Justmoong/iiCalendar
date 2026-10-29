@@ -14,6 +14,7 @@ Markdown is the maintained human source. Agent JSON is a structured, source-trac
 | [`docs/ExternalCalendars.md`](ExternalCalendars.md) | [JSON](ExternalCalendars.agent.json) |
 | [`docs/FILE_PROVIDER.md`](FILE_PROVIDER.md) | [JSON](FILE_PROVIDER.agent.json) |
 | [`docs/PERFORMANCE.md`](PERFORMANCE.md) | [JSON](PERFORMANCE.agent.json) |
+| [`docs/SourceLayout.md`](SourceLayout.md) | [JSON](SourceLayout.agent.json) |
 | [`docs/Validation.md`](Validation.md) | [JSON](Validation.agent.json) |
 | [`docs/WindowsBuildAndRun.md`](WindowsBuildAndRun.md) | [JSON](WindowsBuildAndRun.agent.json) |
 | [`docs/WindowsValidation.md`](WindowsValidation.md) | [JSON](WindowsValidation.agent.json) |

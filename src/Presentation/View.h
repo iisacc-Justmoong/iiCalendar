@@ -1,5 +1,5 @@
 #pragma once
-#include "Store.h"
+#include <iiCalendar/Store.h>
 
 namespace iiCalendar {
 enum class ViewKind { Day, Week, Month, Year, Agenda, Timeline, Custom };

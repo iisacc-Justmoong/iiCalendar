@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "README.md",
-    "sha256": "cc34666fc0a39b52478c08477d0b6130377808b686706e528bfdca3eb48fe025",
-    "bytes": 5553,
+    "sha256": "d249845ee9364f8d2c3795cf8d4f273dc378a6c54d7ca617d6bab18ecd24d615",
+    "bytes": 5674,
     "line_count": 99,
     "encoding": "utf-8",
     "language": "en"
@@ -99,7 +99,7 @@
       "kind": "paragraph",
       "start_line": 16,
       "end_line": 16,
-      "raw": "The public API and its implementation live together in `src/iiCalendar/`. Usage examples are `examples/day_details.cpp`. Consumers continue to use `<iiCalendar/...>` through the exported CMake target.\n"
+      "raw": "Public headers and implementations are grouped by responsibility under `src/`. Usage examples are `examples/day_details.cpp`. Consumers continue to use `<iiCalendar/...>` through the exported CMake target.\n"
     },
     {
       "id": "b000012",
@@ -321,7 +321,7 @@
       "kind": "paragraph",
       "start_line": 82,
       "end_line": 86,
-      "raw": "Public headers and implementations live together in `src/iiCalendar/`.\nThere is no separate authored `include/` tree. Existing public `#include` names\nand exported CMake targets are unchanged; installation still places only public\nheaders in the package include directory. Generated export headers belong to\n`build/`, not to the authored source tree.\n"
+      "raw": "Public headers and implementations live together under `src/`, grouped by chronology, events, storage, presentation, integrations and security. See [source layout](docs/SourceLayout.md).\nThere is no separate authored `include/` tree. Existing public `#include` names\nand exported CMake targets are unchanged; installation still places only public\nheaders in the package include directory. Generated export headers belong to\n`build/`, not to the authored source tree.\n"
     },
     {
       "id": "b000042",
@@ -526,6 +526,13 @@
         "target": "LICENSE",
         "kind": "relative",
         "line": 77
+      },
+      {
+        "block_id": "b000041",
+        "label": "source layout",
+        "target": "docs/SourceLayout.md",
+        "kind": "relative",
+        "line": 82
       },
       {
         "block_id": "b000048",

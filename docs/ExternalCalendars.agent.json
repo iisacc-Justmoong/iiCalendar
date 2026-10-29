@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/ExternalCalendars.md",
-    "sha256": "ba15958e12c73e31f9c58dff8580ae847290ab5e619de7d7113e1ca2e470917a",
-    "bytes": 11996,
+    "sha256": "b624b93dea187879b533b750b170d88bf3a594bf3e0f7de3e5ebea426860e9f9",
+    "bytes": 11997,
     "line_count": 149,
     "encoding": "utf-8",
     "language": "ko"
@@ -57,7 +57,7 @@
       "kind": "paragraph",
       "start_line": 7,
       "end_line": 9,
-      "raw": "`CalendarObjectManager`는 외부 로그인 계정의 캘린더 목록과 일정 객체를 관리한다.\n`GoogleCalendarProvider`와 `AppleCalendarProvider`가 실제 조회를 담당한다. 공개 API는\n`src/iiCalendar/ExternalCalendar.h`에 있으며 Qt·LVRS·Society·iiAccountManager를 참조하지 않는다.\n"
+      "raw": "`CalendarObjectManager`는 외부 로그인 계정의 캘린더 목록과 일정 객체를 관리한다.\n`GoogleCalendarProvider`와 `AppleCalendarProvider`가 실제 조회를 담당한다. 공개 API는\n`src/Integration/ExternalCalendar.h`에 있으며 Qt·LVRS·Society·iiAccountManager를 참조하지 않는다.\n"
     },
     {
       "id": "b000006",
@@ -575,7 +575,7 @@
       {
         "block_id": "b000005",
         "line": 9,
-        "text": "`src/iiCalendar/ExternalCalendar.h`에 있으며 Qt·LVRS·Society·iiAccountManager를 참조하지 않는다.",
+        "text": "`src/Integration/ExternalCalendar.h`에 있으며 Qt·LVRS·Society·iiAccountManager를 참조하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },

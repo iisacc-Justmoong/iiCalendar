@@ -8,8 +8,8 @@ if(_calendar MATCHES "find_package\\([ \t\n]*iiAccountManager"
     message(FATAL_ERROR "Calendar CMake must not discover or link the account SDK")
 endif()
 file(READ "${IICALENDAR_SOURCE}/cmake/iiCalendarConfig.cmake.in" _package)
-file(READ "${IICALENDAR_SOURCE}/src/iiCalendar/Store.cpp" _store)
-file(READ "${IICALENDAR_SOURCE}/src/iiCalendar/Accounts.cpp" _accounts)
+file(READ "${IICALENDAR_SOURCE}/src/Storage/Store.cpp" _store)
+file(READ "${IICALENDAR_SOURCE}/src/Integration/Accounts.cpp" _accounts)
 if(_calendar MATCHES "iiFileProvider" OR _package MATCHES "iiFileProvider"
         OR _store MATCHES "iiFileProvider" OR _accounts MATCHES "iiFileProvider")
     message(FATAL_ERROR "Calendar must not discover, link, or include the file-provider SDK")

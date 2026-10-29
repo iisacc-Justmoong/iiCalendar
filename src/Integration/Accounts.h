@@ -1,5 +1,5 @@
 #pragma once
-#include "ExternalCalendar.h"
+#include <iiCalendar/ExternalCalendar.h>
 
 namespace iiCalendar {
 // An already authenticated iisacc app session, not a display-only account JSON.

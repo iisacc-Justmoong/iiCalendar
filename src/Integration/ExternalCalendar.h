@@ -1,5 +1,5 @@
 #pragma once
-#include "Event.h"
+#include <iiCalendar/Event.h>
 #include <functional>
 #include <mutex>
 #include <stdexcept>

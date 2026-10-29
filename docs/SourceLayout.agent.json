@@ -1,0 +1,139 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:57e551af7b4d2fd0ecb4fd4030086a67d85a4efb568f7aa0912c6687535d5637",
+  "project": {
+    "id": "urn:iisacc:project:SDK%2FiiCalendar",
+    "name": "iiCalendar",
+    "root": "SDK/iiCalendar",
+    "kind": "sdk"
+  },
+  "source": {
+    "path": "docs/SourceLayout.md",
+    "sha256": "92728a22ccccd193bab3d1d2c37995555848f2e14b8d9797902555a53bfa5bdd",
+    "bytes": 694,
+    "line_count": 13,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "소스 책임 분류",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# 소스 책임 분류\n",
+      "level": 1,
+      "title": "소스 책임 분류"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "공개 헤더와 구현은 `src/` 아래 책임별로 함께 둔다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "list",
+      "start_line": 5,
+      "end_line": 10,
+      "raw": "- `Chronology`: 달력, 날짜, 시간, 시간대와 내부 ICU 계산.\n- `Events`: 일정 모델과 반복 일정.\n- `Storage`: SQLite 저장과 직렬화.\n- `Presentation`: 화면 표시용 뷰 모델.\n- `Integration`: 외부 계정, 제공자, 전송과 공개 진입 헤더.\n- `Security`: 내부 SHA-256 계산.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "`Chronology`: 달력, 날짜, 시간, 시간대와 내부 ICU 계산.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Events`: 일정 모델과 반복 일정.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Storage`: SQLite 저장과 직렬화.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Presentation`: 화면 표시용 뷰 모델.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Integration`: 외부 계정, 제공자, 전송과 공개 진입 헤더.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Security`: 내부 SHA-256 계산.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 11,
+      "end_line": 11,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 12,
+      "end_line": 13,
+      "raw": "빌드 중 생성되는 forwarding 헤더와 설치된 공개 헤더는 기존 `<iiCalendar/...>` 이름을 유지한다.\n공개 API는 소스 디렉터리 이름에 의존하지 않는다. `tests/source_layout.cmake`와 SDK 공통 경계 테스트가 구조 회귀를 검사한다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "소스 책임 분류",
+      "anchor": "소스-책임-분류",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000007",
+        "line": 13,
+        "text": "공개 API는 소스 디렉터리 이름에 의존하지 않는다. `tests/source_layout.cmake`와 SDK 공통 경계 테스트가 구조 회귀를 검사한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}
