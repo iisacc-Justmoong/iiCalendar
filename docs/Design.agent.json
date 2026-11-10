@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/Design.md",
-    "sha256": "ed2630d513fcac8081bc593caa0ad5b3a202b83231169157b116cb438dadc1ee",
-    "bytes": 12734,
+    "sha256": "ace33396e301de57e5f3d391e95a89e7b8719bb0e49d721ac8702efc0002dbf4",
+    "bytes": 12746,
     "line_count": 170,
     "encoding": "utf-8",
     "language": "ko"
@@ -683,7 +683,7 @@
       "kind": "paragraph",
       "start_line": 169,
       "end_line": 170,
-      "raw": "ICU의 Unicode 라이선스 원문은 bootstrap 소스의 build/deps/icu/LICENSE에 포함된다.\nICU 재배포 시 관련 고지를 유지해야 한다. SQLite는 공급 배포본의 고지를 확인한다.\n"
+      "raw": "ICU의 Unicode 라이선스 원문은 bootstrap 소스의 resources/dependencies/icu/LICENSE에 포함된다.\nICU 재배포 시 관련 고지를 유지해야 한다. SQLite는 공급 배포본의 고지를 확인한다.\n"
     }
   ],
   "outline": [

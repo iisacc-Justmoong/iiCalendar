@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "README.md",
-    "sha256": "d249845ee9364f8d2c3795cf8d4f273dc378a6c54d7ca617d6bab18ecd24d615",
-    "bytes": 5674,
+    "sha256": "a2174debe26034327808033506c24cbbcd8e526f39d3058ec9240576b36b7a58",
+    "bytes": 6006,
     "line_count": 99,
     "encoding": "utf-8",
     "language": "en"
@@ -113,9 +113,9 @@
       "kind": "fenced_code",
       "start_line": 18,
       "end_line": 25,
-      "raw": "```sh\npython3 scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n./build/iiCalendarExample\ncmake --install build --prefix \"$PWD/build/install\"\n```\n",
+      "raw": "```sh\npython3 -B scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure \\\n  -E '^iiCalendar\\.(installed_consumer|external_apple)$'\ncmake --install build --prefix \"$HOME/.local/SDK/iiCalendar\"\n```\n",
       "language": "sh",
-      "code": "python3 scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n./build/iiCalendarExample\ncmake --install build --prefix \"$PWD/build/install\"\n",
+      "code": "python3 -B scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure \\\n  -E '^iiCalendar\\.(installed_consumer|external_apple)$'\ncmake --install build --prefix \"$HOME/.local/SDK/iiCalendar\"\n",
       "closed": true
     },
     {
@@ -130,7 +130,7 @@
       "kind": "paragraph",
       "start_line": 27,
       "end_line": 27,
-      "raw": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and C++23 compiler. Bootstrap validates official ICU 78.3 sources from POSIX host to SHA-256 and statically builds only at `build/deps/icu/`. Network download is performed only during explicit bootstrap execution. CMake is not downloaded.\n"
+      "raw": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and a C++23 compiler. Bootstrap validates the official ICU 78.3 archive, retains sources and libraries in `resources/dependencies/`, and removes its temporary build after completion. Network download is performed only during explicit bootstrap execution. The example target is opt-in with `-DIICALENDAR_BUILD_EXAMPLES=ON`. `install.sh` uses `build/` and the normal user SDK prefix; set `IICALENDAR_VALIDATE_INTEGRATION=1` to run the installed-consumer and Apple authorization tests. See [BuildLayout.md](docs/BuildLayout.md).\n"
     },
     {
       "id": "b000016",
@@ -451,7 +451,7 @@
       {
         "block_id": "b000015",
         "line": 27,
-        "text": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and C++23 compiler. Bootstrap validates official ICU 78.3 sources from POSIX host to SHA-256 and statically builds only at `build/deps/icu/`. Network download is performed only during explicit bootstrap execution. CMake is not downloaded.",
+        "text": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and a C++23 compiler. Bootstrap validates the official ICU 78.3 archive, retains sources and libraries in `resources/dependencies/`, and removes its temporary build after completion. Network download is performed only during explicit bootstrap execution. The example target is opt-in with `-DIICALENDAR_BUILD_EXAMPLES=ON`. `install.sh` uses `build/` and the normal user SDK prefix; set `IICALENDAR_VALIDATE_INTEGRATION=1` to run the installed-consumer and Apple authorization tests. See [BuildLayout.md](docs/BuildLayout.md).",
         "basis": "lexical_match",
         "context": "paragraph"
       },
@@ -474,7 +474,7 @@
       {
         "block_id": "b000013",
         "language": "sh",
-        "code": "python3 scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n./build/iiCalendarExample\ncmake --install build --prefix \"$PWD/build/install\"\n"
+        "code": "python3 -B scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure \\\n  -E '^iiCalendar\\.(installed_consumer|external_apple)$'\ncmake --install build --prefix \"$HOME/.local/SDK/iiCalendar\"\n"
       }
     ],
     "links": [
@@ -484,6 +484,13 @@
         "target": "docs/WindowsBuildAndRun.md",
         "kind": "relative",
         "line": 3
+      },
+      {
+        "block_id": "b000015",
+        "label": "BuildLayout.md",
+        "target": "docs/BuildLayout.md",
+        "kind": "relative",
+        "line": 27
       },
       {
         "block_id": "b000021",

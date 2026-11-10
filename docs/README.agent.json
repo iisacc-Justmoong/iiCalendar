@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/README.md",
-    "sha256": "eeca7da2af2ed6f06bd32efc3311c956a95143cc56de177f64722a2894720581",
-    "bytes": 1270,
-    "line_count": 22,
+    "sha256": "b18955e93cccf984d24984930ac2b2251e661ee6d65eec42a2dfabd411fdf04b",
+    "bytes": 1433,
+    "line_count": 24,
     "encoding": "utf-8",
     "language": "en"
   },
@@ -79,8 +79,8 @@
       "id": "b000008",
       "kind": "table",
       "start_line": 8,
-      "end_line": 21,
-      "raw": "| Document | Agent JSON |\n| --- | --- |\n| [`AGENT.md`](../AGENT.md) | [JSON](entrypoints/AGENT.agent.json) |\n| [`README.md`](../README.md) | [JSON](entrypoints/README.agent.json) |\n| [`docs/Accounts.md`](Accounts.md) | [JSON](Accounts.agent.json) |\n| [`docs/Design.md`](Design.md) | [JSON](Design.agent.json) |\n| [`docs/ExternalCalendars.md`](ExternalCalendars.md) | [JSON](ExternalCalendars.agent.json) |\n| [`docs/FILE_PROVIDER.md`](FILE_PROVIDER.md) | [JSON](FILE_PROVIDER.agent.json) |\n| [`docs/PERFORMANCE.md`](PERFORMANCE.md) | [JSON](PERFORMANCE.agent.json) |\n| [`docs/SourceLayout.md`](SourceLayout.md) | [JSON](SourceLayout.agent.json) |\n| [`docs/Validation.md`](Validation.md) | [JSON](Validation.agent.json) |\n| [`docs/WindowsBuildAndRun.md`](WindowsBuildAndRun.md) | [JSON](WindowsBuildAndRun.agent.json) |\n| [`docs/WindowsValidation.md`](WindowsValidation.md) | [JSON](WindowsValidation.agent.json) |\n| [`docs/documentation-structure.md`](documentation-structure.md) | [JSON](documentation-structure.agent.json) |\n",
+      "end_line": 23,
+      "raw": "| Document | Agent JSON |\n| --- | --- |\n| [`AGENT.md`](../AGENT.md) | [JSON](entrypoints/AGENT.agent.json) |\n| [`README.md`](../README.md) | [JSON](entrypoints/README.agent.json) |\n| [`docs/Accounts.md`](Accounts.md) | [JSON](Accounts.agent.json) |\n| [`docs/BuildLayout.md`](BuildLayout.md) | [JSON](BuildLayout.agent.json) |\n| [`docs/Design.md`](Design.md) | [JSON](Design.agent.json) |\n| [`docs/DynamicLinking.md`](DynamicLinking.md) | [JSON](DynamicLinking.agent.json) |\n| [`docs/ExternalCalendars.md`](ExternalCalendars.md) | [JSON](ExternalCalendars.agent.json) |\n| [`docs/FILE_PROVIDER.md`](FILE_PROVIDER.md) | [JSON](FILE_PROVIDER.agent.json) |\n| [`docs/PERFORMANCE.md`](PERFORMANCE.md) | [JSON](PERFORMANCE.agent.json) |\n| [`docs/SourceLayout.md`](SourceLayout.md) | [JSON](SourceLayout.agent.json) |\n| [`docs/Validation.md`](Validation.md) | [JSON](Validation.agent.json) |\n| [`docs/WindowsBuildAndRun.md`](WindowsBuildAndRun.md) | [JSON](WindowsBuildAndRun.agent.json) |\n| [`docs/WindowsValidation.md`](WindowsValidation.md) | [JSON](WindowsValidation.agent.json) |\n| [`docs/documentation-structure.md`](documentation-structure.md) | [JSON](documentation-structure.agent.json) |\n",
       "columns": [
         "Document",
         "Agent JSON"
@@ -99,8 +99,16 @@
           "[JSON](Accounts.agent.json)"
         ],
         [
+          "[`docs/BuildLayout.md`](BuildLayout.md)",
+          "[JSON](BuildLayout.agent.json)"
+        ],
+        [
           "[`docs/Design.md`](Design.md)",
           "[JSON](Design.agent.json)"
+        ],
+        [
+          "[`docs/DynamicLinking.md`](DynamicLinking.md)",
+          "[JSON](DynamicLinking.agent.json)"
         ],
         [
           "[`docs/ExternalCalendars.md`](ExternalCalendars.md)",
@@ -139,8 +147,8 @@
     {
       "id": "b000009",
       "kind": "html",
-      "start_line": 22,
-      "end_line": 22,
+      "start_line": 24,
+      "end_line": 24,
       "raw": "<!-- workspace-docs:document-map:end -->\n"
     }
   ],
@@ -210,129 +218,157 @@
       },
       {
         "block_id": "b000008",
+        "label": "`docs/BuildLayout.md`",
+        "target": "BuildLayout.md",
+        "kind": "relative",
+        "line": 13
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "BuildLayout.agent.json",
+        "kind": "relative",
+        "line": 13
+      },
+      {
+        "block_id": "b000008",
         "label": "`docs/Design.md`",
         "target": "Design.md",
         "kind": "relative",
-        "line": 13
+        "line": 14
       },
       {
         "block_id": "b000008",
         "label": "JSON",
         "target": "Design.agent.json",
         "kind": "relative",
-        "line": 13
+        "line": 14
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/DynamicLinking.md`",
+        "target": "DynamicLinking.md",
+        "kind": "relative",
+        "line": 15
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "DynamicLinking.agent.json",
+        "kind": "relative",
+        "line": 15
       },
       {
         "block_id": "b000008",
         "label": "`docs/ExternalCalendars.md`",
         "target": "ExternalCalendars.md",
         "kind": "relative",
-        "line": 14
+        "line": 16
       },
       {
         "block_id": "b000008",
         "label": "JSON",
         "target": "ExternalCalendars.agent.json",
         "kind": "relative",
-        "line": 14
+        "line": 16
       },
       {
         "block_id": "b000008",
         "label": "`docs/FILE_PROVIDER.md`",
         "target": "FILE_PROVIDER.md",
         "kind": "relative",
-        "line": 15
+        "line": 17
       },
       {
         "block_id": "b000008",
         "label": "JSON",
         "target": "FILE_PROVIDER.agent.json",
         "kind": "relative",
-        "line": 15
+        "line": 17
       },
       {
         "block_id": "b000008",
         "label": "`docs/PERFORMANCE.md`",
         "target": "PERFORMANCE.md",
         "kind": "relative",
-        "line": 16
+        "line": 18
       },
       {
         "block_id": "b000008",
         "label": "JSON",
         "target": "PERFORMANCE.agent.json",
         "kind": "relative",
-        "line": 16
+        "line": 18
       },
       {
         "block_id": "b000008",
         "label": "`docs/SourceLayout.md`",
         "target": "SourceLayout.md",
         "kind": "relative",
-        "line": 17
+        "line": 19
       },
       {
         "block_id": "b000008",
         "label": "JSON",
         "target": "SourceLayout.agent.json",
         "kind": "relative",
-        "line": 17
+        "line": 19
       },
       {
         "block_id": "b000008",
         "label": "`docs/Validation.md`",
         "target": "Validation.md",
         "kind": "relative",
-        "line": 18
+        "line": 20
       },
       {
         "block_id": "b000008",
         "label": "JSON",
         "target": "Validation.agent.json",
         "kind": "relative",
-        "line": 18
+        "line": 20
       },
       {
         "block_id": "b000008",
         "label": "`docs/WindowsBuildAndRun.md`",
         "target": "WindowsBuildAndRun.md",
         "kind": "relative",
-        "line": 19
+        "line": 21
       },
       {
         "block_id": "b000008",
         "label": "JSON",
         "target": "WindowsBuildAndRun.agent.json",
         "kind": "relative",
-        "line": 19
+        "line": 21
       },
       {
         "block_id": "b000008",
         "label": "`docs/WindowsValidation.md`",
         "target": "WindowsValidation.md",
         "kind": "relative",
-        "line": 20
+        "line": 22
       },
       {
         "block_id": "b000008",
         "label": "JSON",
         "target": "WindowsValidation.agent.json",
         "kind": "relative",
-        "line": 20
+        "line": 22
       },
       {
         "block_id": "b000008",
         "label": "`docs/documentation-structure.md`",
         "target": "documentation-structure.md",
         "kind": "relative",
-        "line": 21
+        "line": 23
       },
       {
         "block_id": "b000008",
         "label": "JSON",
         "target": "documentation-structure.agent.json",
         "kind": "relative",
-        "line": 21
+        "line": 23
       }
     ],
     "tables": [
@@ -356,8 +392,16 @@
             "[JSON](Accounts.agent.json)"
           ],
           [
+            "[`docs/BuildLayout.md`](BuildLayout.md)",
+            "[JSON](BuildLayout.agent.json)"
+          ],
+          [
             "[`docs/Design.md`](Design.md)",
             "[JSON](Design.agent.json)"
+          ],
+          [
+            "[`docs/DynamicLinking.md`](DynamicLinking.md)",
+            "[JSON](DynamicLinking.agent.json)"
           ],
           [
             "[`docs/ExternalCalendars.md`](ExternalCalendars.md)",

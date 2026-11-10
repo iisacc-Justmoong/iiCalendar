@@ -7,6 +7,9 @@ An application can supply an already-open, shared SQLite connection to `Store`;
 it must supply the closing deleter and give that store exclusive connection use.
 `Store::inMemory()` creates no file. Persistent storage and account documents are
 opened by the consumer adapter, not the calendar module.
+Keep module and test build output in `build/`; use project `resources/` for ICU,
+temporary test data and private recovery. Preserve user calendar databases and
+account data, and do not run account or application checks without a request.
 
 <!-- workspace-docs:agent:start -->
 ## 문서 구조와 에이전트 탐색

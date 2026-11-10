@@ -1,12 +1,19 @@
 cmake_minimum_required(VERSION 3.24)
 project(iiCalendar VERSION 0.2.1 LANGUAGES CXX)
+option(BUILD_SHARED_LIBS "Build iiCalendar shared libraries" ON)
+include(cmake/InstallPrefix.cmake)
+calendar_set_install_prefix()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(CTest)
+if(PROJECT_IS_TOP_LEVEL AND UNIX AND CMAKE_CURRENT_BINARY_DIR STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}/build")
+    include(cmake/ResourceLinks.cmake)
+    calendar_compat_links("${CMAKE_CURRENT_SOURCE_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}")
+endif()
 
-# A locally bootstrapped ICU is confined to build/, never to system directories.
-if(NOT ICU_ROOT AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/build/deps/icu/install")
-    set(ICU_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/build/deps/icu/install")
+# A locally bootstrapped ICU and its source are project-owned resources.
+if(NOT ICU_ROOT AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/resources/dependencies/icu/install")
+    set(ICU_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/resources/dependencies/icu/install")
 endif()
 find_package(ICU 69 REQUIRED COMPONENTS i18n uc data)
 set(CMAKE_FIND_FRAMEWORK LAST)
@@ -21,6 +28,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "^(iOS|tvOS|watchOS|visionOS)$")
 endif()
 option(IICALENDAR_WITH_CURL "Built-in Google/Microsoft HTTPS transport (otherwise inject CalendarHttpGet)" ${calendar_curl_default})
 option(IICALENDAR_TEST_IISACC_BRIDGE "Deprecated: build the iisacc bridge as a separate consumer" OFF)
+option(IICALENDAR_BUILD_EXAMPLES "Build optional calendar examples" OFF)
 if(IICALENDAR_TEST_IISACC_BRIDGE)
     message(FATAL_ERROR "The iisacc bridge is a separate consumer: configure examples/iisacc-bridge independently")
 endif()
@@ -44,7 +52,7 @@ foreach(_header IN LISTS _calendar_public_headers)
         CONTENT "#pragma once\n#include \"${_header}\"\n")
 endforeach()
 
-add_library(iiCalendar STATIC
+add_library(iiCalendar
     src/Chronology/Date.cpp src/Chronology/Time.cpp src/Chronology/Clock.cpp
     src/Chronology/Calendar.cpp src/Chronology/TimeZone.cpp
     src/Events/Event.cpp src/Events/Recurrence.cpp
@@ -84,7 +92,55 @@ else()
     target_compile_options(iiCalendar PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion)
 endif()
 
+if(BUILD_SHARED_LIBS)
+    set_target_properties(iiCalendar PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set_target_properties(iiCalendar PROPERTIES FRAMEWORK TRUE FRAMEWORK_VERSION A
+            MACOSX_FRAMEWORK_IDENTIFIER "com.iisacc.iiCalendar")
+    elseif(APPLE)
+        set_property(TARGET iiCalendar APPEND PROPERTY INSTALL_RPATH "@loader_path")
+    elseif(UNIX AND NOT EMSCRIPTEN)
+        set_property(TARGET iiCalendar APPEND PROPERTY INSTALL_RPATH "$ORIGIN")
+    endif()
+endif()
+
 if(BUILD_TESTING)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    set(_calendar_user_home "$ENV{HOME}")
+    if(_calendar_user_home STREQUAL "")
+        set(_calendar_user_home "$ENV{USERPROFILE}")
+    endif()
+    set(IICALENDAR_TEST_PROVIDER_PYTHON_DIR
+        "auto" CACHE STRING "Optional Python resource-test adapter path")
+    function(calendar_resource_test name)
+        add_test(NAME "${name}" COMMAND "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/resource_runner.py"
+            "${IICALENDAR_TEST_PROVIDER_PYTHON_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/resources" ${ARGN})
+    endfunction()
+    calendar_resource_test(iiCalendar.resource_runner "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_resource_runner.py")
+    add_test(NAME iiCalendar.install_prefix COMMAND "${CMAKE_COMMAND}"
+        "-DHELPER=${CMAKE_CURRENT_SOURCE_DIR}/cmake/InstallPrefix.cmake"
+        "-DEXPECTED=${_calendar_user_home}/.local/SDK/iiCalendar"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/install_prefix.cmake")
+    unset(_calendar_user_home)
+    calendar_resource_test(iiCalendar.resource_paths "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_resource_paths.py" "@WORK@")
+    calendar_resource_test(iiCalendar.consumer_isolation "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_installed_consumer_policy.py" "@WORK@")
+    if(UNIX)
+        calendar_resource_test(iiCalendar.resource_links "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_resource_links.py" "${CMAKE_COMMAND}"
+            "${IICALENDAR_TEST_PROVIDER_PYTHON_DIR}" "@WORK@")
+        calendar_resource_test(iiCalendar.install_policy "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_install_policy.py" "@WORK@")
+    endif()
+    if(NOT IICALENDAR_BUILD_EXAMPLES)
+        add_test(NAME iiCalendar.production_defaults COMMAND "${CMAKE_COMMAND}"
+            "-DBUILD_ROOT=${CMAKE_CURRENT_BINARY_DIR}"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/production_defaults.cmake")
+    endif()
     add_test(NAME iiCalendar.source_layout COMMAND ${CMAKE_COMMAND}
         "-DSOURCE_ROOT=${CMAKE_CURRENT_SOURCE_DIR}" -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/source_layout.cmake")
     add_test(NAME iiCalendar.account_sdk_boundary COMMAND ${CMAKE_COMMAND}
@@ -111,7 +167,7 @@ if(BUILD_TESTING)
         add_executable(iiCalendarAppleTests tests/apple_calendar_tests.mm)
         set_target_properties(iiCalendarAppleTests PROPERTIES OBJCXX_STANDARD 23 OBJCXX_STANDARD_REQUIRED ON OBJCXX_EXTENSIONS OFF)
         target_compile_options(iiCalendarAppleTests PRIVATE -fobjc-arc)
-        target_link_libraries(iiCalendarAppleTests PRIVATE iiCalendar::iiCalendar)
+        target_link_libraries(iiCalendarAppleTests PRIVATE iiCalendar::iiCalendar ${calendar_foundation})
         add_test(NAME iiCalendar.external_apple_codec COMMAND iiCalendarAppleTests)
         set_tests_properties(iiCalendar.external_apple_codec PROPERTIES TIMEOUT 60)
     endif()
@@ -127,18 +183,26 @@ if(BUILD_TESTING)
         add_test(NAME iiCalendar.${suite} COMMAND iiCalendarTests ${suite})
         set_tests_properties(iiCalendar.${suite} PROPERTIES TIMEOUT 60)
     endforeach()
-    add_test(NAME iiCalendar.installed_consumer COMMAND ${CMAKE_COMMAND}
-        -DPROJECT_BUILD=${CMAKE_CURRENT_BINARY_DIR} -DPROJECT_SOURCE=${CMAKE_CURRENT_SOURCE_DIR}
-        "-DTOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}" "-DTARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}"
-        "-DHOST_TRIPLET=${VCPKG_HOST_TRIPLET}"
-        "-DCONFIG=$<CONFIG>"
-        "-DGENERATOR=${CMAKE_GENERATOR}" "-DDEPENDENCY_PREFIX=${CMAKE_PREFIX_PATH}" "-DICU_ROOT=${ICU_ROOT}" -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/installed_consumer.cmake)
+    string(HEX "${CMAKE_PREFIX_PATH}" _calendar_dependency_prefix_hex)
+    calendar_resource_test(iiCalendar.installed_consumer "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/installed_consumer.py"
+        "--cmake=${CMAKE_COMMAND}" "--ctest=${CMAKE_CTEST_COMMAND}"
+        "--build=${CMAKE_CURRENT_BINARY_DIR}" "--source=${CMAKE_CURRENT_SOURCE_DIR}"
+        "--workspace=@WORK@" "--config=$<CONFIG>" "--generator=${CMAKE_GENERATOR}"
+        "--dependency-prefix-hex=${_calendar_dependency_prefix_hex}" "--icu-root=${ICU_ROOT}"
+        "--toolchain=${CMAKE_TOOLCHAIN_FILE}" "--target-triplet=${VCPKG_TARGET_TRIPLET}"
+        "--host-triplet=${VCPKG_HOST_TRIPLET}")
+    unset(_calendar_dependency_prefix_hex)
 endif()
 
-add_executable(iiCalendarExample examples/day_details.cpp)
-target_link_libraries(iiCalendarExample PRIVATE iiCalendar::iiCalendar)
+if(IICALENDAR_BUILD_EXAMPLES)
+    add_executable(iiCalendarExample examples/day_details.cpp)
+    target_link_libraries(iiCalendarExample PRIVATE iiCalendar::iiCalendar)
+endif()
 set(package_dir "${CMAKE_INSTALL_LIBDIR}/cmake/iiCalendar")
-install(TARGETS iiCalendar EXPORT iiCalendarTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS iiCalendar EXPORT iiCalendarTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${_calendar_public_headers}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/iiCalendar)
 install(FILES README.md DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar)
@@ -152,3 +216,9 @@ write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/iiCalendarConfigVe
     VERSION ${PROJECT_VERSION} COMPATIBILITY SameMajorVersion)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/iiCalendarConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/iiCalendarConfigVersion.cmake" DESTINATION ${package_dir})
+
+if(BUILD_TESTING AND BUILD_SHARED_LIBS AND NOT CMAKE_CROSSCOMPILING)
+    add_test(NAME iiCalendar.shared_link COMMAND "${CMAKE_COMMAND}"
+        "-DIMAGE=$<TARGET_FILE:iiCalendarTests>" "-DEXPECTED=$<TARGET_FILE:iiCalendar>"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/shared_link.cmake")
+endif()

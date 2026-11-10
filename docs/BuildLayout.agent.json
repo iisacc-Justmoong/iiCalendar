@@ -1,0 +1,128 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:8c10e72e5a26fd9df8e15c7fb2a61d03e09001dca9b416e60062d0d88dd7165c",
+  "project": {
+    "id": "urn:iisacc:project:SDK%2FiiCalendar",
+    "name": "iiCalendar",
+    "root": "SDK/iiCalendar",
+    "kind": "sdk"
+  },
+  "source": {
+    "path": "docs/BuildLayout.md",
+    "sha256": "be958d2ed2bca44c53b19f186c494d7d66e3f4de2acbebab29cdeaf5441c780a",
+    "bytes": 2113,
+    "line_count": 9,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "빌드·리소스와 테스트 경계",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# 빌드·리소스와 테스트 경계\n",
+      "level": 1,
+      "title": "빌드·리소스와 테스트 경계"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "기본 구성은 `build/`에 iiCalendar 모듈과 테스트만 빌드한다. 예제는 `IICALENDAR_BUILD_EXAMPLES=ON`일 때 추가한다. ICU archive·소스·설치 prefix는 `resources/dependencies/icu/`에 유지하고 POSIX bootstrap의 컴파일 중간 결과는 `build/icu-bootstrap/`에 둔 뒤 정리한다. 이미 존재하는 ICU 78.3 prefix는 헤더 버전과 필수 정적 라이브러리 존재 여부를 확인한 후 재사용한다. 불완전한 prefix와 기존 작업 디렉터리는 덮어쓰지 않는다. 다운로드·구성 오류로 부분 설치가 남으면 사용 여부를 확인한 뒤 복구해야 한다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "Unix에서 최상위 `build/`를 구성할 때 기존 `build/deps` 경로를 `resources/dependencies/`에 연결한다. 기존 파일이나 다른 링크를 덮어쓰지 않는다. Windows에서는 자동 호환 링크를 만들지 않으므로 `ICU_ROOT`를 직접 지정한다. 다른 앱이 참조하는 ICU 경로와 사용자 캘린더 데이터·계정 자료는 정리 전에 보존한다.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "파일을 만드는 테스트는 `resources/.t/`의 충돌 없는 작업 공간을 iiFileProvider로 만들고 테스트 종료 또는 예외 후 제거한다. 설치 소비자 검사는 이 공간에 임시 설치본을 만들고, 일시적인 소비자 컴파일은 `build/` 아래에서 수행한 후 지운다. 원래 설치 manifest는 변경하지 않는다. 강제 종료로 정리 코드가 실행되지 않으면 남은 작업 공간을 사용 여부 확인 후 정리해야 한다. 테스트 도구는 `IICALENDAR_TEST_PROVIDER_PYTHON_DIR`의 Python 어댑터를 쓰지만 iiCalendar 라이브러리는 다른 SDK 모듈을 찾거나 링크하지 않는다.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 9,
+      "end_line": 9,
+      "raw": "`install.sh`는 기본적으로 실제 Apple 계정 상태와 설치 소비자 실행을 제외한 계약 테스트를 수행하고 사용자 SDK 경로에 설치한다. 이 통합 검사는 `IICALENDAR_VALIDATE_INTEGRATION=1` 또는 별도의 CTest 실행으로 명시한다. 과거 다중 빌드와 로그는 과거 검증 기록이며 현재 결과가 아니다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "빌드·리소스와 테스트 경계",
+      "anchor": "빌드리소스와-테스트-경계",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000003",
+        "line": 3,
+        "text": "기본 구성은 `build/`에 iiCalendar 모듈과 테스트만 빌드한다. 예제는 `IICALENDAR_BUILD_EXAMPLES=ON`일 때 추가한다. ICU archive·소스·설치 prefix는 `resources/dependencies/icu/`에 유지하고 POSIX bootstrap의 컴파일 중간 결과는 `build/icu-bootstrap/`에 둔 뒤 정리한다. 이미 존재하는 ICU 78.3 prefix는 헤더 버전과 필수 정적 라이브러리 존재 여부를 확인한 후 재사용한다. 불완전한 prefix와 기존 작업 디렉터리는 덮어쓰지 않는다. 다운로드·구성 오류로 부분 설치가 남으면 사용 여부를 확인한 뒤 복구해야 한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000007",
+        "line": 7,
+        "text": "파일을 만드는 테스트는 `resources/.t/`의 충돌 없는 작업 공간을 iiFileProvider로 만들고 테스트 종료 또는 예외 후 제거한다. 설치 소비자 검사는 이 공간에 임시 설치본을 만들고, 일시적인 소비자 컴파일은 `build/` 아래에서 수행한 후 지운다. 원래 설치 manifest는 변경하지 않는다. 강제 종료로 정리 코드가 실행되지 않으면 남은 작업 공간을 사용 여부 확인 후 정리해야 한다. 테스트 도구는 `IICALENDAR_TEST_PROVIDER_PYTHON_DIR`의 Python 어댑터를 쓰지만 iiCalendar 라이브러리는 다른 SDK 모듈을 찾거나 링크하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

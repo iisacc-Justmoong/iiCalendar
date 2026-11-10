@@ -1,5 +1,7 @@
 # 검증
 
+> 아래 과거 `build/` 설치 경로와 로그는 당시 검증 기록이다. 현재 테스트의 임시 설치·빌드 경계는 [BuildLayout.md](BuildLayout.md)를 따른다.
+
 ## SDK 독립 경계와 메모리 저장소 (2026-10-28)
 
 macOS arm64에서 iiAccountManager와 iiFileProvider 검색을 비활성화해 본체를

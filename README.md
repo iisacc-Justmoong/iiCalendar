@@ -16,15 +16,15 @@ C++23-based Qt non-dependent calendar SDK. It provides high-precision time, inte
 Public headers and implementations are grouped by responsibility under `src/`. Usage examples are `examples/day_details.cpp`. Consumers continue to use `<iiCalendar/...>` through the exported CMake target.
 
 ```sh
-python3 scripts/bootstrap_icu.py
+python3 -B scripts/bootstrap_icu.py
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build --parallel 6
-ctest --test-dir build --output-on-failure
-./build/iiCalendarExample
-cmake --install build --prefix "$PWD/build/install"
+ctest --test-dir build --output-on-failure \
+  -E '^iiCalendar\.(installed_consumer|external_apple)$'
+cmake --install build --prefix "$HOME/.local/SDK/iiCalendar"
 ```
 
-If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and C++23 compiler. Bootstrap validates official ICU 78.3 sources from POSIX host to SHA-256 and statically builds only at `build/deps/icu/`. Network download is performed only during explicit bootstrap execution. CMake is not downloaded.
+If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and a C++23 compiler. Bootstrap validates the official ICU 78.3 archive, retains sources and libraries in `resources/dependencies/`, and removes its temporary build after completion. Network download is performed only during explicit bootstrap execution. The example target is opt-in with `-DIICALENDAR_BUILD_EXAMPLES=ON`. `install.sh` uses `build/` and the normal user SDK prefix; set `IICALENDAR_VALIDATE_INTEGRATION=1` to run the installed-consumer and Apple authorization tests. See [BuildLayout.md](docs/BuildLayout.md).
 
 ```cmake
 find_package(iiCalendar 0.2 CONFIG REQUIRED)

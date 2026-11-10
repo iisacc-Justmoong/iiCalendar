@@ -166,5 +166,5 @@ Google의 비공개 JSON 변환과 libcurl 전송, Apple의 비공개 Objective-
 - [SQLite 정수 복합 값 비교](https://www.sqlite.org/rowvalue.html)
 - [Windows 고정밀 시계](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsystemtimepreciseasfiletime)
 
-ICU의 Unicode 라이선스 원문은 bootstrap 소스의 build/deps/icu/LICENSE에 포함된다.
+ICU의 Unicode 라이선스 원문은 bootstrap 소스의 resources/dependencies/icu/LICENSE에 포함된다.
 ICU 재배포 시 관련 고지를 유지해야 한다. SQLite는 공급 배포본의 고지를 확인한다.
