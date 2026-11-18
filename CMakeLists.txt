@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 project(iiCalendar VERSION 0.2.1 LANGUAGES CXX)
+include(./cmake/ModuleImports.cmake)
 option(BUILD_SHARED_LIBS "Build iiCalendar shared libraries" ON)
 include(cmake/InstallPrefix.cmake)
 calendar_set_install_prefix()

@@ -1,0 +1,14 @@
+#pragma once
+
+// C++ public entry for iiCalendar; the linked components select the API.
+#include <iiCalendar/Accounts.h>
+#include <iiCalendar/Calendar.h>
+#include <iiCalendar/Date.h>
+#include <iiCalendar/Event.h>
+#include <iiCalendar/ExternalCalendar.h>
+#include <iiCalendar/IisaccAccount.h>
+#include <iiCalendar/Store.h>
+#include <iiCalendar/Time.h>
+#include <iiCalendar/TimeZone.h>
+#include <iiCalendar/View.h>
+#include <iiCalendar/iiCalendar.h>
