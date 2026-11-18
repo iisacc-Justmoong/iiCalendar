@@ -1,4 +1,4 @@
-// Adapted from iisacc MIT engineering counterpart; full notice preserved.
+// Adapted from the iisacc Apache-2.0 engineering counterpart; full notice preserved.
 #include "Sha256.h"
 #include <algorithm>
 #include <bit>

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 project(iiCalendar VERSION 0.2.1 LANGUAGES CXX)
+set(iiCalendar_SPDX_LICENSE "Apache-2.0")
 option(BUILD_SHARED_LIBS "Build iiCalendar shared libraries" ON)
 include(cmake/InstallPrefix.cmake)
 calendar_set_install_prefix()
@@ -143,6 +144,14 @@ if(BUILD_TESTING)
     endif()
     add_test(NAME iiCalendar.source_layout COMMAND ${CMAKE_COMMAND}
         "-DSOURCE_ROOT=${CMAKE_CURRENT_SOURCE_DIR}" -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/source_layout.cmake")
+    add_test(NAME iiCalendar.license COMMAND ${CMAKE_COMMAND}
+        "-DSOURCE_ROOT=${CMAKE_CURRENT_SOURCE_DIR}"
+        "-DBUILD_ROOT=${CMAKE_CURRENT_BINARY_DIR}"
+        "-DPACKAGE_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/iiCalendarConfig.cmake"
+        "-DINSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+        "-DINSTALL_DATADIR=${CMAKE_INSTALL_DATADIR}"
+        "-DCONFIG_TYPE=$<CONFIG>"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/license.cmake")
     add_test(NAME iiCalendar.account_sdk_boundary COMMAND ${CMAKE_COMMAND}
         "-DIICALENDAR_SOURCE=${CMAKE_CURRENT_SOURCE_DIR}" -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/account_sdk_boundary.cmake")
     add_executable(iiCalendarAccountTests tests/account_tests.cpp)
@@ -205,10 +214,12 @@ install(TARGETS iiCalendar EXPORT iiCalendarTargets ARCHIVE DESTINATION ${CMAKE_
     FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${_calendar_public_headers}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/iiCalendar)
-install(FILES README.md DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar)
+install(FILES README.md LICENSE NOTICE DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar)
 install(DIRECTORY docs/ DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar/docs)
 install(FILES ThirdParty/nlohmann/LICENSE.MIT DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar/licenses/nlohmann-json)
-install(FILES ThirdParty/licenses/iisacc-counterpart/LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar/licenses/iisacc-counterpart)
+install(FILES ThirdParty/licenses/iisacc-counterpart/LICENSE
+    ThirdParty/licenses/iisacc-counterpart/NOTICE
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/iiCalendar/licenses/iisacc-counterpart)
 install(EXPORT iiCalendarTargets NAMESPACE iiCalendar:: DESTINATION ${package_dir})
 configure_package_config_file(cmake/iiCalendarConfig.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/iiCalendarConfig.cmake" INSTALL_DESTINATION ${package_dir})
