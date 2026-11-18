@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/Accounts.md",
-    "sha256": "3bf3faa295cfeb018d4a3d68856eb458707c0c8be2aaaf84050d191e0c079eec",
-    "bytes": 9665,
+    "sha256": "777738fea31a4c07f67375a7f675f988c37aca7569d36a66fd27f02e96125bdc",
+    "bytes": 9672,
     "line_count": 162,
     "encoding": "utf-8",
     "language": "en"
@@ -336,7 +336,7 @@
       "kind": "paragraph",
       "start_line": 126,
       "end_line": 130,
-      "raw": "An internal SHA-256 implementation preserves the credential fingerprint used\nto avoid repeating a profile lookup for an unchanged token. Its iisacc MIT\ncounterpart license is installed with the package, and standard vectors are\nchecked by `iiCalendar.sha256`. Neither the bearer token nor the fingerprint is\nwritten to the connection document.\n"
+      "raw": "An internal SHA-256 implementation preserves the credential fingerprint used\nto avoid repeating a profile lookup for an unchanged token. Its iisacc\nApache-2.0 counterpart license is installed with the package, and standard\nvectors are checked by `iiCalendar.sha256`. Neither the bearer token nor the\nfingerprint is written to the connection document.\n"
     },
     {
       "id": "b000040",

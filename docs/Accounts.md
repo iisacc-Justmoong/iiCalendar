@@ -124,10 +124,10 @@ report `AuthenticationRequired` until their providers/credentials are reattached
 disabled connections stay disabled when reattached.
 
 An internal SHA-256 implementation preserves the credential fingerprint used
-to avoid repeating a profile lookup for an unchanged token. Its iisacc MIT
-counterpart license is installed with the package, and standard vectors are
-checked by `iiCalendar.sha256`. Neither the bearer token nor the fingerprint is
-written to the connection document.
+to avoid repeating a profile lookup for an unchanged token. Its iisacc
+Apache-2.0 counterpart license is installed with the package, and standard
+vectors are checked by `iiCalendar.sha256`. Neither the bearer token nor the
+fingerprint is written to the connection document.
 
 The former `saveConnections(nativePath)` and `loadConnections(nativePath)` members
 were removed. The separately configured `examples/file-provider` consumer uses

@@ -1,4 +1,5 @@
 @PACKAGE_INIT@
+set(iiCalendar_SPDX_LICENSE "Apache-2.0")
 include(CMakeFindDependencyMacro)
 find_dependency(ICU 69 COMPONENTS i18n uc data)
 find_dependency(SQLite3 3.37)
