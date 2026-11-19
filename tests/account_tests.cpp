@@ -136,6 +136,84 @@ void externalIdentities() {
     });
     CHECK(io == 0);
 }
+void genericWorkspace() {
+    CalendarAccountManager accounts;
+    accounts.setWorkspace(CalendarWorkspaceIdentity{"org.example.daymark", "workspace-a", "device-a"});
+    CHECK(accounts.workspaceOpen() && !accounts.authenticated());
+    CHECK(accounts.accounts().empty() && !accounts.iisaccSession());
+    const auto connected = accounts.connect({"user", "fixture", "Work"}, std::make_shared<Provider>());
+    CHECK(connected.ownerId == "workspace-a" && !connected.primary);
+    const auto calendar = accounts.calendars(connected.id).at(0);
+    accounts.loadEvents(connected.id, calendar.id, window());
+    const auto event = accounts.calendar(calendar.id)->events.at(0);
+    CHECK(event.ownerId == "workspace-a" && !event.properties.contains("iisacc.subject"));
+    const auto document = accounts.connectionDocument();
+    accounts.setWorkspace(CalendarWorkspaceIdentity{"org.example.daymark", "workspace-a", "device-a"});
+    CHECK(accounts.calendars().size() == 1);
+    CalendarAccountManager restored;
+    restored.setWorkspace(CalendarWorkspaceIdentity{"org.example.daymark", "workspace-a", "device-a"});
+    restored.restoreConnections(document);
+    CHECK(restored.accounts().size() == 1 && restored.accounts()[0].id == connected.id);
+    fails(ExternalCalendarErrorCode::AuthenticationRequired, [&] { restored.refresh(connected.id); });
+    (void)restored.connect({"user", "fixture", "Work"}, std::make_shared<Provider>());
+    CHECK(restored.calendars().size() == 1);
+    CalendarAccountManager other;
+    other.setWorkspace(CalendarWorkspaceIdentity{"org.example.daymark", "workspace-b", "device-a"});
+    fails(ExternalCalendarErrorCode::PermissionDenied, [&] { other.restoreConnections(document); });
+    accounts.setWorkspace(CalendarWorkspaceIdentity{"org.example.daymark", "workspace-a", "device-b"});
+    CHECK(accounts.accounts().empty());
+    accounts.setWorkspace(std::nullopt);
+    CHECK(!accounts.workspaceOpen());
+    fails(ExternalCalendarErrorCode::AuthenticationRequired, [&] { (void)accounts.calendars(); });
+
+    accounts.setWorkspace(CalendarWorkspaceIdentity{"org.example.daymark", "workspace-a", "device-a"});
+    const auto google = accounts.connectGoogle([] { return "google-token"; }, [](const CalendarHttpRequest &request) {
+        if (request.url.find("userinfo") != std::string::npos)
+            return CalendarHttpResponse{200, R"({"sub":"google-user","name":"Google User"})"};
+        return CalendarHttpResponse{200, R"({"items":[{"id":"work","summary":"Work","timeZone":"UTC"}]})"};
+    });
+    const auto outlook = accounts.connectMicrosoft([] { return "microsoft-token"; }, [](const CalendarHttpRequest &request) {
+        if (request.url.find("$select=id") != std::string::npos)
+            return CalendarHttpResponse{200, R"({"id":"ms-user","displayName":"MS User"})"};
+        return CalendarHttpResponse{200, R"({"value":[{"id":"calendar","name":"Work"}]})"};
+    });
+    CHECK(accounts.accounts().size() == 2 && google.ownerId == "workspace-a" && outlook.ownerId == "workspace-a");
+    CHECK(accounts.calendars(google.id).size() == 1 && accounts.calendars(outlook.id).size() == 1);
+    const auto before = accounts.connectionDocument();
+    try { accounts.setWorkspace(CalendarWorkspaceIdentity{"", "owner", "device"}); throw std::runtime_error("invalid workspace accepted"); }
+    catch (const std::invalid_argument &) {}
+    CHECK(accounts.connectionDocument() == before);
+    CalendarAccountOptions collisionOptions; collisionOptions.iisaccOrigin = "workspace:org.example.daymark";
+    CalendarAccountManager collision(collisionOptions);
+    auto collisionSession = session(); collisionSession.origin = collisionOptions.iisaccOrigin; collisionSession.subject = "workspace-a";
+    collision.setIisaccSession(collisionSession);
+    fails(ExternalCalendarErrorCode::PermissionDenied, [&] { collision.restoreConnections(before); });
+    accounts.setIisaccSession(session());
+    CHECK(accounts.accounts().size() == 1 && accounts.accounts().front().primary);
+    fails(ExternalCalendarErrorCode::PermissionDenied, [&] { accounts.restoreConnections(before); });
+}
+
+// Workspace replacement retires an in-flight provider without publishing its data.
+void staleWorkspace() {
+    class Blocking final : public Provider {
+    public:
+        std::promise<void> entered, release;
+        std::vector<RemoteCalendar> calendars() override { entered.set_value(); release.get_future().wait(); return Provider::calendars(); }
+    };
+    CalendarAccountManager accounts;
+    accounts.setWorkspace(CalendarWorkspaceIdentity{"example", "first", "device"});
+    auto provider = std::make_shared<Blocking>();
+    auto pending = std::async(std::launch::async, [&] {
+        try { (void)accounts.connect({"external", "fixture", "Work"}, provider); }
+        catch (const ExternalCalendarError &error) { return error.code(); }
+        return ExternalCalendarErrorCode::InvalidResponse;
+    });
+    provider->entered.get_future().wait();
+    accounts.setWorkspace(CalendarWorkspaceIdentity{"example", "second", "device"});
+    provider->release.set_value();
+    CHECK(pending.get() == ExternalCalendarErrorCode::StaleSession);
+    CHECK(accounts.accounts().empty() && accounts.calendars().empty());
+}
 void replacingAConnectionWhileItsProviderIsStarting(bool toggleEnabled) {
     class DelayedIdentity final : public Provider {
     public:
@@ -172,7 +250,7 @@ void replacingAConnectionWhileItsProviderIsStarting(bool toggleEnabled) {
 }
 int main() {
     try {
-        lifecycle(); persistence(); stale(); externalIdentities(); replacingAConnectionWhileItsProviderIsStarting(false); replacingAConnectionWhileItsProviderIsStarting(true); std::cout << checks << " account checks passed\n";
+        lifecycle(); persistence(); stale(); externalIdentities(); genericWorkspace(); staleWorkspace(); replacingAConnectionWhileItsProviderIsStarting(false); replacingAConnectionWhileItsProviderIsStarting(true); std::cout << checks << " account checks passed\n";
     }
     catch (const std::exception &e) { std::cerr << e.what() << '\n'; return 1; }
 }

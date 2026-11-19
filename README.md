@@ -48,8 +48,9 @@ connection and document I/O. Rebuild existing consumers against the new API.
 
 ## Accounts and external calendars
 
-`CalendarAccountManager` requires an authenticated iisacc owner and connects
-additional Google, Microsoft/Outlook and device-managed Apple calendar accounts.
+`CalendarAccountManager` connects Google, Microsoft/Outlook, device-managed
+Apple and custom providers in a host-owned workspace, with an optional
+authenticated iisacc session for existing integrations.
 It manages account-scoped calendars/events, enable/disable, disconnect,
 credential-free connection restoration, expiry and stale-session isolation.
 The native library remains Qt-free. A header-only adapter reads verified
@@ -68,6 +69,8 @@ explicit full-access authorization. Default HTTPS uses libcurl 7.85+; with
 `CalendarObjectManager` remains the lower-level provider-object primitive used
 by the account facade. Its calendar/event formats, refresh rules and platform
 authorization contract are in [External calendars](docs/ExternalCalendars.md).
+
+The optional `iicalendar` Python account API, build requirements and examples are documented in [Accounts.md](docs/Accounts.md#python-account-api-contract).
 
 ## License
 

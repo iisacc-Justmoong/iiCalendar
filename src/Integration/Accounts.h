@@ -9,6 +9,12 @@ struct IisaccCalendarSession {
     Instant expiresAt;
     bool operator==(const IisaccCalendarSession &) const = default;
 };
+// Host-owned workspace scope. These identifiers isolate connections and device
+// sources but do not assert that a person or external provider is authenticated.
+struct CalendarWorkspaceIdentity {
+    std::string nameSpace, ownerId, deviceId;
+    bool operator==(const CalendarWorkspaceIdentity &) const = default;
+};
 enum class CalendarAccountState { Linked, Loading, Ready, Disabled, Failed, AuthenticationRequired };
 struct CalendarAccount {
     std::string id, ownerId, providerId, subject, displayName, email;
@@ -22,9 +28,9 @@ struct CalendarAccountOptions {
     ExternalCalendarLimits limits;
     std::function<Instant()> now = [] { return Clock::sample().wallTime; };
 };
-// Native account facade. Every external operation requires an unexpired iisacc
-// session. Session changes retire providers/caches; late results cannot cross
-// owner/session boundaries. Network methods are blocking; use an app I/O worker.
+// Provider-neutral account facade. A host opens a workspace or supplies an
+// authenticated iisacc session. Context changes retire providers and caches;
+// late results cannot cross the boundary. Network methods are blocking.
 // Non-I/O session updates/reads can run concurrently. Join calls before destruction.
 class CalendarAccountManager final {
 public:
@@ -32,8 +38,15 @@ public:
     ~CalendarAccountManager();
     CalendarAccountManager(const CalendarAccountManager &) = delete;
     CalendarAccountManager &operator=(const CalendarAccountManager &) = delete;
+    // Open or close a host-owned workspace. Reusing the same identity preserves
+    // live connections; changing any component retires the prior workspace.
+    void setWorkspace(std::optional<CalendarWorkspaceIdentity> identity);
     void setIisaccSession(std::optional<IisaccCalendarSession> authenticatedSession);
+    // Reports whether an unexpired iisacc session is present; a generic workspace
+    // is a storage boundary and does not establish user authentication.
     [[nodiscard]] bool authenticated() const;
+    // Reports whether either type of connection workspace is currently open.
+    [[nodiscard]] bool workspaceOpen() const;
     [[nodiscard]] std::optional<IisaccCalendarSession> iisaccSession() const;
     [[nodiscard]] std::vector<CalendarAccount> accounts() const;
     // Custom providers use an identity already authenticated by the host.
@@ -50,7 +63,7 @@ public:
     bool disconnect(const std::string &accountId);
     [[nodiscard]] std::vector<CalendarObject> calendars(const std::optional<std::string> &accountId = {}) const;
     [[nodiscard]] std::optional<CalendarObject> calendar(const std::string &id) const;
-    // Metadata-only, owner-bound connection restoration. Credentials, session
+    // Metadata-only, workspace-bound connection restoration. Credentials, session
     // bindings and event caches never enter the document. Reattach providers
     // using the host's secure credentials after restore; disabled stays disabled.
     [[nodiscard]] std::string connectionDocument() const;

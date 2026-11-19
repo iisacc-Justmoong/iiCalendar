@@ -11,8 +11,8 @@ using Json = nlohmann::json;
 using Code = ExternalCalendarErrorCode;
 [[noreturn]] void fail(Code code, const char *message) { throw ExternalCalendarError(code, message); }
 std::string part(const std::string &value) { return std::to_string(value.size()) + ':' + value; }
-std::string accountKey(const IisaccCalendarSession &owner, const std::string &provider, const std::string &subject) {
-    return "account:" + part(owner.origin) + part(owner.subject) + part(provider) + part(subject);
+std::string accountKey(const std::string &origin, const std::string &owner, const std::string &provider, const std::string &subject) {
+    return "account:" + part(origin) + part(owner) + part(provider) + part(subject);
 }
 bool validText(const std::string &value, std::size_t maximum = 4096, bool required = true) {
     if ((required && value.empty()) || value.size() > maximum
@@ -86,9 +86,19 @@ public:
         explicit Connection(ExternalCalendarLimits limits) : objects(limits) {}
     };
     struct Context {
-        IisaccCalendarSession session;
+        CalendarWorkspaceIdentity workspace;
+        std::optional<IisaccCalendarSession> session;
         std::map<std::string, std::shared_ptr<Connection>> connections;
-        explicit Context(IisaccCalendarSession owner) : session(std::move(owner)) {}
+        explicit Context(CalendarWorkspaceIdentity owner) : workspace(std::move(owner)) {}
+        explicit Context(IisaccCalendarSession owner)
+            : workspace{owner.origin, owner.subject, owner.deviceId}, session(std::move(owner)) {}
+        // Keep the established iisacc key encoding while separating generic
+        // namespaces from authenticated origin URLs.
+        std::string keyOrigin() const { return session ? session->origin : "workspace:" + workspace.nameSpace; }
+        std::string key(const std::string &provider, const std::string &subject) const {
+            const auto key = accountKey(keyOrigin(), workspace.ownerId, provider, subject);
+            return session ? key : "workspace-" + key;
+        }
     };
     CalendarAccountOptions options;
     mutable std::mutex mutex;
@@ -98,12 +108,12 @@ public:
             throw std::invalid_argument("calendar account options must have positive limits and an iisacc origin/clock");
     }
     std::shared_ptr<Context> get(bool required = true) const { // mutex held
-        if (current && current->session.expiresAt <= options.now()) current.reset();
-        if (!current && required) fail(Code::AuthenticationRequired, "an authenticated iisacc session is required");
+        if (current && current->session && current->session->expiresAt <= options.now()) current.reset();
+        if (!current && required) fail(Code::AuthenticationRequired, "an open calendar workspace is required");
         return current;
     }
     void check(const std::shared_ptr<Context> &context, const std::shared_ptr<Connection> &connection = {}) const {
-        if (get(false) != context) fail(Code::StaleSession, "iisacc calendar session changed during operation");
+        if (get(false) != context) fail(Code::StaleSession, "calendar workspace changed during operation");
         if (connection) {
             const auto found = context->connections.find(connection->value.id);
             if (found == context->connections.end() || found->second != connection || !connection->value.enabled)
@@ -112,14 +122,14 @@ public:
     }
     std::shared_ptr<Context> capture() const { std::lock_guard lock(mutex); return get(); }
     static CalendarAccount primary(const Context &context) {
-        const auto &s = context.session;
-        return {accountKey(s, "iisacc", s.subject), s.subject, "iisacc", s.subject, s.displayName, s.email,
+        const auto &s = *context.session;
+        return {accountKey(s.origin, s.subject, "iisacc", s.subject), s.subject, "iisacc", s.subject, s.displayName, s.email,
             true, true, CalendarAccountState::Ready, {}};
     }
     std::shared_ptr<Connection> find(const std::shared_ptr<Context> &context, const std::string &id) const {
         const auto found = context->connections.find(id);
         if (found == context->connections.end()) {
-            if (id == primary(*context).id) fail(Code::PermissionDenied, "the required iisacc account is managed by its authentication SDK");
+            if (context->session && id == primary(*context).id) fail(Code::PermissionDenied, "the required iisacc account is managed by its authentication SDK");
             fail(Code::NotFound, "calendar account is not connected");
         }
         return found->second;
@@ -165,7 +175,7 @@ public:
             || account.providerId == "iisacc" || account.providerId != provider->id()
             || !validText(account.displayName, 4096, false) || !validText(email, 4096, false))
             throw std::invalid_argument("connection requires an authenticated external identity and matching provider");
-        const auto key = accountKey(context->session, account.providerId, account.id);
+        const auto key = context->key(account.providerId, account.id);
         bool enabled = true;
         std::shared_ptr<Connection> connection;
         {
@@ -176,7 +186,7 @@ public:
                 enabled = found->second->value.enabled;
             } else if (context->connections.size() == options.maximumAccounts) fail(Code::LimitExceeded, "calendar account limit exceeded");
             connection = std::make_shared<Connection>(options.limits);
-            connection->value = {key, context->session.subject, account.providerId, account.id, account.displayName, std::move(email),
+            connection->value = {key, context->workspace.ownerId, account.providerId, account.id, account.displayName, std::move(email),
                 false, enabled, enabled ? CalendarAccountState::Linked : CalendarAccountState::Disabled, {}};
             connection->provider = std::move(provider); context->connections[key] = connection;
         }
@@ -191,6 +201,15 @@ public:
 };
 CalendarAccountManager::CalendarAccountManager(CalendarAccountOptions options) : impl_(std::make_unique<Impl>(std::move(options))) {}
 CalendarAccountManager::~CalendarAccountManager() = default;
+void CalendarAccountManager::setWorkspace(std::optional<CalendarWorkspaceIdentity> identity) {
+    if (identity && (!validText(identity->nameSpace) || !validText(identity->ownerId) || !validText(identity->deviceId)))
+        throw std::invalid_argument("calendar workspace namespace, owner and device are required");
+    std::lock_guard lock(impl_->mutex);
+    if (!identity) { impl_->current.reset(); return; }
+    const auto current = impl_->get(false);
+    if (current && !current->session && current->workspace == *identity) return;
+    impl_->current = std::make_shared<Impl::Context>(std::move(*identity));
+}
 void CalendarAccountManager::setIisaccSession(std::optional<IisaccCalendarSession> session) {
     std::lock_guard lock(impl_->mutex);
     if (!session) { impl_->current.reset(); return; }
@@ -200,21 +219,25 @@ void CalendarAccountManager::setIisaccSession(std::optional<IisaccCalendarSessio
         impl_->current.reset(); fail(Code::AuthenticationRequired, "a current verified iisacc session is required");
     }
     const auto old = impl_->get(false);
-    if (old && old->session.origin == session->origin && old->session.subject == session->subject
-        && old->session.userId == session->userId && old->session.sessionId == session->sessionId && old->session.deviceId == session->deviceId)
+    if (old && old->session && old->session->origin == session->origin && old->session->subject == session->subject
+        && old->session->userId == session->userId && old->session->sessionId == session->sessionId && old->session->deviceId == session->deviceId)
     {
-        old->session.email = std::move(session->email); old->session.displayName = std::move(session->displayName);
-        old->session.expiresAt = session->expiresAt;
+        old->session->email = std::move(session->email); old->session->displayName = std::move(session->displayName);
+        old->session->expiresAt = session->expiresAt;
     }
     else impl_->current = std::make_shared<Impl::Context>(std::move(*session));
 }
-bool CalendarAccountManager::authenticated() const { std::lock_guard lock(impl_->mutex); return bool(impl_->get(false)); }
+bool CalendarAccountManager::authenticated() const {
+    std::lock_guard lock(impl_->mutex); const auto context = impl_->get(false); return context && context->session.has_value();
+}
+bool CalendarAccountManager::workspaceOpen() const { std::lock_guard lock(impl_->mutex); return bool(impl_->get(false)); }
 std::optional<IisaccCalendarSession> CalendarAccountManager::iisaccSession() const {
-    std::lock_guard lock(impl_->mutex); const auto context = impl_->get(false); return context ? std::optional(context->session) : std::nullopt;
+    std::lock_guard lock(impl_->mutex); const auto context = impl_->get(false); return context ? context->session : std::nullopt;
 }
 std::vector<CalendarAccount> CalendarAccountManager::accounts() const {
     std::lock_guard lock(impl_->mutex); const auto context = impl_->get(false); if (!context) return {};
-    std::vector<CalendarAccount> result{Impl::primary(*context)};
+    std::vector<CalendarAccount> result;
+    if (context->session) result.push_back(Impl::primary(*context));
     for (const auto &[key, connection] : context->connections) { (void)key; result.push_back(connection->value); }
     return result;
 }
@@ -245,7 +268,7 @@ CalendarAccount CalendarAccountManager::connectApple(AppleCalendarOptions option
         if (source == sources.end()) fail(Code::NotFound, "Apple calendar source was not found");
         name = source->title;
     }
-    return impl_->connect(context, {part(context->session.deviceId) + part(options.sourceId), "apple", name}, std::move(provider));
+    return impl_->connect(context, {part(context->workspace.deviceId) + part(options.sourceId), "apple", name}, std::move(provider));
 }
 void CalendarAccountManager::refresh(const std::string &accountId) {
     impl_->run(impl_->capture(), accountId, [](CalendarObjectManager &objects, const CalendarAccount &value, const auto &provider, bool bound) {
@@ -272,7 +295,7 @@ void CalendarAccountManager::setEnabled(const std::string &accountId, bool enabl
 }
 bool CalendarAccountManager::disconnect(const std::string &accountId) {
     std::lock_guard lock(impl_->mutex); const auto context = impl_->get();
-    if (accountId == Impl::primary(*context).id) fail(Code::PermissionDenied, "the required iisacc account cannot be disconnected here");
+    if (context->session && accountId == Impl::primary(*context).id) fail(Code::PermissionDenied, "the required iisacc account cannot be disconnected here");
     const auto found = context->connections.find(accountId);
     if (found == context->connections.end()) return false;
     found->second->objects.logout(accountId); context->connections.erase(found); return true;
@@ -284,7 +307,8 @@ std::vector<CalendarObject> CalendarAccountManager::calendars(const std::optiona
         auto objects = connection->objects.calendars(key);
         for (auto &object : objects) {
             for (auto &event : object.events) {
-                event.ownerId = context->session.subject; event.properties["iisacc.subject"] = context->session.subject;
+                event.ownerId = context->workspace.ownerId;
+                if (context->session) event.properties["iisacc.subject"] = context->session->subject;
                 event.properties["external.subject"] = connection->value.subject;
             }
             result.push_back(std::move(object));
@@ -303,8 +327,10 @@ std::string CalendarAccountManager::connectionDocument() const {
         accounts.push_back({{"id", id}, {"provider", value.providerId}, {"subject", value.subject}, {"displayName", value.displayName},
             {"email", value.email}, {"enabled", value.enabled}});
     }
-    auto document = Json{{"format", "iiCalendar.AccountConnections"}, {"schema", 1}, {"origin", context->session.origin},
-        {"owner", context->session.subject}, {"accounts", accounts}}.dump();
+    auto root = Json{{"format", "iiCalendar.AccountConnections"}, {"schema", 1}, {"origin", context->keyOrigin()},
+        {"owner", context->workspace.ownerId}, {"accounts", accounts}};
+    if (!context->session) root["scope"] = "workspace";
+    auto document = root.dump();
     if (document.size() > maximumConnectionBytes) fail(Code::LimitExceeded, "calendar connection document exceeds limit");
     return document;
 }
@@ -315,19 +341,21 @@ void CalendarAccountManager::restoreConnections(const std::string &document) {
     try {
         const auto root = Json::parse(document, [](int depth, Json::parse_event_t, Json &) { if (depth > 16) throw std::invalid_argument("depth"); return true; });
         if (root.at("format") != "iiCalendar.AccountConnections" || root.at("schema") != 1) throw std::invalid_argument("schema");
-        if (root.at("origin") != context->session.origin || root.at("owner") != context->session.subject)
-            fail(Code::PermissionDenied, "calendar connection document belongs to another iisacc account");
+        if ((!context->session && root.value("scope", std::string{}) != "workspace")
+            || (context->session && root.contains("scope"))
+            || root.at("origin") != context->keyOrigin() || root.at("owner") != context->workspace.ownerId)
+            fail(Code::PermissionDenied, "calendar connection document belongs to another workspace");
         const auto &items = root.at("accounts");
         if (!items.is_array()) throw std::invalid_argument("accounts");
         if (items.size() > impl_->options.maximumAccounts) fail(Code::LimitExceeded, "calendar account limit exceeded");
         for (const auto &item : items) {
             auto connection = std::make_shared<Impl::Connection>(impl_->options.limits); auto &value = connection->value;
-            value.ownerId = context->session.subject; value.id = item.at("id").get<std::string>();
+            value.ownerId = context->workspace.ownerId; value.id = item.at("id").get<std::string>();
             value.providerId = item.at("provider").get<std::string>(); value.subject = item.at("subject").get<std::string>();
             value.displayName = item.at("displayName").get<std::string>(); value.email = item.at("email").get<std::string>(); value.enabled = item.at("enabled").get<bool>();
             if (!validText(value.providerId, 128) || value.providerId == "iisacc" || !validText(value.subject)
                 || !validText(value.displayName, 4096, false) || !validText(value.email, 4096, false)
-                || value.id != accountKey(context->session, value.providerId, value.subject)) throw std::invalid_argument("identity");
+                || value.id != context->key(value.providerId, value.subject)) throw std::invalid_argument("identity");
             value.state = value.enabled ? CalendarAccountState::AuthenticationRequired : CalendarAccountState::Disabled;
             if (!connections.emplace(value.id, connection).second) throw std::invalid_argument("duplicate");
         }

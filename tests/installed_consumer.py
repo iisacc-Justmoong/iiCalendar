@@ -30,7 +30,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("cmake", "ctest", "build", "source", "workspace", "config", "generator"):
         parser.add_argument("--" + name, required=True)
-    for name in ("dependency-prefix-hex", "icu-root", "toolchain", "target-triplet", "host-triplet"):
+    for name in ("dependency-prefix-hex", "icu-root", "toolchain", "target-triplet", "host-triplet", "python-executable", "python-module-dir"):
         parser.add_argument("--" + name, default="")
     args = parser.parse_args()
     dependency_prefix = bytes.fromhex(args.dependency_prefix_hex).decode("utf-8")
@@ -62,6 +62,14 @@ def main():
     before = manifest.read_bytes() if manifest.is_file() else None
     subprocess.run([args.cmake, "-DCMAKE_INSTALL_LOCAL_ONLY=ON", "-DCMAKE_INSTALL_PREFIX=" + str(prefix),
                     "-DCMAKE_INSTALL_CONFIG_NAME=" + args.config, "-P", str(private_script)], env=env, check=True)
+    if args.python_module_dir:
+        module_path = Path(args.python_module_dir)
+        if module_path.is_absolute() or ".." in module_path.parts:
+            raise ValueError("Python installation directory must be relative to the prefix")
+        python_env = env.copy()
+        python_env["PYTHONPATH"] = str(prefix / module_path)
+        python_env["PATH"] = str(prefix / "bin") + os.pathsep + python_env.get("PATH", "")
+        subprocess.run([args.python_executable, "-B", str(source / "tests/test_python_accounts.py")], env=python_env, check=True)
     consumer = reserve_consumer(build, workspace.name)
     try:
         command = [args.cmake, "-G", args.generator, "-S", str(source / "tests/consumer"), "-B", str(consumer),

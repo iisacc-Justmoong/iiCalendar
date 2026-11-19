@@ -8,6 +8,7 @@ if(TARGET Qt6::Core OR TARGET iiAccountManager::iiAccountManager OR TARGET iiFil
     message(FATAL_ERROR "Native iiCalendar must not import host account, file or UI SDKs")
 endif()
 add_executable(consumer main.cpp)
-target_link_libraries(consumer PRIVATE iiCalendar::iiCalendar)
+# The consumer calls SQLite directly to construct its injected connection.
+target_link_libraries(consumer PRIVATE iiCalendar::iiCalendar SQLite::SQLite3)
 enable_testing()
 add_test(NAME consumer COMMAND consumer)

@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "README.md",
-    "sha256": "7e04536579839367650ff480db787303b5653ac37be7e5ccbb6dc79d4f7cc5da",
-    "bytes": 6020,
-    "line_count": 99,
+    "sha256": "6eacda81c55369a67db8ad2eb17456784b16ffc9fbf69764d0af60e9048c8ff6",
+    "bytes": 6223,
+    "line_count": 102,
     "encoding": "utf-8",
     "language": "en"
   },
@@ -218,190 +218,175 @@
       "id": "b000027",
       "kind": "paragraph",
       "start_line": 51,
-      "end_line": 60,
-      "raw": "`CalendarAccountManager` requires an authenticated iisacc owner and connects\nadditional Google, Microsoft/Outlook and device-managed Apple calendar accounts.\nIt manages account-scoped calendars/events, enable/disable, disconnect,\ncredential-free connection restoration, expiry and stale-session isolation.\nThe native library remains Qt-free. A header-only adapter reads verified\niiAccountManager 0.2.9+ session bindings and their effective credential expiry.\nSee [Accounts](docs/Accounts.md) for the public API and complete host wiring.\nThe account-SDK integration test is configured separately from\n`examples/iisacc-bridge`; iiCalendar's own CMake does not find or link that SDK.\nThe calendar library itself does not link iiFileProvider Native.\n"
+      "end_line": 61,
+      "raw": "`CalendarAccountManager` connects Google, Microsoft/Outlook, device-managed\nApple and custom providers in a host-owned workspace, with an optional\nauthenticated iisacc session for existing integrations.\nIt manages account-scoped calendars/events, enable/disable, disconnect,\ncredential-free connection restoration, expiry and stale-session isolation.\nThe native library remains Qt-free. A header-only adapter reads verified\niiAccountManager 0.2.9+ session bindings and their effective credential expiry.\nSee [Accounts](docs/Accounts.md) for the public API and complete host wiring.\nThe account-SDK integration test is configured separately from\n`examples/iisacc-bridge`; iiCalendar's own CMake does not find or link that SDK.\nThe calendar library itself does not link iiFileProvider Native.\n"
     },
     {
       "id": "b000028",
       "kind": "blank",
-      "start_line": 61,
-      "end_line": 61,
+      "start_line": 62,
+      "end_line": 62,
       "raw": "\n"
     },
     {
       "id": "b000029",
       "kind": "paragraph",
-      "start_line": 62,
-      "end_line": 66,
+      "start_line": 63,
+      "end_line": 67,
       "raw": "The host owns OAuth, token refresh and secure credential custody. The SDK\nresolves/pins Google and Microsoft account identity, performs calendar reads and\nvalidates bounded snapshots. Apple uses the OS EventKit accounts and requires\nexplicit full-access authorization. Default HTTPS uses libcurl 7.85+; with\n`-DIICALENDAR_WITH_CURL=OFF`, inject `CalendarHttpGet`.\n"
     },
     {
       "id": "b000030",
       "kind": "blank",
-      "start_line": 67,
-      "end_line": 67,
+      "start_line": 68,
+      "end_line": 68,
       "raw": "\n"
     },
     {
       "id": "b000031",
       "kind": "paragraph",
-      "start_line": 68,
-      "end_line": 70,
+      "start_line": 69,
+      "end_line": 71,
       "raw": "`CalendarObjectManager` remains the lower-level provider-object primitive used\nby the account facade. Its calendar/event formats, refresh rules and platform\nauthorization contract are in [External calendars](docs/ExternalCalendars.md).\n"
     },
     {
       "id": "b000032",
       "kind": "blank",
-      "start_line": 71,
-      "end_line": 71,
+      "start_line": 72,
+      "end_line": 72,
       "raw": "\n"
     },
     {
       "id": "b000033",
+      "kind": "paragraph",
+      "start_line": 73,
+      "end_line": 73,
+      "raw": "The optional `iicalendar` Python account API, build requirements and examples are documented in [Accounts.md](docs/Accounts.md#python-account-api-contract).\n"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 74,
+      "end_line": 74,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
       "kind": "heading",
-      "start_line": 72,
-      "end_line": 72,
+      "start_line": 75,
+      "end_line": 75,
       "raw": "## License\n",
       "level": 2,
       "title": "License"
     },
     {
-      "id": "b000034",
-      "kind": "blank",
-      "start_line": 73,
-      "end_line": 73,
-      "raw": "\n"
-    },
-    {
-      "id": "b000035",
-      "kind": "paragraph",
-      "start_line": 74,
-      "end_line": 74,
-      "raw": "SPDX-License-Identifier: Apache-2.0\n"
-    },
-    {
       "id": "b000036",
       "kind": "blank",
-      "start_line": 75,
-      "end_line": 75,
+      "start_line": 76,
+      "end_line": 76,
       "raw": "\n"
     },
     {
       "id": "b000037",
       "kind": "paragraph",
-      "start_line": 76,
-      "end_line": 78,
-      "raw": "The original code and documentation in this repository are licensed under the\n[Apache License 2.0](LICENSE). Third-party code, libraries, fonts, tools, and model\nweights retain their respective licenses.\n"
+      "start_line": 77,
+      "end_line": 77,
+      "raw": "SPDX-License-Identifier: Apache-2.0\n"
     },
     {
       "id": "b000038",
       "kind": "blank",
-      "start_line": 79,
-      "end_line": 79,
+      "start_line": 78,
+      "end_line": 78,
       "raw": "\n"
     },
     {
       "id": "b000039",
+      "kind": "paragraph",
+      "start_line": 79,
+      "end_line": 81,
+      "raw": "The original code and documentation in this repository are licensed under the\n[Apache License 2.0](LICENSE). Third-party code, libraries, fonts, tools, and model\nweights retain their respective licenses.\n"
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 82,
+      "end_line": 82,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
       "kind": "heading",
-      "start_line": 80,
-      "end_line": 80,
+      "start_line": 83,
+      "end_line": 83,
       "raw": "## Source header layout\n",
       "level": 2,
       "title": "Source header layout"
     },
     {
-      "id": "b000040",
-      "kind": "blank",
-      "start_line": 81,
-      "end_line": 81,
-      "raw": "\n"
-    },
-    {
-      "id": "b000041",
-      "kind": "paragraph",
-      "start_line": 82,
-      "end_line": 86,
-      "raw": "Public headers and implementations live together under `src/`, grouped by chronology, events, storage, presentation, integrations and security. See [source layout](docs/SourceLayout.md).\nThere is no separate authored `include/` tree. Existing public `#include` names\nand exported CMake targets are unchanged; installation still places only public\nheaders in the package include directory. Generated export headers belong to\n`build/`, not to the authored source tree.\n"
-    },
-    {
       "id": "b000042",
       "kind": "blank",
-      "start_line": 87,
-      "end_line": 87,
+      "start_line": 84,
+      "end_line": 84,
       "raw": "\n"
     },
     {
       "id": "b000043",
       "kind": "paragraph",
-      "start_line": 88,
-      "end_line": 90,
-      "raw": "Validate this layout from the SDK workspace with\n`python3 -B tests/test_source_header_layout.py`. Reconfigure, build, run CTest,\nand verify a staged installed consumer after changing source/header paths.\n"
+      "start_line": 85,
+      "end_line": 89,
+      "raw": "Public headers and implementations live together under `src/`, grouped by chronology, events, storage, presentation, integrations and security. See [source layout](docs/SourceLayout.md).\nThere is no separate authored `include/` tree. Existing public `#include` names\nand exported CMake targets are unchanged; installation still places only public\nheaders in the package include directory. Generated export headers belong to\n`build/`, not to the authored source tree.\n"
     },
     {
       "id": "b000044",
       "kind": "blank",
-      "start_line": 91,
-      "end_line": 91,
+      "start_line": 90,
+      "end_line": 90,
       "raw": "\n"
     },
     {
       "id": "b000045",
-      "kind": "html",
-      "start_line": 92,
-      "end_line": 92,
-      "raw": "<!-- workspace-docs:readme:start -->\n"
+      "kind": "paragraph",
+      "start_line": 91,
+      "end_line": 93,
+      "raw": "Validate this layout from the SDK workspace with\n`python3 -B tests/test_source_header_layout.py`. Reconfigure, build, run CTest,\nand verify a staged installed consumer after changing source/header paths.\n"
     },
     {
       "id": "b000046",
-      "kind": "heading",
-      "start_line": 93,
-      "end_line": 93,
-      "raw": "## Documentation entry points\n",
-      "level": 2,
-      "title": "Documentation entry points"
-    },
-    {
-      "id": "b000047",
       "kind": "blank",
       "start_line": 94,
       "end_line": 94,
       "raw": "\n"
     },
     {
-      "id": "b000048",
-      "kind": "list",
+      "id": "b000047",
+      "kind": "paragraph",
       "start_line": 95,
-      "end_line": 98,
-      "raw": "- Human overview: this English `README.md`.\n- Agent instructions: [AGENT.md](AGENT.md).\n- Human documentation: [documentation index](docs/README.md).\n- Structured agent documentation: [agent index](docs/agent-index.json).\n",
-      "items": [
-        {
-          "marker": "-",
-          "text": "Human overview: this English `README.md`.",
-          "checked": null
-        },
-        {
-          "marker": "-",
-          "text": "Agent instructions: [AGENT.md](AGENT.md).",
-          "checked": null
-        },
-        {
-          "marker": "-",
-          "text": "Human documentation: [documentation index](docs/README.md).",
-          "checked": null
-        },
-        {
-          "marker": "-",
-          "text": "Structured agent documentation: [agent index](docs/agent-index.json).",
-          "checked": null
-        }
-      ]
+      "end_line": 95,
+      "raw": "<!-- workspace-docs:readme:start -->\n"
+    },
+    {
+      "id": "b000048",
+      "kind": "heading",
+      "start_line": 96,
+      "end_line": 96,
+      "raw": "## Documentation entry points\n",
+      "level": 2,
+      "title": "Documentation entry points"
     },
     {
       "id": "b000049",
-      "kind": "html",
-      "start_line": 99,
-      "end_line": 99,
-      "raw": "<!-- workspace-docs:readme:end -->\n"
+      "kind": "blank",
+      "start_line": 97,
+      "end_line": 97,
+      "raw": "\n"
+    },
+    {
+      "id": "b000050",
+      "kind": "paragraph",
+      "start_line": 98,
+      "end_line": 102,
+      "raw": "- Human overview: this English `README.md`.\n- Agent instructions: [AGENT.md](AGENT.md).\n- Human documentation: [documentation index](docs/README.md).\n- Structured agent documentation: [agent index](docs/agent-index.json).\n<!-- workspace-docs:readme:end -->\n"
     }
   ],
   "outline": [
@@ -422,28 +407,28 @@
       "start_line": 49
     },
     {
-      "block_id": "b000033",
+      "block_id": "b000035",
       "parent_id": "b000001",
       "level": 2,
       "title": "License",
       "anchor": "license",
-      "start_line": 72
+      "start_line": 75
     },
     {
-      "block_id": "b000039",
+      "block_id": "b000041",
       "parent_id": "b000001",
       "level": 2,
       "title": "Source header layout",
       "anchor": "source-header-layout",
-      "start_line": 80
+      "start_line": 83
     },
     {
-      "block_id": "b000046",
+      "block_id": "b000048",
       "parent_id": "b000001",
       "level": 2,
       "title": "Documentation entry points",
       "anchor": "documentation-entry-points",
-      "start_line": 93
+      "start_line": 96
     }
   ],
   "indexes": {
@@ -518,49 +503,56 @@
         "label": "Accounts",
         "target": "docs/Accounts.md",
         "kind": "relative",
-        "line": 57
+        "line": 58
       },
       {
         "block_id": "b000031",
         "label": "External calendars",
         "target": "docs/ExternalCalendars.md",
         "kind": "relative",
-        "line": 70
+        "line": 71
       },
       {
-        "block_id": "b000037",
+        "block_id": "b000033",
+        "label": "Accounts.md",
+        "target": "docs/Accounts.md#python-account-api-contract",
+        "kind": "relative",
+        "line": 73
+      },
+      {
+        "block_id": "b000039",
         "label": "Apache License 2.0",
         "target": "LICENSE",
         "kind": "relative",
-        "line": 77
+        "line": 80
       },
       {
-        "block_id": "b000041",
+        "block_id": "b000043",
         "label": "source layout",
         "target": "docs/SourceLayout.md",
         "kind": "relative",
-        "line": 82
+        "line": 85
       },
       {
-        "block_id": "b000048",
+        "block_id": "b000050",
         "label": "AGENT.md",
         "target": "AGENT.md",
         "kind": "relative",
-        "line": 96
+        "line": 99
       },
       {
-        "block_id": "b000048",
+        "block_id": "b000050",
         "label": "documentation index",
         "target": "docs/README.md",
         "kind": "relative",
-        "line": 97
+        "line": 100
       },
       {
-        "block_id": "b000048",
+        "block_id": "b000050",
         "label": "agent index",
         "target": "docs/agent-index.json",
         "kind": "relative",
-        "line": 98
+        "line": 101
       }
     ],
     "tables": []
