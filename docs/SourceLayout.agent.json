@@ -3,15 +3,15 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:57e551af7b4d2fd0ecb4fd4030086a67d85a4efb568f7aa0912c6687535d5637",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {
     "path": "docs/SourceLayout.md",
-    "sha256": "92728a22ccccd193bab3d1d2c37995555848f2e14b8d9797902555a53bfa5bdd",
-    "bytes": 694,
+    "sha256": "45e5a301b427ce148680e796b722d0c00e9c374f816e5f8b4ee5f549cf6bb4aa",
+    "bytes": 705,
     "line_count": 13,
     "encoding": "utf-8",
     "language": "ko"
@@ -103,7 +103,7 @@
       "kind": "paragraph",
       "start_line": 12,
       "end_line": 13,
-      "raw": "빌드 중 생성되는 forwarding 헤더와 설치된 공개 헤더는 기존 `<iiCalendar/...>` 이름을 유지한다.\n공개 API는 소스 디렉터리 이름에 의존하지 않는다. `tests/source_layout.cmake`와 SDK 공통 경계 테스트가 구조 회귀를 검사한다.\n"
+      "raw": "빌드 중 생성되는 forwarding 헤더와 설치된 공개 헤더는 기존 `<iiCalendarIntegration/...>` 이름을 유지한다.\n공개 API는 소스 디렉터리 이름에 의존하지 않는다. `tests/source_layout.cmake`와 SDK 공통 경계 테스트가 구조 회귀를 검사한다.\n"
     }
   ],
   "outline": [

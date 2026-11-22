@@ -1,5 +1,5 @@
-#include <iiCalendar/ExternalCalendar.h>
-namespace iiCalendar {
+#include <iiCalendarIntegration/ExternalCalendar.h>
+namespace iiCalendarIntegration {
 namespace {
 [[noreturn]] void unsupported() {
     throw ExternalCalendarError(ExternalCalendarErrorCode::Unsupported, "Apple Calendar EventKit requires macOS or iOS");

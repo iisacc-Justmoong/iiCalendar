@@ -1,7 +1,7 @@
-#include <iiCalendar/View.h>
+#include <iiCalendarIntegration/View.h>
 #include <set>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 CalendarView makeView(const ViewRequest &request, const CalendarRegistry &calendars) {
     if (request.weekStart < 1 || request.weekStart > 7 || request.spanDays < 1 ||
         request.spanDays > 3660)
@@ -97,4 +97,4 @@ DayDetails dayDetails(const Store &store, Date date, const TimeZone &zone, std::
     }
     return result;
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

@@ -1,4 +1,4 @@
-# iiCalendar Documentation
+# iiCalendarIntegration Documentation
 
 <!-- workspace-docs:document-map:start -->
 ## Human and agent document map

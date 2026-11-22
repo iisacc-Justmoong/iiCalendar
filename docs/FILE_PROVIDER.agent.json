@@ -3,21 +3,21 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:bd74f6e0a650f5ad2061a3424ca8cf8f61ae99ec8054e7bab9bf3e14e11c561c",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {
     "path": "docs/FILE_PROVIDER.md",
-    "sha256": "6bf8fe2fcb02202e5784c03f272b7e32cbacd148dcfa1975f0317e8ed0e48ea1",
-    "bytes": 996,
+    "sha256": "ad9c3cde32efef43e6bc680622089cde3081b2fdc4e3a46886b4d394121577e7",
+    "bytes": 1018,
     "line_count": 17,
     "encoding": "utf-8",
     "language": "en"
   },
   "document": {
-    "title": "File creation ownership in iiCalendar",
+    "title": "File creation ownership in iiCalendarIntegration",
     "role": "guide",
     "authority": "markdown_source"
   },
@@ -27,9 +27,9 @@
       "kind": "heading",
       "start_line": 1,
       "end_line": 1,
-      "raw": "# File creation ownership in iiCalendar\n",
+      "raw": "# File creation ownership in iiCalendarIntegration\n",
       "level": 1,
-      "title": "File creation ownership in iiCalendar"
+      "title": "File creation ownership in iiCalendarIntegration"
     },
     {
       "id": "b000002",
@@ -43,7 +43,7 @@
       "kind": "paragraph",
       "start_line": 3,
       "end_line": 6,
-      "raw": "Calendar index databases and connection documents are opened by the separate\n`examples/file-provider` application adapter using the native provider. Calendar\nschema, queries, transactions, recurrence and calendar semantics stay in\niiCalendar, which has no provider SDK dependency.\n"
+      "raw": "Calendar index databases and connection documents are opened by the separate\n`examples/file-provider` application adapter using the native provider. Calendar\nschema, queries, transactions, recurrence and calendar semantics stay in\niiCalendarIntegration, which has no provider SDK dependency.\n"
     },
     {
       "id": "b000004",
@@ -79,8 +79,8 @@
       "block_id": "b000001",
       "parent_id": null,
       "level": 1,
-      "title": "File creation ownership in iiCalendar",
-      "anchor": "file-creation-ownership-in-iicalendar",
+      "title": "File creation ownership in iiCalendarIntegration",
+      "anchor": "file-creation-ownership-in-iicalendarintegration",
       "start_line": 1
     }
   ],

@@ -3,9 +3,9 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:26220b97c96ce7941808b3c45b6284821c1fd44fdb8e68f18f8556e23901ca39",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {

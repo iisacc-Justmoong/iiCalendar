@@ -1,8 +1,8 @@
-#include <iiCalendar/iiCalendar.h>
+#include <iiCalendarIntegration/iiCalendarIntegration.h>
 #include <nlohmann/json.hpp>
 #include <iostream>
 
-using namespace iiCalendar;
+using namespace iiCalendarIntegration;
 using Json = nlohmann::json;
 namespace {
 int checks = 0;

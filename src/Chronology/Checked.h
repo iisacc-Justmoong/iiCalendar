@@ -3,7 +3,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace iiCalendar::detail {
+namespace iiCalendarIntegration::detail {
 inline std::int64_t add(std::int64_t a, std::int64_t b) {
     constexpr auto max = std::numeric_limits<std::int64_t>::max(),
                    min = std::numeric_limits<std::int64_t>::min();
@@ -25,4 +25,4 @@ inline std::int64_t mod(std::int64_t a, std::int64_t positiveDivisor) {
     auto m = a % positiveDivisor;
     return m < 0 ? m + positiveDivisor : m;
 }
-} // namespace iiCalendar::detail
+} // namespace iiCalendarIntegration::detail

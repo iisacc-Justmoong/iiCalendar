@@ -2,7 +2,7 @@
 #include <bit>
 #include <limits>
 
-namespace iiCalendar::detail {
+namespace iiCalendarIntegration::detail {
 namespace {
 constexpr std::size_t maxPayload = 16 * 1024 * 1024;
 struct Writer {
@@ -281,4 +281,4 @@ Event decode(std::span<const std::byte> bytes) {
         throw std::invalid_argument("trailing event payload bytes");
     return e;
 }
-} // namespace iiCalendar::detail
+} // namespace iiCalendarIntegration::detail

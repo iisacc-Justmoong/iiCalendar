@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <cmath>
 #include <future>
-#include <iiCalendar/iiCalendar.h>
-#if defined(IICALENDAR_FILE_PROVIDER_TEST)
+#include <iiCalendarIntegration/iiCalendarIntegration.h>
+#if defined(IICALENDARINTEGRATION_FILE_PROVIDER_TEST)
 #include "FileProviderAdapter.h"
 #include <iiFileProviderNative.h>
 #endif
@@ -11,7 +11,7 @@
 #include <sqlite3.h>
 #include <thread>
 
-using namespace iiCalendar;
+using namespace iiCalendarIntegration;
 namespace {
 int checks = 0;
 void check(bool value, const char *expression, int line) {
@@ -291,7 +291,7 @@ void storageMemory() {
     fails<StorageError>([&] { Store invalid(other); });
     CHECK(sqlite3_exec(other.get(), "INSERT INTO unrelated VALUES(1)", nullptr, nullptr, nullptr) == SQLITE_OK);
 }
-#if defined(IICALENDAR_FILE_PROVIDER_TEST)
+#if defined(IICALENDARINTEGRATION_FILE_PROVIDER_TEST)
 void storage() {
     iiFileProvider::native::TemporaryDirectory directory;
     CHECK(directory.isValid());
@@ -315,7 +315,7 @@ void storage() {
     e.links = {{"project", "society"}};
     e.due = at("2026-09-19T08:00:00.000000000000000002Z");
     {
-        auto store = iiCalendarFileProvider::openStore(path);
+        auto store = iiCalendarIntegrationFileProvider::openStore(path);
         auto saved = store.put(e, 0);
         CHECK(saved.revision == 1);
         e = saved;
@@ -348,7 +348,7 @@ void storage() {
         boundary.tags = {"a", "a"};
         fails([&] { store.put(boundary); });
         CHECK(store.get("boundary")->tags.empty());
-        auto second = iiCalendarFileProvider::openStore(path);
+        auto second = iiCalendarIntegrationFileProvider::openStore(path);
         auto copy = second.get(e.id).value();
         copy.title = "other connection";
         copy = second.put(copy, e.revision);
@@ -390,7 +390,7 @@ void storage() {
         sqlite3_close(raw);
     }
     {
-        auto store = iiCalendarFileProvider::openStore(path);
+        auto store = iiCalendarIntegrationFileProvider::openStore(path);
         CHECK(store.get(e.id) == e);
         auto repeated = example("recurring");
         repeated.recurrence.frequency = Frequency::Daily;
@@ -489,7 +489,7 @@ int main(int argc, char **argv) {
             foldStart();
             recurrenceMonthWork();
         }
-#if defined(IICALENDAR_FILE_PROVIDER_TEST)
+#if defined(IICALENDARINTEGRATION_FILE_PROVIDER_TEST)
         else if (suite == "storage")
             storage();
 #endif

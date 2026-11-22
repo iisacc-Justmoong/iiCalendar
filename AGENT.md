@@ -1,4 +1,4 @@
-# iiCalendar 에이전트 지침
+# iiCalendarIntegration 에이전트 지침
 
 The iisacc account bridge is verified by the separately configured consumer
 `examples/iisacc-bridge`; do not add iiAccountManager discovery to the calendar
@@ -25,6 +25,6 @@ account data, and do not run account or application checks without a request.
 Workspace에서 이 프로젝트의 문서를 갱신하는 명령은 다음과 같다.
 
 ```sh
-python3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project SDK/iiCalendar
+python3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project SDK/iiCalendarIntegration
 ```
 <!-- workspace-docs:agent:end -->

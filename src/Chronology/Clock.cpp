@@ -1,4 +1,4 @@
-#include <iiCalendar/Time.h>
+#include <iiCalendarIntegration/Time.h>
 #include <stdexcept>
 #ifdef _WIN32
 #define NOMINMAX
@@ -8,7 +8,7 @@
 #include <time.h>
 #endif
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 ClockSample Clock::sample() {
 #ifdef _WIN32
     LARGE_INTEGER frequency{}, before{}, after{};
@@ -56,4 +56,4 @@ ClockSample Clock::sample() {
             "clock_gettime(CLOCK_REALTIME / CLOCK_MONOTONIC)"};
 #endif
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

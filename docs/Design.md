@@ -1,4 +1,4 @@
-# iiCalendar 0.1 설계 및 지원 계약
+# iiCalendarIntegration 0.1 설계 및 지원 계약
 
 ## 의존 방향
 
@@ -9,7 +9,7 @@
 불투명 `sqlite3` 선언은 노출한다. `CalendarSystem`은 사용자 정의 역법의 교체 경계이고,
 `Store::Impl`은 스키마와 나머지 연결 관리를 숨긴다. 레지스트리 등록은 공유·사용 전에 완료해야
 한다. 같은 Store 객체의 접근은 mutex로 직렬화된다. 파일 제공자와 계정 SDK는 애플리케이션이
-별도 소비자에서 조합하며 iiCalendar 본체의 의존성이 아니다.
+별도 소비자에서 조합하며 iiCalendarIntegration 본체의 의존성이 아니다.
 
 ## 날짜·시각·정밀도
 
@@ -111,7 +111,7 @@ user_version=1을 확인하며 타 애플리케이션 DB·미지원 스키마를
 foreign key 설정과 스키마를 검사·설정한다. 연결이 null이거나 달력 레지스트리가 null이면
 `invalid_argument`를, 무관하거나 지원되지 않는 데이터베이스는 `StorageError`를 반환한다.
 `Store::inMemory()`는 파일을 만들지 않는다. 파일 기반 저장소는 별도 소비자의
-`iiCalendarFileProvider::openStore(path)`처럼 iiFileProvider로 연결을 열어 주입한다. 기존
+`iiCalendarIntegrationFileProvider::openStore(path)`처럼 iiFileProvider로 연결을 열어 주입한다. 기존
 `Store(path)`는 제거됐으므로 애플리케이션을 다시 빌드하고 호출을 이전해야 한다.
 
 events에는 절대 시작·종료의 정수 `(seconds, attoseconds)`, 지역 날짜 epoch day,

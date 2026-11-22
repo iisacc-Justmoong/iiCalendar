@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 enum class MonthOverflow { Reject, Clamp };
 struct WeekDate {
     int year;
@@ -37,4 +37,4 @@ class Date {
     int year_;
     unsigned month_, day_;
 };
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

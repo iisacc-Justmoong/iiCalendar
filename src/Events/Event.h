@@ -1,11 +1,11 @@
 #pragma once
-#include <iiCalendar/Calendar.h>
-#include <iiCalendar/TimeZone.h>
+#include <iiCalendarIntegration/Calendar.h>
+#include <iiCalendarIntegration/TimeZone.h>
 #include <map>
 #include <optional>
 #include <variant>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 enum class EventKind { Event, Task, Activity, Note, Reminder };
 enum class EventStatus { Tentative, Confirmed, InProgress, Completed, Cancelled };
 enum class Visibility { Public, Private, Confidential };
@@ -104,4 +104,4 @@ struct ExpansionLimits {
 // Explicitly bounded, deterministic expansion. Exceeding a limit throws.
 std::vector<Occurrence> expand(const Event &event, TimeRange window,
                                const CalendarRegistry &calendars, ExpansionLimits limits = {});
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

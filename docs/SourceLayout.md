@@ -9,5 +9,5 @@
 - `Integration`: 외부 계정, 제공자, 전송과 공개 진입 헤더.
 - `Security`: 내부 SHA-256 계산.
 
-빌드 중 생성되는 forwarding 헤더와 설치된 공개 헤더는 기존 `<iiCalendar/...>` 이름을 유지한다.
+빌드 중 생성되는 forwarding 헤더와 설치된 공개 헤더는 기존 `<iiCalendarIntegration/...>` 이름을 유지한다.
 공개 API는 소스 디렉터리 이름에 의존하지 않는다. `tests/source_layout.cmake`와 SDK 공통 경계 테스트가 구조 회귀를 검사한다.

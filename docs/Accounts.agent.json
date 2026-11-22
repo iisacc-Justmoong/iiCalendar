@@ -3,16 +3,16 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:355431a85386b8c877d6194f697d848ecf57a6c90d23072b8815409b23867709",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {
     "path": "docs/Accounts.md",
-    "sha256": "53bf4730b1ca2d752314f06f509856cb3d9143bed3c86bb4ac3e140a67b22d09",
-    "bytes": 14914,
-    "line_count": 251,
+    "sha256": "0c4c1c248628c95ac50bbc4a66da039ae88bc98f8ad93135d7d3c9d4f0a9d65c",
+    "bytes": 16066,
+    "line_count": 260,
     "encoding": "utf-8",
     "language": "en"
   },
@@ -87,7 +87,7 @@
       "kind": "paragraph",
       "start_line": 17,
       "end_line": 18,
-      "raw": "Apps using iiAccountManager 0.2.9 or later can synchronize its verified session\nwithout linking Qt into iiCalendar:\n"
+      "raw": "Apps using iiAccountManager 0.2.9 or later can synchronize its verified session\nwithout linking Qt into iiCalendarIntegration:\n"
     },
     {
       "id": "b000010",
@@ -101,9 +101,9 @@
       "kind": "fenced_code",
       "start_line": 20,
       "end_line": 36,
-      "raw": "```cpp\n#include <iiCalendar/IisaccAccount.h>\n#include <iiAccountManager/AccountManager.h>\n\niiCalendar::CalendarAccountManager calendars;\niisacc::accounts::AccountManager login;\nauto update = [&] { iiCalendar::synchronizeIisaccAccount(calendars, login); };\nQObject::connect(&login, &iisacc::accounts::AccountManager::authenticatedChanged,\n                 &login, update);\nQObject::connect(&login, &iisacc::accounts::AccountManager::loginSessionChanged,\n                 &login, update);\nQObject::connect(&login, &iisacc::accounts::AccountManager::sessionEnding,\n                 &login, [&] { calendars.setIisaccSession(std::nullopt); });\nupdate();\n// The account SDK owns its login UI, loginWithPassword()/restoreSession(),\n// verified session cookies and secure storage.\n```\n",
+      "raw": "```cpp\n#include <iiCalendarIntegration/IisaccAccount.h>\n#include <iiAccountManager/AccountManager.h>\n\niiCalendarIntegration::CalendarAccountManager calendars;\niisacc::accounts::AccountManager login;\nauto update = [&] { iiCalendarIntegration::synchronizeIisaccAccount(calendars, login); };\nQObject::connect(&login, &iisacc::accounts::AccountManager::authenticatedChanged,\n                 &login, update);\nQObject::connect(&login, &iisacc::accounts::AccountManager::loginSessionChanged,\n                 &login, update);\nQObject::connect(&login, &iisacc::accounts::AccountManager::sessionEnding,\n                 &login, [&] { calendars.setIisaccSession(std::nullopt); });\nupdate();\n// The account SDK owns its login UI, loginWithPassword()/restoreSession(),\n// verified session cookies and secure storage.\n```\n",
       "language": "cpp",
-      "code": "#include <iiCalendar/IisaccAccount.h>\n#include <iiAccountManager/AccountManager.h>\n\niiCalendar::CalendarAccountManager calendars;\niisacc::accounts::AccountManager login;\nauto update = [&] { iiCalendar::synchronizeIisaccAccount(calendars, login); };\nQObject::connect(&login, &iisacc::accounts::AccountManager::authenticatedChanged,\n                 &login, update);\nQObject::connect(&login, &iisacc::accounts::AccountManager::loginSessionChanged,\n                 &login, update);\nQObject::connect(&login, &iisacc::accounts::AccountManager::sessionEnding,\n                 &login, [&] { calendars.setIisaccSession(std::nullopt); });\nupdate();\n// The account SDK owns its login UI, loginWithPassword()/restoreSession(),\n// verified session cookies and secure storage.\n",
+      "code": "#include <iiCalendarIntegration/IisaccAccount.h>\n#include <iiAccountManager/AccountManager.h>\n\niiCalendarIntegration::CalendarAccountManager calendars;\niisacc::accounts::AccountManager login;\nauto update = [&] { iiCalendarIntegration::synchronizeIisaccAccount(calendars, login); };\nQObject::connect(&login, &iisacc::accounts::AccountManager::authenticatedChanged,\n                 &login, update);\nQObject::connect(&login, &iisacc::accounts::AccountManager::loginSessionChanged,\n                 &login, update);\nQObject::connect(&login, &iisacc::accounts::AccountManager::sessionEnding,\n                 &login, [&] { calendars.setIisaccSession(std::nullopt); });\nupdate();\n// The account SDK owns its login UI, loginWithPassword()/restoreSession(),\n// verified session cookies and secure storage.\n",
       "closed": true
     },
     {
@@ -118,7 +118,7 @@
       "kind": "paragraph",
       "start_line": 38,
       "end_line": 46,
-      "raw": "Run the adapter on the account manager's thread. It copies native values, so\ncalendar network work can run on an application I/O worker. Keep the calendar\nmanager alive until its workers finish and disconnect observers before destroying\nit. `IisaccAccount.h` is a header-only dependent-type adapter; including it or\nlinking the native calendar package does not discover/import Qt or iiAccountManager.\nThe real account-manager contract test is a separately configured consumer at\n`examples/iisacc-bridge`. It uses the synthetic account fixture in `resources/`\nand keeps the existing 30-second test limit. `IICALENDAR_TEST_IISACC_BRIDGE=ON`\nin the SDK build now reports how to migrate instead of adding the peer SDK.\n"
+      "raw": "Run the adapter on the account manager's thread. It copies native values, so\ncalendar network work can run on an application I/O worker. Keep the calendar\nmanager alive until its workers finish and disconnect observers before destroying\nit. `IisaccAccount.h` is a header-only dependent-type adapter; including it or\nlinking the native calendar package does not discover/import Qt or iiAccountManager.\nThe real account-manager contract test is a separately configured consumer at\n`examples/iisacc-bridge`. It uses the synthetic account fixture in `resources/`\nand keeps the existing 30-second test limit. `IICALENDARINTEGRATION_TEST_IISACC_BRIDGE=ON`\nin the SDK build now reports how to migrate instead of adding the peer SDK.\n"
     },
     {
       "id": "b000014",
@@ -161,22 +161,22 @@
       "id": "b000019",
       "kind": "paragraph",
       "start_line": 59,
-      "end_line": 62,
-      "raw": "Complete the provider's OAuth flow in the host and supply a current access-token\ncallback backed by its secure credential store. The SDK resolves the external\nsubject from the authenticated profile API, loads calendars, and returns an\naccount connection with a stable owner/provider/subject ID.\n"
+      "end_line": 65,
+      "raw": "Complete the provider's OAuth flow in the host and supply a current access-token\ncallback backed by its secure credential store. The SDK resolves the external\nsubject from the authenticated profile API, loads calendars, and returns an\naccount connection with a stable owner/provider/subject ID.\n호스트는 `connect*`에 최초 조회 구간을 전달해 캘린더 목록과 해당 구간 일정을\n한 번에 가져올 수 있다. Daymark는 이 경로에서 공급자 목록을 한 번만 조회한다.\n기존 계정을 갱신하려면 `synchronize(accountId, window)`를 호출한다.\n"
     },
     {
       "id": "b000020",
       "kind": "blank",
-      "start_line": 63,
-      "end_line": 63,
+      "start_line": 66,
+      "end_line": 66,
       "raw": "\n"
     },
     {
       "id": "b000021",
       "kind": "fenced_code",
-      "start_line": 64,
-      "end_line": 75,
-      "raw": "```cpp\nauto google = calendars.connectGoogle([&] { return secureTokens.google(); });\nauto outlook = calendars.connectMicrosoft([&] { return secureTokens.microsoft(); });\nauto objects = calendars.calendars(google.id);\nfor (const auto &object : objects)\n    calendars.loadEvents(google.id, object.id, requestedWindow);\n\ncalendars.setEnabled(outlook.id, false); // Clears its cached data immediately.\ncalendars.setEnabled(outlook.id, true);\ncalendars.refresh(outlook.id);\ncalendars.disconnect(google.id);\n```\n",
+      "start_line": 67,
+      "end_line": 76,
+      "raw": "```cpp\nauto google = calendars.connectGoogle([&] { return secureTokens.google(); }, {}, {}, requestedWindow);\nauto outlook = calendars.connectMicrosoft([&] { return secureTokens.microsoft(); });\nauto objects = calendars.calendars(google.id);\n\ncalendars.setEnabled(outlook.id, false); // Clears its cached data immediately.\ncalendars.setEnabled(outlook.id, true);\ncalendars.synchronize(outlook.id, requestedWindow);\ncalendars.disconnect(google.id);\n```\n",
       "language": "cpp",
       "code": "auto google = calendars.connectGoogle([&] { return secureTokens.google(); });\nauto outlook = calendars.connectMicrosoft([&] { return secureTokens.microsoft(); });\nauto objects = calendars.calendars(google.id);\nfor (const auto &object : objects)\n    calendars.loadEvents(google.id, object.id, requestedWindow);\n\ncalendars.setEnabled(outlook.id, false); // Clears its cached data immediately.\ncalendars.setEnabled(outlook.id, true);\ncalendars.refresh(outlook.id);\ncalendars.disconnect(google.id);\n",
       "closed": true
@@ -184,15 +184,15 @@
     {
       "id": "b000022",
       "kind": "blank",
-      "start_line": 76,
-      "end_line": 76,
+      "start_line": 77,
+      "end_line": 77,
       "raw": "\n"
     },
     {
       "id": "b000023",
       "kind": "table",
-      "start_line": 77,
-      "end_line": 82,
+      "start_line": 78,
+      "end_line": 83,
       "raw": "| Provider | Host authorization | SDK connection |\n| --- | --- | --- |\n| Google | OAuth `openid email https://www.googleapis.com/auth/calendar.readonly` | OIDC userinfo verifies the subject; Calendar v3 reads calendar lists and expanded events |\n| Microsoft / Outlook | Delegated OAuth `User.Read Calendars.Read` | Graph `/me` verifies the subject; `/me/calendars` and `calendarView` read calendars/occurrences |\n| Apple device sources | EventKit full-access authorization; host usage descriptions/entitlements | `connectApple(options)` connects device-managed iCloud/Google/Exchange/CalDAV/local sources; `options.sourceId` selects one source |\n| Custom service | Host-authenticated external identity and provider | `connect(ExternalAccount, ExternalCalendarProvider)` reuses the same ownership/lifecycle rules |\n",
       "columns": [
         "Provider",
@@ -225,43 +225,43 @@
     {
       "id": "b000024",
       "kind": "blank",
-      "start_line": 83,
-      "end_line": 83,
+      "start_line": 84,
+      "end_line": 84,
       "raw": "\n"
     },
     {
       "id": "b000025",
       "kind": "paragraph",
-      "start_line": 84,
-      "end_line": 90,
+      "start_line": 85,
+      "end_line": 91,
       "raw": "Google and Microsoft acquire the current token for each request/page. Newly\nsupplied tokens are checked against the original subject before they reach\ncalendar endpoints; a different external account requires a separate connection.\nOnly a token fingerprint is cached for this check. Tokens are never included in\naccount descriptors, events, connection documents or SDK-generated errors.\nThere is no OAuth browser UI, credential issuance, refresh-token persistence or\nautomatic authorization prompt inside these synchronous provider methods.\n"
     },
     {
       "id": "b000026",
       "kind": "blank",
-      "start_line": 91,
-      "end_line": 91,
+      "start_line": 92,
+      "end_line": 92,
       "raw": "\n"
     },
     {
       "id": "b000027",
       "kind": "paragraph",
-      "start_line": 92,
-      "end_line": 95,
+      "start_line": 93,
+      "end_line": 96,
       "raw": "Apple authorization is an explicit host action through\n`AppleCalendarProvider::requestAccess`. The account source includes the host workspace or verified iisacc device identity, so an EventKit source from one device does not become a\ndifferent device's source merely by restoring a profile. Availability and OS\npermissions remain platform-specific. See [ExternalCalendars.md](ExternalCalendars.md).\n"
     },
     {
       "id": "b000028",
       "kind": "blank",
-      "start_line": 96,
-      "end_line": 96,
+      "start_line": 97,
+      "end_line": 97,
       "raw": "\n"
     },
     {
       "id": "b000029",
       "kind": "heading",
-      "start_line": 97,
-      "end_line": 97,
+      "start_line": 98,
+      "end_line": 98,
       "raw": "## Ownership and lifecycle\n",
       "level": 2,
       "title": "Ownership and lifecycle"
@@ -269,74 +269,74 @@
     {
       "id": "b000030",
       "kind": "blank",
-      "start_line": 98,
-      "end_line": 98,
+      "start_line": 99,
+      "end_line": 99,
       "raw": "\n"
     },
     {
       "id": "b000031",
       "kind": "paragraph",
-      "start_line": 99,
-      "end_line": 103,
+      "start_line": 100,
+      "end_line": 104,
       "raw": "`accounts()` lists connected providers. A generic workspace creates no primary\naccount. In the iisacc compatibility path it lists the owner first and that\nprimary cannot be disabled or disconnected here. Closing the workspace or\nsigning out retires its connections. Closed or expired contexts expose no\nprevious account list and network/data operations reject `AuthenticationRequired`.\n"
     },
     {
       "id": "b000032",
       "kind": "blank",
-      "start_line": 104,
-      "end_line": 104,
+      "start_line": 105,
+      "end_line": 105,
       "raw": "\n"
     },
     {
       "id": "b000033",
       "kind": "fenced_code",
-      "start_line": 105,
-      "end_line": 113,
-      "raw": "```cpp\niiCalendar::CalendarAccountManager calendars;\ncalendars.setWorkspace(iiCalendar::CalendarWorkspaceIdentity{\n    \"org.example.calendar\", workspaceId, deviceId\n});\nauto google = calendars.connectGoogle([&] { return secureTokens.google(); });\ncalendars.setWorkspace(std::nullopt);\n// Wait for outstanding I/O before destroying the manager.\n```\n",
+      "start_line": 106,
+      "end_line": 114,
+      "raw": "```cpp\niiCalendarIntegration::CalendarAccountManager calendars;\ncalendars.setWorkspace(iiCalendarIntegration::CalendarWorkspaceIdentity{\n    \"org.example.calendar\", workspaceId, deviceId\n});\nauto google = calendars.connectGoogle([&] { return secureTokens.google(); });\ncalendars.setWorkspace(std::nullopt);\n// Wait for outstanding I/O before destroying the manager.\n```\n",
       "language": "cpp",
-      "code": "iiCalendar::CalendarAccountManager calendars;\ncalendars.setWorkspace(iiCalendar::CalendarWorkspaceIdentity{\n    \"org.example.calendar\", workspaceId, deviceId\n});\nauto google = calendars.connectGoogle([&] { return secureTokens.google(); });\ncalendars.setWorkspace(std::nullopt);\n// Wait for outstanding I/O before destroying the manager.\n",
+      "code": "iiCalendarIntegration::CalendarAccountManager calendars;\ncalendars.setWorkspace(iiCalendarIntegration::CalendarWorkspaceIdentity{\n    \"org.example.calendar\", workspaceId, deviceId\n});\nauto google = calendars.connectGoogle([&] { return secureTokens.google(); });\ncalendars.setWorkspace(std::nullopt);\n// Wait for outstanding I/O before destroying the manager.\n",
       "closed": true
     },
     {
       "id": "b000034",
       "kind": "blank",
-      "start_line": 114,
-      "end_line": 114,
+      "start_line": 115,
+      "end_line": 115,
       "raw": "\n"
     },
     {
       "id": "b000035",
       "kind": "paragraph",
-      "start_line": 115,
-      "end_line": 122,
-      "raw": "Refreshing the same verified iisacc binding updates its profile/deadline while\npreserving external connections. Replacing the subject, origin, user binding,\ndevice or app-session ID retires all provider references and caches. Work already\nrunning can finish at the transport level, but returns `StaleSession` and cannot\npopulate the replacement session. The same account's concurrent operations\nreturn `Busy`. Disabling/disconnecting a connection invalidates its cached data;\nlate results cannot republish it, including after an immediate re-enable or a\nreplacement connection with the same external ID.\n"
+      "start_line": 116,
+      "end_line": 123,
+      "raw": "Refreshing the same verified iisacc binding updates its profile/deadline while\npreserving external connections. Replacing the subject, origin, user binding,\ndevice or app-session ID retires all provider references and caches. Transport\nwork already in progress may finish. The retired attachment stops further\ncalendar reads and returns `StaleSession`. The same account's concurrent operations\nreturn `Busy`. Disabling/disconnecting a connection invalidates its cached data;\nlate results cannot republish it, including after an immediate re-enable or a\nreplacement connection with the same external ID.\n"
     },
     {
       "id": "b000036",
       "kind": "blank",
-      "start_line": 123,
-      "end_line": 123,
+      "start_line": 124,
+      "end_line": 124,
       "raw": "\n"
     },
     {
       "id": "b000037",
       "kind": "paragraph",
-      "start_line": 124,
-      "end_line": 129,
-      "raw": "An external connection reports `Linked`, `Loading`, `Ready`, `Disabled`, `Failed`\nor `AuthenticationRequired`. Temporary transport/rate-limit/invalid-snapshot\nfailures preserve an existing snapshot. Authentication or permission rejection\nclears only the affected account. Imported event copies use the workspace owner as `ownerId`, retain external\nidentity in properties, and keep namespaced event and calendar IDs across\nproviders and owners. The iisacc compatibility path also adds `iisacc.subject`.\n"
+      "start_line": 125,
+      "end_line": 136,
+      "raw": "An external connection reports `Linked`, `Loading`, `Ready`, `Disabled`, `Failed`\nor `AuthenticationRequired`. Temporary transport/rate-limit/invalid-snapshot\nfailures preserve an existing snapshot. Authentication or permission rejection\nclears only the affected account. Imported event copies use the workspace owner as `ownerId`, retain external\nidentity in properties, and keep namespaced event and calendar IDs across\nproviders and owners. The iisacc compatibility path also adds `iisacc.subject`.\n계정 전체 동기화는 각 캘린더의 일정을 검증한 뒤 목록과 `loadedWindow`를 함께\n교체한다. 어느 캘린더에서든 일시적 전송 오류나 호출 제한이 발생하면 직전\n스냅샷을 보존한다. 권한 거부 시에는 기존과 같이 해당 계정의 데이터를 지운다.\n새 스냅샷에는 기본 최대 100,000개 일정을 보관하며 `maximumSnapshotEvents`로\n조절한다. 캘린더별 일정 상한도 적용된다. 같은 계정의 동시 요청은 `Busy`이며\n연결을 폐기하면 진행 중인 요청의 결과를 게시하지 않는다.\n"
     },
     {
       "id": "b000038",
       "kind": "blank",
-      "start_line": 130,
-      "end_line": 130,
+      "start_line": 137,
+      "end_line": 137,
       "raw": "\n"
     },
     {
       "id": "b000039",
       "kind": "heading",
-      "start_line": 131,
-      "end_line": 131,
+      "start_line": 138,
+      "end_line": 138,
       "raw": "## Restoring connections\n",
       "level": 2,
       "title": "Restoring connections"
@@ -344,57 +344,57 @@
     {
       "id": "b000040",
       "kind": "blank",
-      "start_line": 132,
-      "end_line": 132,
+      "start_line": 139,
+      "end_line": 139,
       "raw": "\n"
     },
     {
       "id": "b000041",
       "kind": "paragraph",
-      "start_line": 133,
-      "end_line": 140,
-      "raw": "`connectionDocument()` emits `iiCalendar.AccountConnections`, schema 1, with\nthe workspace namespace/owner or iisacc origin/subject, external IDs, display\nnames/emails and enabled flags. Generic origins use a `workspace:` prefix, a workspace scope marker, and distinct account IDs to keep legacy iisacc documents isolated even if configured origins overlap.\n`restoreConnections(document)` accepts only the current owner's complete, bounded\ndocument and must run before providers are attached. Credentials, authentication\nsession IDs, event data and access tokens are excluded. Restored enabled accounts\nreport `AuthenticationRequired` until their providers/credentials are reattached;\ndisabled connections stay disabled when reattached.\n"
+      "start_line": 140,
+      "end_line": 149,
+      "raw": "`connectionDocument()` emits `iiCalendarIntegration.AccountConnections`, schema 1, with\nthe workspace namespace/owner or iisacc origin/subject, external IDs, display\nnames/emails and enabled flags. Generic origins use a `workspace:` prefix, a workspace scope marker, and distinct account IDs to keep legacy iisacc documents isolated even if configured origins overlap.\n`restoreConnections(document)` accepts only the current owner's complete, bounded\ndocument and must run before providers are attached. Credentials, authentication\nsession IDs, event data and access tokens are excluded. Restored enabled accounts\nreport `AuthenticationRequired` until their providers/credentials are reattached;\ndisabled connections stay disabled when reattached.\n이전 `iiCalendar.AccountConnections`의 schema 1 문서도 읽을 수 있다. 모듈 이름을\n변경해도 소유자와 연결 ID를 계산하는 형식은 같다.\n"
     },
     {
       "id": "b000042",
       "kind": "blank",
-      "start_line": 141,
-      "end_line": 141,
+      "start_line": 150,
+      "end_line": 150,
       "raw": "\n"
     },
     {
       "id": "b000043",
       "kind": "paragraph",
-      "start_line": 142,
-      "end_line": 146,
-      "raw": "An internal SHA-256 implementation preserves the credential fingerprint used\nto avoid repeating a profile lookup for an unchanged token. Its iisacc MIT\ncounterpart license is installed with the package, and standard vectors are\nchecked by `iiCalendar.sha256`. Neither the bearer token nor the fingerprint is\nwritten to the connection document.\n"
+      "start_line": 151,
+      "end_line": 155,
+      "raw": "An internal SHA-256 implementation preserves the credential fingerprint used\nto avoid repeating a profile lookup for an unchanged token. Its iisacc MIT\ncounterpart license is installed with the package, and standard vectors are\nchecked by `iiCalendarIntegration.sha256`. Neither the bearer token nor the fingerprint is\nwritten to the connection document.\n"
     },
     {
       "id": "b000044",
-      "kind": "blank",
-      "start_line": 147,
-      "end_line": 147,
-      "raw": "\n"
-    },
-    {
-      "id": "b000045",
-      "kind": "paragraph",
-      "start_line": 148,
-      "end_line": 155,
-      "raw": "The former `saveConnections(nativePath)` and `loadConnections(nativePath)` members\nwere removed. The separately configured `examples/file-provider` consumer uses\n`connectionDocument()` and `restoreConnections()` with iiFileProvider for atomic\npublication and bounded reads. The host chooses its private, owner-specific\napplication-state path and serializes writes to that path.\nSession changes do not automatically choose or open another user's file.\nDefault limits are 32 external connections and 256 KiB per profile document.\nCalendar/event/page limits retain the provider's independent bounds.\n"
-    },
-    {
-      "id": "b000046",
       "kind": "blank",
       "start_line": 156,
       "end_line": 156,
       "raw": "\n"
     },
     {
+      "id": "b000045",
+      "kind": "paragraph",
+      "start_line": 157,
+      "end_line": 164,
+      "raw": "The former `saveConnections(nativePath)` and `loadConnections(nativePath)` members\nwere removed. The separately configured `examples/file-provider` consumer uses\n`connectionDocument()` and `restoreConnections()` with iiFileProvider for atomic\npublication and bounded reads. The host chooses its private, owner-specific\napplication-state path and serializes writes to that path.\nSession changes do not automatically choose or open another user's file.\nDefault limits are 32 external connections and 256 KiB per profile document.\nCalendar/event/page limits retain the provider's independent bounds.\n"
+    },
+    {
+      "id": "b000046",
+      "kind": "blank",
+      "start_line": 165,
+      "end_line": 165,
+      "raw": "\n"
+    },
+    {
       "id": "b000047",
       "kind": "heading",
-      "start_line": 157,
-      "end_line": 157,
+      "start_line": 166,
+      "end_line": 166,
       "raw": "## Microsoft data contract\n",
       "level": 2,
       "title": "Microsoft data contract"
@@ -402,71 +402,71 @@
     {
       "id": "b000048",
       "kind": "blank",
-      "start_line": 158,
-      "end_line": 158,
+      "start_line": 167,
+      "end_line": 167,
       "raw": "\n"
     },
     {
       "id": "b000049",
       "kind": "paragraph",
-      "start_line": 159,
-      "end_line": 165,
+      "start_line": 168,
+      "end_line": 174,
       "raw": "The provider uses delegated Microsoft Graph v1.0 and requests UTC times plus\nimmutable IDs. It expands events through `calendarView`, preserves remote IDs,\ncategories, organizer/attendee data, visibility, availability and reminders, and\nfilters the expanded result against the exact requested window. Windows time\nzone IDs are mapped through ICU to the corresponding IANA zone. All-day dates\nare recovered in the original zone, including 23/25-hour daylight-saving days.\nHTML bodies use the plain `bodyPreview`; text bodies retain their content.\n"
     },
     {
       "id": "b000050",
       "kind": "blank",
-      "start_line": 166,
-      "end_line": 166,
+      "start_line": 175,
+      "end_line": 175,
       "raw": "\n"
     },
     {
       "id": "b000051",
       "kind": "paragraph",
-      "start_line": 167,
-      "end_line": 171,
+      "start_line": 176,
+      "end_line": 180,
       "raw": "Pagination is bounded, repeated links/IDs and foreign-origin or foreign-resource\nnext links are rejected, and incomplete/invalid snapshots are never returned as\ncomplete data. Cancelled events are excluded; authentication, permission and\nrate-limit failures have explicit error codes. This connection API reads external calendars; existing `Store` remains\nthe explicit application-owned persistence interface.\n"
     },
     {
       "id": "b000052",
-      "kind": "blank",
-      "start_line": 172,
-      "end_line": 172,
-      "raw": "\n"
-    },
-    {
-      "id": "b000053",
-      "kind": "paragraph",
-      "start_line": 173,
-      "end_line": 178,
-      "raw": "Primary references:\n[Google OIDC](https://developers.google.com/identity/openid-connect/openid-connect),\n[Microsoft calendars](https://learn.microsoft.com/en-us/graph/api/user-list-calendars?view=graph-rest-1.0),\n[Microsoft calendarView](https://learn.microsoft.com/en-us/graph/api/calendar-list-calendarview?view=graph-rest-1.0),\n[Microsoft user profile](https://learn.microsoft.com/en-us/graph/api/user-get?view=graph-rest-1.0),\n[Apple EventKit](https://developer.apple.com/documentation/eventkit/accessing-the-event-store).\n"
-    },
-    {
-      "id": "b000054",
-      "kind": "blank",
-      "start_line": 179,
-      "end_line": 179,
-      "raw": "\n"
-    },
-    {
-      "id": "b000055",
-      "kind": "paragraph",
-      "start_line": 180,
-      "end_line": 180,
-      "raw": "`workspaceOpen()` reports whether either workspace type is active. `authenticated()` retains its original meaning: it reports an unexpired iisacc session, and remains false for a generic workspace. External provider authentication is independent of both checks.\n"
-    },
-    {
-      "id": "b000056",
       "kind": "blank",
       "start_line": 181,
       "end_line": 181,
       "raw": "\n"
     },
     {
+      "id": "b000053",
+      "kind": "paragraph",
+      "start_line": 182,
+      "end_line": 187,
+      "raw": "Primary references:\n[Google OIDC](https://developers.google.com/identity/openid-connect/openid-connect),\n[Microsoft calendars](https://learn.microsoft.com/en-us/graph/api/user-list-calendars?view=graph-rest-1.0),\n[Microsoft calendarView](https://learn.microsoft.com/en-us/graph/api/calendar-list-calendarview?view=graph-rest-1.0),\n[Microsoft user profile](https://learn.microsoft.com/en-us/graph/api/user-get?view=graph-rest-1.0),\n[Apple EventKit](https://developer.apple.com/documentation/eventkit/accessing-the-event-store).\n"
+    },
+    {
+      "id": "b000054",
+      "kind": "blank",
+      "start_line": 188,
+      "end_line": 188,
+      "raw": "\n"
+    },
+    {
+      "id": "b000055",
+      "kind": "paragraph",
+      "start_line": 189,
+      "end_line": 189,
+      "raw": "`workspaceOpen()` reports whether either workspace type is active. `authenticated()` retains its original meaning: it reports an unexpired iisacc session, and remains false for a generic workspace. External provider authentication is independent of both checks.\n"
+    },
+    {
+      "id": "b000056",
+      "kind": "blank",
+      "start_line": 190,
+      "end_line": 190,
+      "raw": "\n"
+    },
+    {
       "id": "b000057",
       "kind": "heading",
-      "start_line": 182,
-      "end_line": 182,
+      "start_line": 191,
+      "end_line": 191,
       "raw": "## Python account API contract\n",
       "level": 2,
       "title": "Python account API contract"
@@ -474,29 +474,29 @@
     {
       "id": "b000058",
       "kind": "blank",
-      "start_line": 183,
-      "end_line": 183,
+      "start_line": 192,
+      "end_line": 192,
       "raw": "\n"
     },
     {
       "id": "b000059",
       "kind": "paragraph",
-      "start_line": 184,
-      "end_line": 190,
-      "raw": "The optional `iicalendar` native module exposes `CalendarAccountManager` and\nhost-owned `CalendarWorkspaceIdentity`, the Google/Microsoft/Apple connectors,\ncustom callback providers, account and calendar snapshots, event loading,\nenabling, disconnecting and credential-free connection document restoration.\nToken and HTTP callbacks remain host-owned. Calls perform synchronous I/O and\nmust not outlive the manager or Python interpreter. Calendar errors carry an\n`ExternalCalendarErrorCode`; workspace identities are not authentication.\n"
+      "start_line": 193,
+      "end_line": 199,
+      "raw": "The optional `iicalendarintegration` native module exposes `CalendarAccountManager` and\nhost-owned `CalendarWorkspaceIdentity`, the Google/Microsoft/Apple connectors,\ncustom callback providers, account and calendar snapshots, event loading,\nenabling, disconnecting and credential-free connection document restoration.\nToken and HTTP callbacks remain host-owned. Calls perform synchronous I/O and\nmust not outlive the manager or Python interpreter. Calendar errors carry an\n`ExternalCalendarErrorCode`; workspace identities are not authentication.\n"
     },
     {
       "id": "b000060",
       "kind": "blank",
-      "start_line": 191,
-      "end_line": 192,
+      "start_line": 200,
+      "end_line": 201,
       "raw": "\n\n"
     },
     {
       "id": "b000061",
       "kind": "heading",
-      "start_line": 193,
-      "end_line": 193,
+      "start_line": 202,
+      "end_line": 202,
       "raw": "### Build and use\n",
       "level": 3,
       "title": "Build and use"
@@ -504,91 +504,91 @@
     {
       "id": "b000062",
       "kind": "blank",
-      "start_line": 194,
-      "end_line": 194,
+      "start_line": 203,
+      "end_line": 203,
       "raw": "\n"
     },
     {
       "id": "b000063",
       "kind": "paragraph",
-      "start_line": 195,
-      "end_line": 196,
+      "start_line": 204,
+      "end_line": 205,
       "raw": "Install Python development headers and pybind11 2.12 or later in the build\ninterpreter, then configure the optional binding and run its tests:\n"
     },
     {
       "id": "b000064",
       "kind": "blank",
-      "start_line": 197,
-      "end_line": 197,
+      "start_line": 206,
+      "end_line": 206,
       "raw": "\n"
     },
     {
       "id": "b000065",
       "kind": "fenced_code",
-      "start_line": 198,
-      "end_line": 204,
-      "raw": "```sh\ncmake -S . -B build -DIICALENDAR_BUILD_PYTHON=ON \\\n  -Dpybind11_DIR=\"$(python3 -m pybind11 --cmakedir)\"\ncmake --build build\nctest --test-dir build --output-on-failure\ncmake --install build\n```\n",
+      "start_line": 207,
+      "end_line": 213,
+      "raw": "```sh\ncmake -S . -B build -DIICALENDARINTEGRATION_BUILD_PYTHON=ON \\\n  -Dpybind11_DIR=\"$(python3 -m pybind11 --cmakedir)\"\ncmake --build build\nctest --test-dir build --output-on-failure\ncmake --install build\n```\n",
       "language": "sh",
-      "code": "cmake -S . -B build -DIICALENDAR_BUILD_PYTHON=ON \\\n  -Dpybind11_DIR=\"$(python3 -m pybind11 --cmakedir)\"\ncmake --build build\nctest --test-dir build --output-on-failure\ncmake --install build\n",
+      "code": "cmake -S . -B build -DIICALENDARINTEGRATION_BUILD_PYTHON=ON \\\n  -Dpybind11_DIR=\"$(python3 -m pybind11 --cmakedir)\"\ncmake --build build\nctest --test-dir build --output-on-failure\ncmake --install build\n",
       "closed": true
     },
     {
       "id": "b000066",
       "kind": "blank",
-      "start_line": 205,
-      "end_line": 205,
+      "start_line": 214,
+      "end_line": 214,
       "raw": "\n"
     },
     {
       "id": "b000067",
       "kind": "paragraph",
-      "start_line": 206,
-      "end_line": 215,
-      "raw": "The extension is installed under `<prefix>/lib/pythonX.Y/site-packages` by\ndefault. `IICALENDAR_PYTHON_INSTALL_DIR` changes that prefix-relative path. Add\nit to the matching Python interpreter's module search path. On Windows, also\nmake the installed `bin` directory available to the DLL loader, for example\nwith `os.add_dll_directory`. The Python and native binaries must target the\nsame architecture. CMake defaults the binding to OFF, so native-only consumers\nneed neither Python development headers nor pybind11. The pybind11 BSD license\nis included in Python-enabled installations. This binding covers the\naccount manager and its calendar/event snapshots; it is not a binding for the\nentire iiCalendar chronology and storage APIs.\n"
+      "start_line": 215,
+      "end_line": 224,
+      "raw": "The extension is installed under `<prefix>/lib/pythonX.Y/site-packages` by\ndefault. `IICALENDARINTEGRATION_PYTHON_INSTALL_DIR` changes that prefix-relative path. Add\nit to the matching Python interpreter's module search path. On Windows, also\nmake the installed `bin` directory available to the DLL loader, for example\nwith `os.add_dll_directory`. The Python and native binaries must target the\nsame architecture. CMake defaults the binding to OFF, so native-only consumers\nneed neither Python development headers nor pybind11. The pybind11 BSD license\nis included in Python-enabled installations. This binding covers the\naccount manager and its calendar/event snapshots; it is not a binding for the\nentire iiCalendarIntegration chronology and storage APIs.\n"
     },
     {
       "id": "b000068",
       "kind": "blank",
-      "start_line": 216,
-      "end_line": 216,
+      "start_line": 225,
+      "end_line": 225,
       "raw": "\n"
     },
     {
       "id": "b000069",
       "kind": "fenced_code",
-      "start_line": 217,
-      "end_line": 229,
-      "raw": "```python\nimport iicalendar as cal\n\nmanager = cal.CalendarAccountManager()\nmanager.set_workspace(cal.CalendarWorkspaceIdentity(\"org.example.app\", owner_id, device_id))\n# secure_store must return a current OAuth access token for this account.\naccount = manager.connect_google(secure_store.google_access_token)\nfor calendar in manager.calendars(account.id):\n    manager.load_events(account.id, calendar.id, requested_window)\n    print(manager.calendar(calendar.id).events)\ndocument = manager.connection_document()  # no access tokens\nmanager.set_workspace(None)\n```\n",
+      "start_line": 226,
+      "end_line": 238,
+      "raw": "```python\nimport iicalendarintegration as cal\n\nmanager = cal.CalendarAccountManager()\nmanager.set_workspace(cal.CalendarWorkspaceIdentity(\"org.example.app\", owner_id, device_id))\n# secure_store must return a current OAuth access token for this account.\naccount = manager.connect_google(secure_store.google_access_token, initial_window=requested_window)\nfor calendar in manager.calendars(account.id):\n    print(calendar.events)\nmanager.synchronize(account.id, requested_window)\ndocument = manager.connection_document()  # no access tokens\nmanager.set_workspace(None)\n```\n",
       "language": "python",
-      "code": "import iicalendar as cal\n\nmanager = cal.CalendarAccountManager()\nmanager.set_workspace(cal.CalendarWorkspaceIdentity(\"org.example.app\", owner_id, device_id))\n# secure_store must return a current OAuth access token for this account.\naccount = manager.connect_google(secure_store.google_access_token)\nfor calendar in manager.calendars(account.id):\n    manager.load_events(account.id, calendar.id, requested_window)\n    print(manager.calendar(calendar.id).events)\ndocument = manager.connection_document()  # no access tokens\nmanager.set_workspace(None)\n",
+      "code": "import iicalendarintegration as cal\n\nmanager = cal.CalendarAccountManager()\nmanager.set_workspace(cal.CalendarWorkspaceIdentity(\"org.example.app\", owner_id, device_id))\n# secure_store must return a current OAuth access token for this account.\naccount = manager.connect_google(secure_store.google_access_token)\nfor calendar in manager.calendars(account.id):\n    manager.load_events(account.id, calendar.id, requested_window)\n    print(manager.calendar(calendar.id).events)\ndocument = manager.connection_document()  # no access tokens\nmanager.set_workspace(None)\n",
       "closed": true
     },
     {
       "id": "b000070",
       "kind": "blank",
-      "start_line": 230,
-      "end_line": 230,
+      "start_line": 239,
+      "end_line": 239,
       "raw": "\n"
     },
     {
       "id": "b000071",
       "kind": "paragraph",
-      "start_line": 231,
-      "end_line": 237,
+      "start_line": 240,
+      "end_line": 246,
       "raw": "Use `connect_microsoft` similarly; `connect_apple(AppleCalendarOptions())`\nuses device-managed EventKit sources. `AppleCalendarProvider.available()`,\n`authorization()`, `sources()` and asynchronous `request_access(callback)`\nexpose the native authorization workflow. The host supplies platform usage\ndescriptions/entitlements and must keep Python and the provider alive until the\ncallback completes. A callback exception is reported as an unraisable Python\nexception. Apple authorization and available sources depend on the OS.\n"
     },
     {
       "id": "b000072",
       "kind": "blank",
-      "start_line": 238,
-      "end_line": 238,
+      "start_line": 247,
+      "end_line": 247,
       "raw": "\n"
     },
     {
       "id": "b000073",
       "kind": "paragraph",
-      "start_line": 239,
-      "end_line": 251,
+      "start_line": 248,
+      "end_line": 260,
       "raw": "`connect_google` and `connect_microsoft` accept optional Python `get(request)`\ncallbacks returning `CalendarHttpResponse(status, body)` for custom transport;\nwithout one they use the SDK transport. `connect_custom` accepts an\n`ExternalAccount`, a calendar-list callback and an event-list callback. The\nmanager retains callbacks while connected. Calls release the GIL around native\nwork and reacquire it for callbacks; callback implementations must be\nthread-safe and must not recursively operate on the same connection. Wait for\nworkers and Apple callbacks before shutting down the interpreter. Python\nsubinterpreters are not supported. `CalendarError.code` identifies native\nerrors; callback exceptions are translated to sanitized native errors.\n`Event`, calendar and account lists are snapshots. Python lists/maps are copies:\nassign changed lists or maps back to their attribute. `TimeRange` uses half-open\nRFC 3339 instants; all-day schedules use exclusive end dates.\n"
     }
   ],
@@ -623,7 +623,7 @@
       "level": 2,
       "title": "Ownership and lifecycle",
       "anchor": "ownership-and-lifecycle",
-      "start_line": 97
+      "start_line": 98
     },
     {
       "block_id": "b000039",
@@ -631,7 +631,7 @@
       "level": 2,
       "title": "Restoring connections",
       "anchor": "restoring-connections",
-      "start_line": 131
+      "start_line": 138
     },
     {
       "block_id": "b000047",
@@ -639,7 +639,7 @@
       "level": 2,
       "title": "Microsoft data contract",
       "anchor": "microsoft-data-contract",
-      "start_line": 157
+      "start_line": 166
     },
     {
       "block_id": "b000057",
@@ -647,7 +647,7 @@
       "level": 2,
       "title": "Python account API contract",
       "anchor": "python-account-api-contract",
-      "start_line": 182
+      "start_line": 191
     },
     {
       "block_id": "b000061",
@@ -655,63 +655,63 @@
       "level": 3,
       "title": "Build and use",
       "anchor": "build-and-use",
-      "start_line": 193
+      "start_line": 202
     }
   ],
   "indexes": {
     "directive_candidates": [
       {
         "block_id": "b000025",
-        "line": 87,
+        "line": 88,
         "text": "Only a token fingerprint is cached for this check. Tokens are never included in",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000041",
-        "line": 137,
+        "line": 144,
         "text": "document and must run before providers are attached. Credentials, authentication",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000051",
-        "line": 168,
+        "line": 177,
         "text": "next links are rejected, and incomplete/invalid snapshots are never returned as",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000059",
-        "line": 189,
+        "line": 198,
         "text": "must not outlive the manager or Python interpreter. Calendar errors carry an",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000067",
-        "line": 210,
+        "line": 219,
         "text": "with `os.add_dll_directory`. The Python and native binaries must target the",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000071",
-        "line": 235,
+        "line": 244,
         "text": "descriptions/entitlements and must keep Python and the provider alive until the",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000073",
-        "line": 244,
+        "line": 253,
         "text": "work and reacquire it for callbacks; callback implementations must be",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000073",
-        "line": 245,
+        "line": 254,
         "text": "thread-safe and must not recursively operate on the same connection. Wait for",
         "basis": "lexical_match",
         "context": "paragraph"
@@ -721,7 +721,7 @@
       {
         "block_id": "b000065",
         "language": "sh",
-        "code": "cmake -S . -B build -DIICALENDAR_BUILD_PYTHON=ON \\\n  -Dpybind11_DIR=\"$(python3 -m pybind11 --cmakedir)\"\ncmake --build build\nctest --test-dir build --output-on-failure\ncmake --install build\n"
+        "code": "cmake -S . -B build -DIICALENDARINTEGRATION_BUILD_PYTHON=ON \\\n  -Dpybind11_DIR=\"$(python3 -m pybind11 --cmakedir)\"\ncmake --build build\nctest --test-dir build --output-on-failure\ncmake --install build\n"
       }
     ],
     "links": [
@@ -730,42 +730,42 @@
         "label": "ExternalCalendars.md",
         "target": "ExternalCalendars.md",
         "kind": "relative",
-        "line": 95
+        "line": 96
       },
       {
         "block_id": "b000053",
         "label": "Google OIDC",
         "target": "https://developers.google.com/identity/openid-connect/openid-connect",
         "kind": "external",
-        "line": 174
+        "line": 183
       },
       {
         "block_id": "b000053",
         "label": "Microsoft calendars",
         "target": "https://learn.microsoft.com/en-us/graph/api/user-list-calendars?view=graph-rest-1.0",
         "kind": "external",
-        "line": 175
+        "line": 184
       },
       {
         "block_id": "b000053",
         "label": "Microsoft calendarView",
         "target": "https://learn.microsoft.com/en-us/graph/api/calendar-list-calendarview?view=graph-rest-1.0",
         "kind": "external",
-        "line": 176
+        "line": 185
       },
       {
         "block_id": "b000053",
         "label": "Microsoft user profile",
         "target": "https://learn.microsoft.com/en-us/graph/api/user-get?view=graph-rest-1.0",
         "kind": "external",
-        "line": 177
+        "line": 186
       },
       {
         "block_id": "b000053",
         "label": "Apple EventKit",
         "target": "https://developer.apple.com/documentation/eventkit/accessing-the-event-store",
         "kind": "external",
-        "line": 178
+        "line": 187
       }
     ],
     "tables": [

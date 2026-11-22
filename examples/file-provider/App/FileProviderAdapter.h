@@ -1,5 +1,5 @@
 #pragma once
-#include <iiCalendar/iiCalendar.h>
+#include <iiCalendarIntegration>
 #include <iiFileProviderNative.h>
 #include <iiFileProviderStorage.h>
 #include <sqlite3.h>
@@ -9,7 +9,7 @@
 #include <string>
 
 // Application-owned composition: neither SDK imports the other SDK.
-namespace iiCalendarFileProvider {
+namespace iiCalendarIntegrationFileProvider {
 inline std::shared_ptr<sqlite3> openDatabase(const std::filesystem::path &path) {
     const auto utf8 = path.u8string();
     const std::string file(reinterpret_cast<const char *>(utf8.data()), utf8.size());
@@ -20,24 +20,24 @@ inline std::shared_ptr<sqlite3> openDatabase(const std::filesystem::path &path) 
         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
     std::unique_ptr<sqlite3, decltype(&sqlite3_close_v2)> owned(raw, sqlite3_close_v2);
     if (opened != SQLITE_OK)
-        throw iiCalendar::StorageError(raw ? sqlite3_errmsg(raw) : "cannot allocate SQLite connection");
+        throw iiCalendarIntegration::StorageError(raw ? sqlite3_errmsg(raw) : "cannot allocate SQLite connection");
     return std::shared_ptr<sqlite3>(std::move(owned));
 }
-inline iiCalendar::Store openStore(const std::filesystem::path &path,
-    std::shared_ptr<const iiCalendar::CalendarRegistry> calendars = std::make_shared<iiCalendar::CalendarRegistry>()) {
+inline iiCalendarIntegration::Store openStore(const std::filesystem::path &path,
+    std::shared_ptr<const iiCalendarIntegration::CalendarRegistry> calendars = std::make_shared<iiCalendarIntegration::CalendarRegistry>()) {
     if (!calendars) throw std::invalid_argument("calendar registry is required");
-    return iiCalendar::Store(openDatabase(path), std::move(calendars));
+    return iiCalendarIntegration::Store(openDatabase(path), std::move(calendars));
 }
-inline void saveConnections(const iiCalendar::CalendarAccountManager &accounts,
+inline void saveConnections(const iiCalendarIntegration::CalendarAccountManager &accounts,
                             const std::filesystem::path &path) {
     iiFileProvider::native::File::write(path, accounts.connectionDocument());
 }
-inline void loadConnections(iiCalendar::CalendarAccountManager &accounts,
+inline void loadConnections(iiCalendarIntegration::CalendarAccountManager &accounts,
                             const std::filesystem::path &path) {
     if (!accounts.authenticated())
-        throw iiCalendar::ExternalCalendarError(iiCalendar::ExternalCalendarErrorCode::AuthenticationRequired,
+        throw iiCalendarIntegration::ExternalCalendarError(iiCalendarIntegration::ExternalCalendarErrorCode::AuthenticationRequired,
                                                  "an authenticated iisacc session is required");
     accounts.restoreConnections(iiFileProvider::native::File::read(
-        path, iiCalendar::CalendarAccountManager::maximumConnectionBytes));
+        path, iiCalendarIntegration::CalendarAccountManager::maximumConnectionBytes));
 }
-} // namespace iiCalendarFileProvider
+} // namespace iiCalendarIntegrationFileProvider

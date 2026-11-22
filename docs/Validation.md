@@ -24,7 +24,7 @@ SHA-256의 빈 입력·`abc`·다중 블록 표준 벡터, 메모리 SQLite 연�
 기존 캘린더 도메인 계약이 포함된다. Apple 권한/네이티브 검사와 설치 소비자
 실행은 이 검사에서 제외했다. 검사의 기존 60초 제한은 유지했다.
 
-별도 파일 소비자는 격리 설치된 iiCalendar와 iiFileProvider Native 0.9.0을
+별도 파일 소비자는 격리 설치된 iiCalendarIntegration와 iiFileProvider Native 0.9.0을
 연결해 파일 데이터베이스 회귀와 계정 문서 저장·복원 검사 2/2를 재시도에서
 통과했다. 첫 시도에서는 두 검사 모두 기존 60초 제한에 걸렸으며, 파일 계정
 검사 중 수집한 표본은 테스트 본문 이전의 `_dyld_start`만 보였다. 원인은
@@ -49,7 +49,7 @@ null 연결·레지스트리 거부 및 다른 데이터베이스의 보존을 �
 계정 SDK 검색을 비활성화한 macOS arm64 구성에서 전체 빌드를 마쳤다.
 계정 경계 검사와 계정 저장 검사 2개가 통과했으며, 저장 검사는 기존 60초
 제한 안에서 54개 조건을 확인했다. 별도로 구성한 소비자는 설치된
-iiAccountManager 0.2.10, iiFileProvider Native 0.9.0 및 격리된 iiCalendar
+iiAccountManager 0.2.10, iiFileProvider Native 0.9.0 및 격리된 iiCalendarIntegration
 패키지를 조합해 합성 로컬 로그인·실효 만료·로그아웃 검사 1개를 기존 30초
 제한 안에서 통과했다. 실제 계정이나 외부 서비스를 사용하지 않았다.
 Qt와 계정 SDK 검색을 끈 설치 소비자는 컴파일했으며 실행하지 않았다.
@@ -84,18 +84,18 @@ cmake -S . -B build/accounts -DCMAKE_BUILD_TYPE=Debug \
 cmake --build build/accounts --parallel 6
 ctest --test-dir build/accounts --output-on-failure
 cmake -S . -B build/accounts-no-curl -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_DISABLE_FIND_PACKAGE_Qt6=ON -DIICALENDAR_WITH_CURL=OFF \
+  -DCMAKE_DISABLE_FIND_PACKAGE_Qt6=ON -DIICALENDARINTEGRATION_WITH_CURL=OFF \
   -DCMAKE_PREFIX_PATH=/path/to/iiFileProvider
 cmake --build build/accounts-no-curl --parallel 6
 ctest --test-dir build/accounts-no-curl --output-on-failure
 # Real account-SDK integration is a separate consumer project.
 cmake -S examples/iisacc-bridge -B build/accounts-bridge \
-  '-DCMAKE_PREFIX_PATH=/path/to/iiCalendar;/path/to/iiFileProvider;/path/to/iiAccountManager;/path/to/Qt'
-cmake --build build/accounts-bridge --target iiCalendarIisaccBridgeTests --parallel 6
-ctest --test-dir build/accounts-bridge -R '^iiCalendar.iisacc_bridge$' --output-on-failure
+  '-DCMAKE_PREFIX_PATH=/path/to/iiCalendarIntegration;/path/to/iiFileProvider;/path/to/iiAccountManager;/path/to/Qt'
+cmake --build build/accounts-bridge --target iiCalendarIntegrationIisaccBridgeTests --parallel 6
+ctest --test-dir build/accounts-bridge -R '^iiCalendarIntegration.iisacc_bridge$' --output-on-failure
 ```
 
-이전 `IICALENDAR_TEST_IISACC_BRIDGE=ON` 설정은 명시적으로 실패하고 위의
+이전 `IICALENDARINTEGRATION_TEST_IISACC_BRIDGE=ON` 설정은 명시적으로 실패하고 위의
 별도 소비자 구성을 안내한다. 계정 검사에서 생성하는 임시 저장물은
 `resources/`의 제공자 소유 임시 디렉터리에 두고 검사 후 정리한다.
 
@@ -132,11 +132,11 @@ CTest 13/13이 통과했다. 기존 8개 도메인·외부 4개 묶음·설치 �
 | installed_consumer | build/install의 공개 헤더·정적 라이브러리·CMake export만 사용해 사용자 제공자·관리자·Google 제공자·Apple 네이티브/대체 구현을 별도 프로젝트에서 빌드/실행 |
 
 ```sh
-cmake -S . -B build -DIICALENDAR_WITH_CURL=ON
+cmake -S . -B build -DIICALENDARINTEGRATION_WITH_CURL=ON
 cmake --build build --parallel 4
 ctest --test-dir build --output-on-failure
 # 네트워크가 필요한 명시적 확인이며 CTest 자동 실행에는 포함하지 않는다.
-./build/iiCalendarHttpsSmoke
+./build/iiCalendarIntegrationHttpsSmoke
 ```
 
 구현 전 미해결 심벌은 `build/external-tdd-red.log`, 최종 구성·빌드·CTest 결과는
@@ -145,7 +145,7 @@ libcurl OFF 구성에서 호스트 전송 주입과 설치 소비자 결과는 `
 Apple 제공자의 iOS arm64/iOS 17 API 구문 검사는 `build/external-ios-syntax.log`, 비 Apple 대체 구현의
 호스트 컴파일은 `build/external-no-apple-build.log`에 기록한다. iOS 전체 링크·배포·기기 실행 결과는 아니다.
 
-`iiCalendarHttpsSmoke`는 비밀이 아닌 의도적으로 잘못된 fixture 토큰으로 Google 서버의 401 응답을
+`iiCalendarIntegrationHttpsSmoke`는 비밀이 아닌 의도적으로 잘못된 fixture 토큰으로 Google 서버의 401 응답을
 받아 실제 TLS/HTTPS 경로를 검증한다. 로그인한 Google 계정의 데이터 조회 성공을 증명하지 않는다.
 Google 응답 데이터 검사는 주입된 결정적 fixture이며, Apple 실제 계정 목록·일정 조회는 이 테스트에서
 수행하지 않는다. 해당 런타임 검증에는 호출 앱의 OAuth 토큰 및 EventKit full-access 권한·호스트 설정이
@@ -157,7 +157,7 @@ Google 응답 데이터 검사는 주입된 결정적 fixture이며, Apple 실�
 검사는 532개였고, 나머지 1개 묶음은 설치·외부 소비자 빌드·실행 검증이다. 최종 컴파일 로그에
 경고가 없었다. OS가 보고한 벽시계 분해능은 1 µs였다. 이는 UTC 절대 정확도가 아니다.
 ICU bootstrap 스크립트의 해시 확인·구성·정적 빌드·설치도 성공했으며, SDK 일괄 설치기
-`--dry-run --only iiCalendar`에서 로컬 상위 모듈 의존성 없이 발견되었다.
+`--dry-run --only iiCalendarIntegration`에서 로컬 상위 모듈 의존성 없이 발견되었다.
 
 CTest 8개 도메인 묶음과 설치 소비자 1개로 구성된다. assert를 사용하지 않아 Release에서도
 검사가 제거되지 않는다. DB·빌드·설치 산출물은 build/ 아래에 둔다.
@@ -181,7 +181,7 @@ python3 scripts/bootstrap_icu.py --jobs 4
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build --parallel 6
 ctest --test-dir build --output-on-failure
-./build/iiCalendarExample
+./build/iiCalendarIntegrationExample
 ```
 
 구현 전 계약 테스트의 미해결 심벌 실패는 build/tdd-red.log에 기록했다.
@@ -195,3 +195,11 @@ WebAssembly 브라우저 시계·파일시스템 어댑터는 제공하지 않�
 
 시계 검사는 하드웨어에서 attosecond 정확도를 인증하지 않는다. 관측 음력·국가별 시각 정책은
 사용한 ICU/tzdb 데이터의 범위를 따른다.
+
+## iiCalendarIntegration 패키지와 계정 동기화 (2026-11-20)
+
+macOS arm64에서 동적 SDK와 Python 확장을 빌드하고 CTest 27건을 통과했다.
+별도 설치 소비자는 새 CMake 패키지와 C++ 모듈 헤더를 사용한다. 계정 시험은
+기존 연결 문서의 복원, 계정 전체 스냅샷 교체와 실패 시 보존, 권한 거부 시 정리,
+연결 해제 또는 작업 공간 폐기 중 시작하거나 완료되는 조회의 거부를 검사한다.
+공급자 응답은 모의 데이터이며 사용자 계정 인증은 실행하지 않았다.

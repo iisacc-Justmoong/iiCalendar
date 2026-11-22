@@ -1,9 +1,9 @@
 #include "Checked.h"
 #include "Icu.h"
 #include <algorithm>
-#include <iiCalendar/TimeZone.h>
+#include <iiCalendarIntegration/TimeZone.h>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 std::unique_ptr<icu::TimeZone> zone(const std::string &id) {
     return std::unique_ptr<icu::TimeZone>(
@@ -97,4 +97,4 @@ TimeRange TimeZone::dayRange(Date date) const {
     return {resolve({date, Time()}, AmbiguousTime::Earlier, MissingTime::ShiftForward),
             resolve({date.addDays(1), Time()}, AmbiguousTime::Earlier, MissingTime::ShiftForward)};
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

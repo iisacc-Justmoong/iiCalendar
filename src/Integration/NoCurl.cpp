@@ -1,9 +1,9 @@
 #include "Http.h"
-namespace iiCalendar::detail {
+namespace iiCalendarIntegration::detail {
 CalendarHttpGet defaultCalendarHttpGet() {
     return [](const CalendarHttpRequest &) -> CalendarHttpResponse {
         throw ExternalCalendarError(ExternalCalendarErrorCode::Unsupported,
-                                    "provide CalendarHttpGet or build with IICALENDAR_WITH_CURL=ON");
+                                    "provide CalendarHttpGet or build with IICALENDARINTEGRATION_WITH_CURL=ON");
     };
 }
 }

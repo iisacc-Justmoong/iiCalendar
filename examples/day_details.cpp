@@ -1,8 +1,8 @@
-#include <iiCalendar/iiCalendar.h>
+#include <iiCalendarIntegration>
 #include <iostream>
 
 int main() {
-    using namespace iiCalendar;
+    using namespace iiCalendarIntegration;
     try {
         auto store = Store::inMemory();
         Event review;

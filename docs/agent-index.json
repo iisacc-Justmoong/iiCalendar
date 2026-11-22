@@ -2,9 +2,9 @@
   "format": "iisacc.agent-document-index",
   "schema_version": 1,
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "documentation_root": "docs",
@@ -14,56 +14,56 @@
       "document_id": "urn:iisacc:document:4ccece19998eead30efc8391d48f313d87f308774ba9d28acd9594d4bc6075f1",
       "source": "AGENT.md",
       "agent_json": "docs/entrypoints/AGENT.agent.json",
-      "source_sha256": "d2c6541c689dd0de144773274cc353d43715957c876c7ebe0007da71a6503beb",
+      "source_sha256": "78202df14ca982242108510bce4306b7ca04903df640baca41993916368602db",
       "role": "instructions"
     },
     {
       "document_id": "urn:iisacc:document:9349439802dd915625847f4cf00dc0bbcf8e3e6c99b98f8b500d074724afd1c4",
       "source": "README.md",
       "agent_json": "docs/entrypoints/README.agent.json",
-      "source_sha256": "6eacda81c55369a67db8ad2eb17456784b16ffc9fbf69764d0af60e9048c8ff6",
+      "source_sha256": "7f45e5cdde4be01cb32ab28cfe5fb9303abbaf2a930de6d4efce9de34393dcb1",
       "role": "overview"
     },
     {
       "document_id": "urn:iisacc:document:355431a85386b8c877d6194f697d848ecf57a6c90d23072b8815409b23867709",
       "source": "docs/Accounts.md",
       "agent_json": "docs/Accounts.agent.json",
-      "source_sha256": "53bf4730b1ca2d752314f06f509856cb3d9143bed3c86bb4ac3e140a67b22d09",
+      "source_sha256": "0c4c1c248628c95ac50bbc4a66da039ae88bc98f8ad93135d7d3c9d4f0a9d65c",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:8c10e72e5a26fd9df8e15c7fb2a61d03e09001dca9b416e60062d0d88dd7165c",
       "source": "docs/BuildLayout.md",
       "agent_json": "docs/BuildLayout.agent.json",
-      "source_sha256": "be958d2ed2bca44c53b19f186c494d7d66e3f4de2acbebab29cdeaf5441c780a",
+      "source_sha256": "dae8eae18e7d335c6bd397b1f83168f0311f9aed386842f60536792cce28a21a",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:24cb178a3998a9767e1f99a780231a46f4e02e482a4d023cdbf826ace69b0e06",
       "source": "docs/Design.md",
       "agent_json": "docs/Design.agent.json",
-      "source_sha256": "ace33396e301de57e5f3d391e95a89e7b8719bb0e49d721ac8702efc0002dbf4",
+      "source_sha256": "775f8e3129590111a1838a819f6aa43abc2aa22d2f3b1f596a0dbce49590bb54",
       "role": "reference"
     },
     {
       "document_id": "urn:iisacc:document:091dd20d12123c7f4d2b06cf742cbab67b9d82f1425d74247f64985935acbf34",
       "source": "docs/DynamicLinking.md",
       "agent_json": "docs/DynamicLinking.agent.json",
-      "source_sha256": "4a62cae44770d079d29fd039dfdcd3cd372c6488edf8caa5898f310b31be8eff",
+      "source_sha256": "b2b78380cdaed7bb6872e0d9737de782f8b47a48aec3011b74676423874c4813",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:ae0a84b06de613545bd246e9ce672ea6c1d8ab5386c19c5a50bdbc2dcbc0c4ee",
       "source": "docs/ExternalCalendars.md",
       "agent_json": "docs/ExternalCalendars.agent.json",
-      "source_sha256": "247a745f61a22b19a95d4c055dff33469f9471f523311cebca6491013ad9a32c",
+      "source_sha256": "8fb015e132767bf974850c61471ddb9c4741029100033a1879b02412825999b2",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:bd74f6e0a650f5ad2061a3424ca8cf8f61ae99ec8054e7bab9bf3e14e11c561c",
       "source": "docs/FILE_PROVIDER.md",
       "agent_json": "docs/FILE_PROVIDER.agent.json",
-      "source_sha256": "6bf8fe2fcb02202e5784c03f272b7e32cbacd148dcfa1975f0317e8ed0e48ea1",
+      "source_sha256": "ad9c3cde32efef43e6bc680622089cde3081b2fdc4e3a46886b4d394121577e7",
       "role": "guide"
     },
     {
@@ -77,28 +77,28 @@
       "document_id": "urn:iisacc:document:e128bc56c7d538a91bda8ce16222c6cb9ae1e841d3d3f9236f47de6ce9988cd6",
       "source": "docs/README.md",
       "agent_json": "docs/README.agent.json",
-      "source_sha256": "b18955e93cccf984d24984930ac2b2251e661ee6d65eec42a2dfabd411fdf04b",
+      "source_sha256": "8ad4b8f7d843b152920f609249d62265825682f2bd40e7af7ac33b804bd75f69",
       "role": "overview"
     },
     {
       "document_id": "urn:iisacc:document:57e551af7b4d2fd0ecb4fd4030086a67d85a4efb568f7aa0912c6687535d5637",
       "source": "docs/SourceLayout.md",
       "agent_json": "docs/SourceLayout.agent.json",
-      "source_sha256": "92728a22ccccd193bab3d1d2c37995555848f2e14b8d9797902555a53bfa5bdd",
+      "source_sha256": "45e5a301b427ce148680e796b722d0c00e9c374f816e5f8b4ee5f549cf6bb4aa",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:8017417a3cf3fad09821400199eb7e963518bd7716b4b58833be8cea3cc85dac",
       "source": "docs/Validation.md",
       "agent_json": "docs/Validation.agent.json",
-      "source_sha256": "3f105ada702ffdf4d49c1482016348e5dc8d5e50e9debebb5b67f7cd148a592f",
+      "source_sha256": "a4cefac99ca391b3417c9494c3521fb14400b3395823bf6b27cdfa9b628917e6",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:b8d3c4df7c9ed281a9dcd557589ff87c91070072430ca96fb251fd2210ec624c",
       "source": "docs/WindowsBuildAndRun.md",
       "agent_json": "docs/WindowsBuildAndRun.agent.json",
-      "source_sha256": "ab216f91608c3a29045f74d76a11e170df611a423d7b26926aa3632fa0fc24e7",
+      "source_sha256": "2e53c7f75f10c1c4b44b609a4c5b11bee75dab0276872f83736410683d60304d",
       "role": "guide"
     },
     {
@@ -112,7 +112,7 @@
       "document_id": "urn:iisacc:document:faa23d35cfa50ddf137fd383b85b0ff99f6887e1dcba821edaef55350ff060b8",
       "source": "docs/documentation-structure.md",
       "agent_json": "docs/documentation-structure.agent.json",
-      "source_sha256": "e28557473db5bb6b49ae33fcd6174c3feac952a287d5032b7b44d47d7910700b",
+      "source_sha256": "863ebef481270518ac4e6b5f947b27a9930a7812f8b8c751076404f2fdeb3278",
       "role": "guide"
     }
   ],

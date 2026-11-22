@@ -1,7 +1,7 @@
 #pragma once
-#include <iiCalendar/Store.h>
+#include <iiCalendarIntegration/Store.h>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 enum class ViewKind { Day, Week, Month, Year, Agenda, Timeline, Custom };
 struct ViewRequest {
     ViewKind kind = ViewKind::Month;
@@ -38,4 +38,4 @@ struct DayDetails {
 };
 DayDetails dayDetails(const Store &store, Date date, const TimeZone &zone,
                       std::size_t previewLimit = 3, ExpansionLimits limits = {});
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

@@ -1,8 +1,8 @@
 #pragma once
-#include <iiCalendar/Time.h>
+#include <iiCalendarIntegration/Time.h>
 #include <vector>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 enum class AmbiguousTime { Reject, Earlier, Later };
 enum class MissingTime { Reject, ShiftForward };
 struct ZonedDateTime {
@@ -26,4 +26,4 @@ class TimeZone {
   private:
     std::string id_;
 };
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

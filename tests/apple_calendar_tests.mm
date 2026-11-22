@@ -15,7 +15,7 @@
 @implementation CalendarEventFixture
 @end
 
-using namespace iiCalendar;
+using namespace iiCalendarIntegration;
 namespace {
 int checks = 0;
 #define CHECK(...) do { ++checks; if (!(__VA_ARGS__)) throw std::runtime_error(#__VA_ARGS__); } while (false)
@@ -65,7 +65,7 @@ int main() {
             event = convert(fixture, calendar); event.validate(registry);
             CHECK(std::get<AllDaySchedule>(event.schedule).start == Date(2026, 11, 1));
             CHECK(std::get<AllDaySchedule>(event.schedule).end == Date(2026, 11, 2));
-            CHECK(event.range()->end - event.range()->start == iiCalendar::Duration(25 * 3600));
+            CHECK(event.range()->end - event.range()->start == iiCalendarIntegration::Duration(25 * 3600));
             CHECK(event.zone() == "America/New_York");
             [NSTimeZone setDefaultTimeZone:previousZone];
             fixture.allDay = NO; fixture.occurrenceDate = nil;

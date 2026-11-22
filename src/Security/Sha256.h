@@ -5,7 +5,7 @@
 #include <span>
 #include <string>
 
-namespace iiCalendar::detail {
+namespace iiCalendarIntegration::detail {
 // Independently implemented SHA-256, following NIST FIPS 180-4 sections 5/6.
 class Sha256 {
   public:
@@ -22,4 +22,4 @@ class Sha256 {
     std::size_t m_pendingSize{};
 };
 [[nodiscard]] std::string sha256(std::span<const std::byte> input);
-} // namespace iiCalendar::detail
+} // namespace iiCalendarIntegration::detail

@@ -1,11 +1,11 @@
 #pragma once
-#include <iiCalendar/Date.h>
+#include <iiCalendarIntegration/Date.h>
 #include <chrono>
 #include <cstdint>
 #include <optional>
 #include <string>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 inline constexpr std::uint64_t AttosecondsPerSecond = 1'000'000'000'000'000'000ULL;
 
 // Canonical floor representation: seconds + fraction/1e18; 0 <= fraction < 1e18.
@@ -82,4 +82,4 @@ class Clock {
   public:
     static ClockSample sample();
 };
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

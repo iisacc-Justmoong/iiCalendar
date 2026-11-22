@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <set>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 std::string text(NSString *value) {
     const char *utf8 = value ? value.UTF8String : nullptr;
@@ -146,7 +146,7 @@ std::vector<AppleCalendarSource> AppleCalendarProvider::sources() {
         for (EKSource *source in impl_->store.sources) {
             const auto id = text(source.sourceIdentifier);
             if (impl_->options.sourceId.empty() || impl_->options.sourceId == id)
-                result.push_back({id, text(source.title)});
+                result.push_back({id, text(source.title), source.sourceType == EKSourceTypeCalDAV});
         }
         requireAccess();
         return result;
@@ -214,4 +214,4 @@ std::vector<Event> AppleCalendarProvider::events(const RemoteCalendar &calendar,
         return result;
     }
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

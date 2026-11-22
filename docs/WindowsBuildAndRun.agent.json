@@ -3,21 +3,21 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:b8d3c4df7c9ed281a9dcd557589ff87c91070072430ca96fb251fd2210ec624c",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {
     "path": "docs/WindowsBuildAndRun.md",
-    "sha256": "ab216f91608c3a29045f74d76a11e170df611a423d7b26926aa3632fa0fc24e7",
-    "bytes": 6872,
+    "sha256": "2e53c7f75f10c1c4b44b609a4c5b11bee75dab0276872f83736410683d60304d",
+    "bytes": 6982,
     "line_count": 114,
     "encoding": "utf-8",
     "language": "ko"
   },
   "document": {
-    "title": "iiCalendar: Windows 빌드 및 실행",
+    "title": "iiCalendarIntegration: Windows 빌드 및 실행",
     "role": "guide",
     "authority": "markdown_source"
   },
@@ -27,9 +27,9 @@
       "kind": "heading",
       "start_line": 1,
       "end_line": 1,
-      "raw": "# iiCalendar: Windows 빌드 및 실행\r\n",
+      "raw": "# iiCalendarIntegration: Windows 빌드 및 실행\r\n",
       "level": 1,
-      "title": "iiCalendar: Windows 빌드 및 실행"
+      "title": "iiCalendarIntegration: Windows 빌드 및 실행"
     },
     {
       "id": "b000002",
@@ -117,7 +117,7 @@
       "kind": "paragraph",
       "start_line": 13,
       "end_line": 13,
-      "raw": "파일 조합 소비자를 검증할 때는 iiFileProvider의 Windows 지침을 따른다. iiCalendar 본체를 빌드할 때 다른 SDK는 필요하지 않다.\r\n"
+      "raw": "파일 조합 소비자를 검증할 때는 iiFileProvider의 Windows 지침을 따른다. iiCalendarIntegration 본체를 빌드할 때 다른 SDK는 필요하지 않다.\r\n"
     },
     {
       "id": "b000014",
@@ -152,11 +152,11 @@
       "kind": "list",
       "start_line": 17,
       "end_line": 18,
-      "raw": "- iiCalendar 본체에는 ICU i18n/uc/data, SQLite 3.37 이상 및 CURL 7.85 이상이 필요하다. 파일 조합 소비자에는 iiFileProvider Native가 별도로 필요하다.\r\n- 현재 vcpkg x64-windows 설치를 사용한다. OAuth 계정과 외부 서비스 실연동은 fixture 실행과 구분한다.\r\n",
+      "raw": "- iiCalendarIntegration 본체에는 ICU i18n/uc/data, SQLite 3.37 이상 및 CURL 7.85 이상이 필요하다. 파일 조합 소비자에는 iiFileProvider Native가 별도로 필요하다.\r\n- 현재 vcpkg x64-windows 설치를 사용한다. OAuth 계정과 외부 서비스 실연동은 fixture 실행과 구분한다.\r\n",
       "items": [
         {
           "marker": "-",
-          "text": "iiCalendar 본체에는 ICU i18n/uc/data, SQLite 3.37 이상 및 CURL 7.85 이상이 필요하다. 파일 조합 소비자에는 iiFileProvider Native가 별도로 필요하다.",
+          "text": "iiCalendarIntegration 본체에는 ICU i18n/uc/data, SQLite 3.37 이상 및 CURL 7.85 이상이 필요하다. 파일 조합 소비자에는 iiFileProvider Native가 별도로 필요하다.",
           "checked": null
         },
         {
@@ -192,11 +192,11 @@
       "kind": "list",
       "start_line": 22,
       "end_line": 23,
-      "raw": "- iisacc 계정 브리지는 `examples/iisacc-bridge`에서 별도 소비자로 구성한다. 기존 `IICALENDAR_TEST_IISACC_BRIDGE=ON` 캐시는 이전 안내와 함께 실패하며 `OFF`로 정리한다.\r\n- 설치 소비자는 SDK와 같은 Release 구성을 사용해야 MSVC iterator 및 런타임 ABI가 일치한다.\r\n",
+      "raw": "- iisacc 계정 브리지는 `examples/iisacc-bridge`에서 별도 소비자로 구성한다. 기존 `IICALENDARINTEGRATION_TEST_IISACC_BRIDGE=ON` 캐시는 이전 안내와 함께 실패하며 `OFF`로 정리한다.\r\n- 설치 소비자는 SDK와 같은 Release 구성을 사용해야 MSVC iterator 및 런타임 ABI가 일치한다.\r\n",
       "items": [
         {
           "marker": "-",
-          "text": "iisacc 계정 브리지는 `examples/iisacc-bridge`에서 별도 소비자로 구성한다. 기존 `IICALENDAR_TEST_IISACC_BRIDGE=ON` 캐시는 이전 안내와 함께 실패하며 `OFF`로 정리한다.",
+          "text": "iisacc 계정 브리지는 `examples/iisacc-bridge`에서 별도 소비자로 구성한다. 기존 `IICALENDARINTEGRATION_TEST_IISACC_BRIDGE=ON` 캐시는 이전 안내와 함께 실패하며 `OFF`로 정리한다.",
           "checked": null
         },
         {
@@ -262,9 +262,9 @@
       "kind": "fenced_code",
       "start_line": 31,
       "end_line": 42,
-      "raw": "```powershell\r\n$ErrorActionPreference = 'Stop'\r\n$project = (Get-Location).Path\r\n$workspace = (Resolve-Path -LiteralPath '../..').Path\r\n. (Join-Path $workspace 'SDK/Windows/Enter-DevEnvironment.ps1')\r\nSet-Location -LiteralPath $project\r\n$python = (Join-Path $workspace 'Tools/Python314/tools/python.exe').Replace('\\', '/')\r\n$compiler = (Get-Command cl.exe -ErrorAction Stop).Source.Replace('\\', '/')\r\n$toolchain = (Join-Path $workspace 'Tools/vcpkg/scripts/buildsystems/vcpkg.cmake').Replace('\\', '/')\r\n$msvcInclude = (Join-Path $workspace 'SDK/Windows/WindowsMsvcPrefix.cmake').Replace('\\', '/')\r\n$prefix = (Join-Path $env:USERPROFILE '.local/SDK/iiCalendar').Replace('\\', '/')\r\n```\r\n",
+      "raw": "```powershell\r\n$ErrorActionPreference = 'Stop'\r\n$project = (Get-Location).Path\r\n$workspace = (Resolve-Path -LiteralPath '../..').Path\r\n. (Join-Path $workspace 'SDK/Windows/Enter-DevEnvironment.ps1')\r\nSet-Location -LiteralPath $project\r\n$python = (Join-Path $workspace 'Tools/Python314/tools/python.exe').Replace('\\', '/')\r\n$compiler = (Get-Command cl.exe -ErrorAction Stop).Source.Replace('\\', '/')\r\n$toolchain = (Join-Path $workspace 'Tools/vcpkg/scripts/buildsystems/vcpkg.cmake').Replace('\\', '/')\r\n$msvcInclude = (Join-Path $workspace 'SDK/Windows/WindowsMsvcPrefix.cmake').Replace('\\', '/')\r\n$prefix = (Join-Path $env:USERPROFILE '.local/SDK/iiCalendarIntegration').Replace('\\', '/')\r\n```\r\n",
       "language": "powershell",
-      "code": "$ErrorActionPreference = 'Stop'\r\n$project = (Get-Location).Path\r\n$workspace = (Resolve-Path -LiteralPath '../..').Path\r\n. (Join-Path $workspace 'SDK/Windows/Enter-DevEnvironment.ps1')\r\nSet-Location -LiteralPath $project\r\n$python = (Join-Path $workspace 'Tools/Python314/tools/python.exe').Replace('\\', '/')\r\n$compiler = (Get-Command cl.exe -ErrorAction Stop).Source.Replace('\\', '/')\r\n$toolchain = (Join-Path $workspace 'Tools/vcpkg/scripts/buildsystems/vcpkg.cmake').Replace('\\', '/')\r\n$msvcInclude = (Join-Path $workspace 'SDK/Windows/WindowsMsvcPrefix.cmake').Replace('\\', '/')\r\n$prefix = (Join-Path $env:USERPROFILE '.local/SDK/iiCalendar').Replace('\\', '/')\r\n",
+      "code": "$ErrorActionPreference = 'Stop'\r\n$project = (Get-Location).Path\r\n$workspace = (Resolve-Path -LiteralPath '../..').Path\r\n. (Join-Path $workspace 'SDK/Windows/Enter-DevEnvironment.ps1')\r\nSet-Location -LiteralPath $project\r\n$python = (Join-Path $workspace 'Tools/Python314/tools/python.exe').Replace('\\', '/')\r\n$compiler = (Get-Command cl.exe -ErrorAction Stop).Source.Replace('\\', '/')\r\n$toolchain = (Join-Path $workspace 'Tools/vcpkg/scripts/buildsystems/vcpkg.cmake').Replace('\\', '/')\r\n$msvcInclude = (Join-Path $workspace 'SDK/Windows/WindowsMsvcPrefix.cmake').Replace('\\', '/')\r\n$prefix = (Join-Path $env:USERPROFILE '.local/SDK/iiCalendarIntegration').Replace('\\', '/')\r\n",
       "closed": true
     },
     {
@@ -309,9 +309,9 @@
       "kind": "fenced_code",
       "start_line": 48,
       "end_line": 76,
-      "raw": "```powershell\r\n$configure = @(\r\n    '-S', '.', '-B', 'build', '-G', 'Ninja'\r\n    '-DCMAKE_BUILD_TYPE=Release'\r\n    \"-DCMAKE_C_COMPILER=$compiler\"\r\n    \"-DCMAKE_CXX_COMPILER=$compiler\"\r\n    \"-DCMAKE_INSTALL_PREFIX=$prefix\"\r\n    \"-DCMAKE_PREFIX_PATH=$env:CMAKE_PREFIX_PATH\"\r\n    \"-DCMAKE_TOOLCHAIN_FILE=$toolchain\"\r\n    '-DVCPKG_TARGET_TRIPLET=x64-windows'\r\n    \"-DCMAKE_PROJECT_INCLUDE=$msvcInclude\"\r\n    \"-DPython3_EXECUTABLE=$python\"\r\n    \"-DPython_EXECUTABLE=$python\"\r\n    '-DQt6_DIR=C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6'\r\n    '-DBUILD_TESTING=ON'\r\n    '-DIICALENDAR_WITH_CURL=ON'\r\n    '-DIICALENDAR_TEST_IISACC_BRIDGE=OFF'\r\n)\r\n& cmake @configure\r\nif ($LASTEXITCODE -ne 0) { throw 'CMake 구성 실패' }\r\n$cache = Get-Content -LiteralPath 'build/CMakeCache.txt' -Raw\r\nif ($cache -notmatch '(?m)^CMAKE_BUILD_TYPE:STRING=Release\\r?$') {\r\n    throw 'Release 구성이 유실되었음. 같은 구성 인수에 --fresh를 추가하여 다시 구성할 것'\r\n}\r\n& $python (Join-Path $workspace 'SDK/Windows/Configure-WindowsNinja.py') (Join-Path $project 'build')\r\nif ($LASTEXITCODE -ne 0) { throw 'Ninja MSVC 의존성 설정 실패' }\r\ncmake --build build --config Release --parallel 4\r\nif ($LASTEXITCODE -ne 0) { throw '빌드 실패' }\r\n```\r\n",
+      "raw": "```powershell\r\n$configure = @(\r\n    '-S', '.', '-B', 'build', '-G', 'Ninja'\r\n    '-DCMAKE_BUILD_TYPE=Release'\r\n    \"-DCMAKE_C_COMPILER=$compiler\"\r\n    \"-DCMAKE_CXX_COMPILER=$compiler\"\r\n    \"-DCMAKE_INSTALL_PREFIX=$prefix\"\r\n    \"-DCMAKE_PREFIX_PATH=$env:CMAKE_PREFIX_PATH\"\r\n    \"-DCMAKE_TOOLCHAIN_FILE=$toolchain\"\r\n    '-DVCPKG_TARGET_TRIPLET=x64-windows'\r\n    \"-DCMAKE_PROJECT_INCLUDE=$msvcInclude\"\r\n    \"-DPython3_EXECUTABLE=$python\"\r\n    \"-DPython_EXECUTABLE=$python\"\r\n    '-DQt6_DIR=C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6'\r\n    '-DBUILD_TESTING=ON'\r\n    '-DIICALENDARINTEGRATION_WITH_CURL=ON'\r\n    '-DIICALENDARINTEGRATION_TEST_IISACC_BRIDGE=OFF'\r\n)\r\n& cmake @configure\r\nif ($LASTEXITCODE -ne 0) { throw 'CMake 구성 실패' }\r\n$cache = Get-Content -LiteralPath 'build/CMakeCache.txt' -Raw\r\nif ($cache -notmatch '(?m)^CMAKE_BUILD_TYPE:STRING=Release\\r?$') {\r\n    throw 'Release 구성이 유실되었음. 같은 구성 인수에 --fresh를 추가하여 다시 구성할 것'\r\n}\r\n& $python (Join-Path $workspace 'SDK/Windows/Configure-WindowsNinja.py') (Join-Path $project 'build')\r\nif ($LASTEXITCODE -ne 0) { throw 'Ninja MSVC 의존성 설정 실패' }\r\ncmake --build build --config Release --parallel 4\r\nif ($LASTEXITCODE -ne 0) { throw '빌드 실패' }\r\n```\r\n",
       "language": "powershell",
-      "code": "$configure = @(\r\n    '-S', '.', '-B', 'build', '-G', 'Ninja'\r\n    '-DCMAKE_BUILD_TYPE=Release'\r\n    \"-DCMAKE_C_COMPILER=$compiler\"\r\n    \"-DCMAKE_CXX_COMPILER=$compiler\"\r\n    \"-DCMAKE_INSTALL_PREFIX=$prefix\"\r\n    \"-DCMAKE_PREFIX_PATH=$env:CMAKE_PREFIX_PATH\"\r\n    \"-DCMAKE_TOOLCHAIN_FILE=$toolchain\"\r\n    '-DVCPKG_TARGET_TRIPLET=x64-windows'\r\n    \"-DCMAKE_PROJECT_INCLUDE=$msvcInclude\"\r\n    \"-DPython3_EXECUTABLE=$python\"\r\n    \"-DPython_EXECUTABLE=$python\"\r\n    '-DQt6_DIR=C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6'\r\n    '-DBUILD_TESTING=ON'\r\n    '-DIICALENDAR_WITH_CURL=ON'\r\n    '-DIICALENDAR_TEST_IISACC_BRIDGE=OFF'\r\n)\r\n& cmake @configure\r\nif ($LASTEXITCODE -ne 0) { throw 'CMake 구성 실패' }\r\n$cache = Get-Content -LiteralPath 'build/CMakeCache.txt' -Raw\r\nif ($cache -notmatch '(?m)^CMAKE_BUILD_TYPE:STRING=Release\\r?$') {\r\n    throw 'Release 구성이 유실되었음. 같은 구성 인수에 --fresh를 추가하여 다시 구성할 것'\r\n}\r\n& $python (Join-Path $workspace 'SDK/Windows/Configure-WindowsNinja.py') (Join-Path $project 'build')\r\nif ($LASTEXITCODE -ne 0) { throw 'Ninja MSVC 의존성 설정 실패' }\r\ncmake --build build --config Release --parallel 4\r\nif ($LASTEXITCODE -ne 0) { throw '빌드 실패' }\r\n",
+      "code": "$configure = @(\r\n    '-S', '.', '-B', 'build', '-G', 'Ninja'\r\n    '-DCMAKE_BUILD_TYPE=Release'\r\n    \"-DCMAKE_C_COMPILER=$compiler\"\r\n    \"-DCMAKE_CXX_COMPILER=$compiler\"\r\n    \"-DCMAKE_INSTALL_PREFIX=$prefix\"\r\n    \"-DCMAKE_PREFIX_PATH=$env:CMAKE_PREFIX_PATH\"\r\n    \"-DCMAKE_TOOLCHAIN_FILE=$toolchain\"\r\n    '-DVCPKG_TARGET_TRIPLET=x64-windows'\r\n    \"-DCMAKE_PROJECT_INCLUDE=$msvcInclude\"\r\n    \"-DPython3_EXECUTABLE=$python\"\r\n    \"-DPython_EXECUTABLE=$python\"\r\n    '-DQt6_DIR=C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6'\r\n    '-DBUILD_TESTING=ON'\r\n    '-DIICALENDARINTEGRATION_WITH_CURL=ON'\r\n    '-DIICALENDARINTEGRATION_TEST_IISACC_BRIDGE=OFF'\r\n)\r\n& cmake @configure\r\nif ($LASTEXITCODE -ne 0) { throw 'CMake 구성 실패' }\r\n$cache = Get-Content -LiteralPath 'build/CMakeCache.txt' -Raw\r\nif ($cache -notmatch '(?m)^CMAKE_BUILD_TYPE:STRING=Release\\r?$') {\r\n    throw 'Release 구성이 유실되었음. 같은 구성 인수에 --fresh를 추가하여 다시 구성할 것'\r\n}\r\n& $python (Join-Path $workspace 'SDK/Windows/Configure-WindowsNinja.py') (Join-Path $project 'build')\r\nif ($LASTEXITCODE -ne 0) { throw 'Ninja MSVC 의존성 설정 실패' }\r\ncmake --build build --config Release --parallel 4\r\nif ($LASTEXITCODE -ne 0) { throw '빌드 실패' }\r\n",
       "closed": true
     },
     {
@@ -401,7 +401,7 @@
       "kind": "paragraph",
       "start_line": 95,
       "end_line": 95,
-      "raw": "현재 빌드에 실제 등록된 실행 경로의 예는 `iiCalendar.accounts`, `iiCalendar.external_microsoft`, `iiCalendar.external_manager`이다. 전체 목록은 `ctest --test-dir build -N`으로 확인한다.\r\n"
+      "raw": "현재 빌드에 실제 등록된 실행 경로의 예는 `iiCalendarIntegration.accounts`, `iiCalendarIntegration.external_microsoft`, `iiCalendarIntegration.external_manager`이다. 전체 목록은 `ctest --test-dir build -N`으로 확인한다.\r\n"
     },
     {
       "id": "b000048",
@@ -531,8 +531,8 @@
       "block_id": "b000001",
       "parent_id": null,
       "level": 1,
-      "title": "iiCalendar: Windows 빌드 및 실행",
-      "anchor": "iicalendar-windows-빌드-및-실행",
+      "title": "iiCalendarIntegration: Windows 빌드 및 실행",
+      "anchor": "iicalendarintegration-windows-빌드-및-실행",
       "start_line": 1
     },
     {
@@ -620,12 +620,12 @@
       {
         "block_id": "b000029",
         "language": "powershell",
-        "code": "$ErrorActionPreference = 'Stop'\r\n$project = (Get-Location).Path\r\n$workspace = (Resolve-Path -LiteralPath '../..').Path\r\n. (Join-Path $workspace 'SDK/Windows/Enter-DevEnvironment.ps1')\r\nSet-Location -LiteralPath $project\r\n$python = (Join-Path $workspace 'Tools/Python314/tools/python.exe').Replace('\\', '/')\r\n$compiler = (Get-Command cl.exe -ErrorAction Stop).Source.Replace('\\', '/')\r\n$toolchain = (Join-Path $workspace 'Tools/vcpkg/scripts/buildsystems/vcpkg.cmake').Replace('\\', '/')\r\n$msvcInclude = (Join-Path $workspace 'SDK/Windows/WindowsMsvcPrefix.cmake').Replace('\\', '/')\r\n$prefix = (Join-Path $env:USERPROFILE '.local/SDK/iiCalendar').Replace('\\', '/')\r\n"
+        "code": "$ErrorActionPreference = 'Stop'\r\n$project = (Get-Location).Path\r\n$workspace = (Resolve-Path -LiteralPath '../..').Path\r\n. (Join-Path $workspace 'SDK/Windows/Enter-DevEnvironment.ps1')\r\nSet-Location -LiteralPath $project\r\n$python = (Join-Path $workspace 'Tools/Python314/tools/python.exe').Replace('\\', '/')\r\n$compiler = (Get-Command cl.exe -ErrorAction Stop).Source.Replace('\\', '/')\r\n$toolchain = (Join-Path $workspace 'Tools/vcpkg/scripts/buildsystems/vcpkg.cmake').Replace('\\', '/')\r\n$msvcInclude = (Join-Path $workspace 'SDK/Windows/WindowsMsvcPrefix.cmake').Replace('\\', '/')\r\n$prefix = (Join-Path $env:USERPROFILE '.local/SDK/iiCalendarIntegration').Replace('\\', '/')\r\n"
       },
       {
         "block_id": "b000035",
         "language": "powershell",
-        "code": "$configure = @(\r\n    '-S', '.', '-B', 'build', '-G', 'Ninja'\r\n    '-DCMAKE_BUILD_TYPE=Release'\r\n    \"-DCMAKE_C_COMPILER=$compiler\"\r\n    \"-DCMAKE_CXX_COMPILER=$compiler\"\r\n    \"-DCMAKE_INSTALL_PREFIX=$prefix\"\r\n    \"-DCMAKE_PREFIX_PATH=$env:CMAKE_PREFIX_PATH\"\r\n    \"-DCMAKE_TOOLCHAIN_FILE=$toolchain\"\r\n    '-DVCPKG_TARGET_TRIPLET=x64-windows'\r\n    \"-DCMAKE_PROJECT_INCLUDE=$msvcInclude\"\r\n    \"-DPython3_EXECUTABLE=$python\"\r\n    \"-DPython_EXECUTABLE=$python\"\r\n    '-DQt6_DIR=C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6'\r\n    '-DBUILD_TESTING=ON'\r\n    '-DIICALENDAR_WITH_CURL=ON'\r\n    '-DIICALENDAR_TEST_IISACC_BRIDGE=OFF'\r\n)\r\n& cmake @configure\r\nif ($LASTEXITCODE -ne 0) { throw 'CMake 구성 실패' }\r\n$cache = Get-Content -LiteralPath 'build/CMakeCache.txt' -Raw\r\nif ($cache -notmatch '(?m)^CMAKE_BUILD_TYPE:STRING=Release\\r?$') {\r\n    throw 'Release 구성이 유실되었음. 같은 구성 인수에 --fresh를 추가하여 다시 구성할 것'\r\n}\r\n& $python (Join-Path $workspace 'SDK/Windows/Configure-WindowsNinja.py') (Join-Path $project 'build')\r\nif ($LASTEXITCODE -ne 0) { throw 'Ninja MSVC 의존성 설정 실패' }\r\ncmake --build build --config Release --parallel 4\r\nif ($LASTEXITCODE -ne 0) { throw '빌드 실패' }\r\n"
+        "code": "$configure = @(\r\n    '-S', '.', '-B', 'build', '-G', 'Ninja'\r\n    '-DCMAKE_BUILD_TYPE=Release'\r\n    \"-DCMAKE_C_COMPILER=$compiler\"\r\n    \"-DCMAKE_CXX_COMPILER=$compiler\"\r\n    \"-DCMAKE_INSTALL_PREFIX=$prefix\"\r\n    \"-DCMAKE_PREFIX_PATH=$env:CMAKE_PREFIX_PATH\"\r\n    \"-DCMAKE_TOOLCHAIN_FILE=$toolchain\"\r\n    '-DVCPKG_TARGET_TRIPLET=x64-windows'\r\n    \"-DCMAKE_PROJECT_INCLUDE=$msvcInclude\"\r\n    \"-DPython3_EXECUTABLE=$python\"\r\n    \"-DPython_EXECUTABLE=$python\"\r\n    '-DQt6_DIR=C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6'\r\n    '-DBUILD_TESTING=ON'\r\n    '-DIICALENDARINTEGRATION_WITH_CURL=ON'\r\n    '-DIICALENDARINTEGRATION_TEST_IISACC_BRIDGE=OFF'\r\n)\r\n& cmake @configure\r\nif ($LASTEXITCODE -ne 0) { throw 'CMake 구성 실패' }\r\n$cache = Get-Content -LiteralPath 'build/CMakeCache.txt' -Raw\r\nif ($cache -notmatch '(?m)^CMAKE_BUILD_TYPE:STRING=Release\\r?$') {\r\n    throw 'Release 구성이 유실되었음. 같은 구성 인수에 --fresh를 추가하여 다시 구성할 것'\r\n}\r\n& $python (Join-Path $workspace 'SDK/Windows/Configure-WindowsNinja.py') (Join-Path $project 'build')\r\nif ($LASTEXITCODE -ne 0) { throw 'Ninja MSVC 의존성 설정 실패' }\r\ncmake --build build --config Release --parallel 4\r\nif ($LASTEXITCODE -ne 0) { throw '빌드 실패' }\r\n"
       },
       {
         "block_id": "b000045",

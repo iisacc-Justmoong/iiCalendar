@@ -1,8 +1,8 @@
 #include <algorithm>
-#include <iiCalendar/Event.h>
+#include <iiCalendarIntegration/Event.h>
 #include <set>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 std::vector<Occurrence> expand(const Event &event, TimeRange window,
                                const CalendarRegistry &calendars, ExpansionLimits limits) {
     event.validate(calendars);
@@ -141,4 +141,4 @@ std::vector<Occurrence> expand(const Event &event, TimeRange window,
               [](const auto &a, const auto &b) { return a.range.start < b.range.start; });
     return result;
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

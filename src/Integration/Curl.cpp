@@ -2,7 +2,7 @@
 #include <curl/curl.h>
 #include <limits>
 
-namespace iiCalendar::detail {
+namespace iiCalendarIntegration::detail {
 namespace {
 struct Body {
     std::string value;
@@ -57,4 +57,4 @@ CalendarHttpGet defaultCalendarHttpGet() {
         return {static_cast<int>(status), std::move(body.value)};
     };
 }
-} // namespace iiCalendar::detail
+} // namespace iiCalendarIntegration::detail

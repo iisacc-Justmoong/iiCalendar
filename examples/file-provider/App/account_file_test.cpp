@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-using namespace iiCalendar;
+using namespace iiCalendarIntegration;
 namespace {
 class Fixture final : public ExternalCalendarProvider {
 public:
@@ -26,18 +26,18 @@ int main() {
         owner.setIisaccSession(session("owner"));
         const auto account = owner.connect({"subject", "fixture", "Work"}, std::make_shared<Fixture>());
         owner.setEnabled(account.id, false);
-        iiCalendarFileProvider::saveConnections(owner, path);
+        iiCalendarIntegrationFileProvider::saveConnections(owner, path);
         check(iiFileProvider::native::File::read(path) == owner.connectionDocument());
         CalendarAccountManager restored;
         restored.setIisaccSession(session("owner"));
-        iiCalendarFileProvider::loadConnections(restored, path);
+        iiCalendarIntegrationFileProvider::loadConnections(restored, path);
         check(restored.accounts().size() == 2 && !restored.accounts()[1].enabled);
         CalendarAccountManager anonymous;
-        try { iiCalendarFileProvider::loadConnections(anonymous, path); throw std::runtime_error("anonymous load accepted"); }
+        try { iiCalendarIntegrationFileProvider::loadConnections(anonymous, path); throw std::runtime_error("anonymous load accepted"); }
         catch (const ExternalCalendarError &e) { check(e.code() == ExternalCalendarErrorCode::AuthenticationRequired); }
         CalendarAccountManager other;
         other.setIisaccSession(session("other"));
-        try { iiCalendarFileProvider::loadConnections(other, path); throw std::runtime_error("other owner accepted"); }
+        try { iiCalendarIntegrationFileProvider::loadConnections(other, path); throw std::runtime_error("other owner accepted"); }
         catch (const ExternalCalendarError &e) { check(e.code() == ExternalCalendarErrorCode::PermissionDenied); }
         iiFileProvider::native::Presentation::cancelPending(path);
         check(iiFileProvider::native::File::remove(path));

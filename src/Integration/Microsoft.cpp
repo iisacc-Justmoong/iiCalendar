@@ -4,7 +4,7 @@
 #include <array>
 #include <set>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 using Json = nlohmann::json;
 using Code = ExternalCalendarErrorCode;
@@ -177,4 +177,4 @@ std::vector<Event> MicrosoftCalendarProvider::events(const RemoteCalendar &calen
         return result;
     });
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

@@ -1,7 +1,7 @@
 #pragma once
-#include <iiCalendar/ExternalCalendar.h>
+#include <iiCalendarIntegration/ExternalCalendar.h>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 // An already authenticated iisacc app session, not a display-only account JSON.
 // Authentication and credential custody stay with the host's account SDK.
 struct IisaccCalendarSession {
@@ -49,15 +49,22 @@ public:
     [[nodiscard]] bool workspaceOpen() const;
     [[nodiscard]] std::optional<IisaccCalendarSession> iisaccSession() const;
     [[nodiscard]] std::vector<CalendarAccount> accounts() const;
-    // Custom providers use an identity already authenticated by the host.
-    CalendarAccount connect(ExternalAccount account, std::shared_ptr<ExternalCalendarProvider> provider);
+    // Custom providers use an identity already authenticated by the host. An
+    // initial window loads occurrences with the first list, as one snapshot.
+    CalendarAccount connect(ExternalAccount account, std::shared_ptr<ExternalCalendarProvider> provider,
+                            std::optional<TimeRange> initialWindow = {});
     // Built-ins resolve the external subject through authenticated profile APIs
     // and pin refreshed tokens to that subject. Host supplies OAuth/secure storage.
-    CalendarAccount connectGoogle(CalendarAccessToken token, CalendarHttpGet get = {}, GoogleCalendarOptions options = {});
-    CalendarAccount connectMicrosoft(CalendarAccessToken token, CalendarHttpGet get = {}, MicrosoftCalendarOptions options = {});
+    CalendarAccount connectGoogle(CalendarAccessToken token, CalendarHttpGet get = {}, GoogleCalendarOptions options = {},
+                                  std::optional<TimeRange> initialWindow = {});
+    CalendarAccount connectMicrosoft(CalendarAccessToken token, CalendarHttpGet get = {}, MicrosoftCalendarOptions options = {},
+                                     std::optional<TimeRange> initialWindow = {});
     // Device-managed EventKit source; OS authorization is an explicit host action.
-    CalendarAccount connectApple(AppleCalendarOptions options = {});
+    CalendarAccount connectApple(AppleCalendarOptions options = {}, std::optional<TimeRange> initialWindow = {});
     void refresh(const std::string &accountId);
+    // Refresh the list and all events for this window with one atomic publish.
+    // Transient failures preserve the previous committed account snapshot.
+    void synchronize(const std::string &accountId, TimeRange window);
     void loadEvents(const std::string &accountId, const std::string &calendarId, TimeRange window);
     void setEnabled(const std::string &accountId, bool enabled);
     bool disconnect(const std::string &accountId);
@@ -73,4 +80,4 @@ private:
     class Impl;
     std::unique_ptr<Impl> impl_;
 };
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

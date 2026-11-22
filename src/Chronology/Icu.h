@@ -8,7 +8,7 @@
 #include <unicode/strenum.h>
 #include <unicode/ucal.h>
 
-namespace iiCalendar::detail {
+namespace iiCalendarIntegration::detail {
 inline void icuCheck(UErrorCode status) {
     if (U_FAILURE(status))
         throw std::invalid_argument(std::string("ICU: ") + u_errorName(status));
@@ -35,4 +35,4 @@ inline std::unique_ptr<icu::Calendar> calendar(const std::string &id) {
     cal->setLenient(false);
     return cal;
 }
-} // namespace iiCalendar::detail
+} // namespace iiCalendarIntegration::detail

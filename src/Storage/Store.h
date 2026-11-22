@@ -1,12 +1,12 @@
 #pragma once
-#include <iiCalendar/Event.h>
+#include <iiCalendarIntegration/Event.h>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 
 struct sqlite3;
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 class StorageError : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
@@ -58,4 +58,4 @@ class Store {
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

@@ -5,7 +5,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace iiCalendar::detail {
+namespace iiCalendarIntegration::detail {
 namespace {
 constexpr std::array<std::uint32_t, 64> constants{
     0x428a2f98U, 0x71374491U, 0xb5c0fbcfU, 0xe9b5dba5U, 0x3956c25bU, 0x59f111f1U, 0x923f82a4U,
@@ -125,4 +125,4 @@ std::string sha256(std::span<const std::byte> input) {
     hash.update(input);
     return hash.hexDigest();
 }
-} // namespace iiCalendar::detail
+} // namespace iiCalendarIntegration::detail

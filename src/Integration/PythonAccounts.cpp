@@ -1,12 +1,12 @@
 // Native Python facade for the provider-neutral CalendarAccountManager.
 // Python owns OAuth callbacks and must keep the interpreter alive for all calls.
-#include <iiCalendar/Accounts.h>
+#include <iiCalendarIntegration/Accounts.h>
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-using namespace iiCalendar;
+using namespace iiCalendarIntegration;
 namespace {
 // Keep callback-owned objects inside the same provider lifecycle as native ones.
 class CallbackProvider final : public ExternalCalendarProvider {
@@ -26,7 +26,7 @@ private:
 PyObject *calendarErrorType = nullptr;
 }
 
-PYBIND11_MODULE(iicalendar, m) {
+PYBIND11_MODULE(iicalendarintegration, m) {
     m.doc() = "Native, provider-neutral calendar account connections.";
     py::enum_<ExternalCalendarErrorCode>(m, "ExternalCalendarErrorCode")
         .value("AuthenticationRequired", ExternalCalendarErrorCode::AuthenticationRequired)
@@ -39,7 +39,7 @@ PYBIND11_MODULE(iicalendar, m) {
         .value("Busy", ExternalCalendarErrorCode::Busy)
         .value("StaleSession", ExternalCalendarErrorCode::StaleSession)
         .value("Unsupported", ExternalCalendarErrorCode::Unsupported);
-    calendarErrorType = PyErr_NewException("iicalendar.CalendarError", PyExc_RuntimeError, nullptr);
+    calendarErrorType = PyErr_NewException("iicalendarintegration.CalendarError", PyExc_RuntimeError, nullptr);
     if (!calendarErrorType) throw py::error_already_set();
     m.add_object("CalendarError", py::reinterpret_steal<py::object>(calendarErrorType));
     py::register_local_exception_translator([](std::exception_ptr error) {
@@ -121,7 +121,8 @@ PYBIND11_MODULE(iicalendar, m) {
         .value("NotDetermined", AppleCalendarAuthorization::NotDetermined).value("FullAccess", AppleCalendarAuthorization::FullAccess)
         .value("Denied", AppleCalendarAuthorization::Denied).value("Restricted", AppleCalendarAuthorization::Restricted)
         .value("WriteOnly", AppleCalendarAuthorization::WriteOnly);
-    py::class_<AppleCalendarSource>(m, "AppleCalendarSource").def_readonly("id", &AppleCalendarSource::id).def_readonly("title", &AppleCalendarSource::title);
+    py::class_<AppleCalendarSource>(m, "AppleCalendarSource").def_readonly("id", &AppleCalendarSource::id)
+        .def_readonly("title", &AppleCalendarSource::title).def_readonly("cal_dav", &AppleCalendarSource::calDav);
     py::class_<AppleCalendarProvider>(m, "AppleCalendarProvider")
         .def(py::init<AppleCalendarOptions>(), py::arg("options") = AppleCalendarOptions{})
         .def_static("available", &AppleCalendarProvider::available)
@@ -140,15 +141,19 @@ PYBIND11_MODULE(iicalendar, m) {
     py::class_<CalendarAccountManager>(m, "CalendarAccountManager").def(py::init<>())
         .def("set_workspace", &CalendarAccountManager::setWorkspace, py::call_guard<py::gil_scoped_release>()).def("workspace_open", &CalendarAccountManager::workspaceOpen, py::call_guard<py::gil_scoped_release>())
         .def("accounts", &CalendarAccountManager::accounts, py::call_guard<py::gil_scoped_release>())
-        .def("connect_google", &CalendarAccountManager::connectGoogle, py::arg("token"), py::arg("get") = CalendarHttpGet{}, py::arg("options") = GoogleCalendarOptions{}, py::call_guard<py::gil_scoped_release>())
-        .def("connect_microsoft", &CalendarAccountManager::connectMicrosoft, py::arg("token"), py::arg("get") = CalendarHttpGet{}, py::arg("options") = MicrosoftCalendarOptions{}, py::call_guard<py::gil_scoped_release>())
-        .def("connect_apple", &CalendarAccountManager::connectApple, py::arg("options") = AppleCalendarOptions{}, py::call_guard<py::gil_scoped_release>())
+        .def("connect_google", &CalendarAccountManager::connectGoogle, py::arg("token"), py::arg("get") = CalendarHttpGet{},
+             py::arg("options") = GoogleCalendarOptions{}, py::arg("initial_window") = std::nullopt, py::call_guard<py::gil_scoped_release>())
+        .def("connect_microsoft", &CalendarAccountManager::connectMicrosoft, py::arg("token"), py::arg("get") = CalendarHttpGet{},
+             py::arg("options") = MicrosoftCalendarOptions{}, py::arg("initial_window") = std::nullopt, py::call_guard<py::gil_scoped_release>())
+        .def("connect_apple", &CalendarAccountManager::connectApple, py::arg("options") = AppleCalendarOptions{},
+             py::arg("initial_window") = std::nullopt, py::call_guard<py::gil_scoped_release>())
         .def("connect_custom", [](CalendarAccountManager &self, ExternalAccount account, std::function<std::vector<RemoteCalendar>()> calendars,
-                                   std::function<std::vector<Event>(const RemoteCalendar &, TimeRange)> events) {
+                                   std::function<std::vector<Event>(const RemoteCalendar &, TimeRange)> events, std::optional<TimeRange> window) {
             auto provider = std::make_shared<CallbackProvider>(account.providerId, std::move(calendars), std::move(events));
-            return self.connect(std::move(account), std::move(provider));
-        }, py::call_guard<py::gil_scoped_release>())
+            return self.connect(std::move(account), std::move(provider), window);
+        }, py::arg("account"), py::arg("calendars"), py::arg("events"), py::arg("initial_window") = std::nullopt, py::call_guard<py::gil_scoped_release>())
         .def("refresh", &CalendarAccountManager::refresh, py::call_guard<py::gil_scoped_release>()).def("load_events", &CalendarAccountManager::loadEvents, py::call_guard<py::gil_scoped_release>())
+        .def("synchronize", &CalendarAccountManager::synchronize, py::call_guard<py::gil_scoped_release>())
         .def("set_enabled", &CalendarAccountManager::setEnabled, py::call_guard<py::gil_scoped_release>()).def("disconnect", &CalendarAccountManager::disconnect, py::call_guard<py::gil_scoped_release>())
         .def("calendars", &CalendarAccountManager::calendars, py::arg("account_id") = std::nullopt, py::call_guard<py::gil_scoped_release>())
         .def("calendar", &CalendarAccountManager::calendar, py::call_guard<py::gil_scoped_release>()).def("connection_document", &CalendarAccountManager::connectionDocument, py::call_guard<py::gil_scoped_release>())

@@ -1,10 +1,10 @@
-#include <iiCalendar/iiCalendar.h>
+#include <iiCalendarIntegration/iiCalendarIntegration.h>
 #include <condition_variable>
 #include <future>
 #include <iostream>
 #include <set>
 
-using namespace iiCalendar;
+using namespace iiCalendarIntegration;
 namespace {
 int checks = 0;
 #define CHECK(...) do { ++checks; if (!(__VA_ARGS__)) throw std::runtime_error( \

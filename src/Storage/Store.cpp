@@ -1,10 +1,10 @@
 #include "Codec.h"
 #include <algorithm>
-#include <iiCalendar/Store.h>
+#include <iiCalendarIntegration/Store.h>
 #include <limits>
 #include <sqlite3.h>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 constexpr std::int64_t applicationId = 0x69494361;
 void sqlCheck(sqlite3 *db, int result) {
@@ -380,4 +380,4 @@ std::vector<Occurrence> Store::occurrences(TimeRange window,
         result.push_back(std::move(entry.occurrence));
     return result;
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

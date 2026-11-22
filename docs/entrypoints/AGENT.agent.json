@@ -3,21 +3,21 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:4ccece19998eead30efc8391d48f313d87f308774ba9d28acd9594d4bc6075f1",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {
     "path": "AGENT.md",
-    "sha256": "d2c6541c689dd0de144773274cc353d43715957c876c7ebe0007da71a6503beb",
-    "bytes": 2248,
+    "sha256": "78202df14ca982242108510bce4306b7ca04903df640baca41993916368602db",
+    "bytes": 2270,
     "line_count": 30,
     "encoding": "utf-8",
     "language": "ko"
   },
   "document": {
-    "title": "iiCalendar 에이전트 지침",
+    "title": "iiCalendarIntegration 에이전트 지침",
     "role": "instructions",
     "authority": "markdown_source"
   },
@@ -27,9 +27,9 @@
       "kind": "heading",
       "start_line": 1,
       "end_line": 1,
-      "raw": "# iiCalendar 에이전트 지침\n",
+      "raw": "# iiCalendarIntegration 에이전트 지침\n",
       "level": 1,
-      "title": "iiCalendar 에이전트 지침"
+      "title": "iiCalendarIntegration 에이전트 지침"
     },
     {
       "id": "b000002",
@@ -145,9 +145,9 @@
       "kind": "fenced_code",
       "start_line": 27,
       "end_line": 29,
-      "raw": "```sh\npython3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project SDK/iiCalendar\n```\n",
+      "raw": "```sh\npython3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project SDK/iiCalendarIntegration\n```\n",
       "language": "sh",
-      "code": "python3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project SDK/iiCalendar\n",
+      "code": "python3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project SDK/iiCalendarIntegration\n",
       "closed": true
     },
     {
@@ -163,8 +163,8 @@
       "block_id": "b000001",
       "parent_id": null,
       "level": 1,
-      "title": "iiCalendar 에이전트 지침",
-      "anchor": "iicalendar-에이전트-지침",
+      "title": "iiCalendarIntegration 에이전트 지침",
+      "anchor": "iicalendarintegration-에이전트-지침",
       "start_line": 1
     },
     {
@@ -211,7 +211,7 @@
       {
         "block_id": "b000012",
         "language": "sh",
-        "code": "python3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project SDK/iiCalendar\n"
+        "code": "python3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project SDK/iiCalendarIntegration\n"
       }
     ],
     "links": [

@@ -1,4 +1,4 @@
-# iiCalendar 문서 구조
+# iiCalendarIntegration 문서 구조
 
 <!-- workspace-docs:blueprint -->
 

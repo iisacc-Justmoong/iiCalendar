@@ -3,21 +3,21 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:e128bc56c7d538a91bda8ce16222c6cb9ae1e841d3d3f9236f47de6ce9988cd6",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {
     "path": "docs/README.md",
-    "sha256": "b18955e93cccf984d24984930ac2b2251e661ee6d65eec42a2dfabd411fdf04b",
-    "bytes": 1433,
+    "sha256": "8ad4b8f7d843b152920f609249d62265825682f2bd40e7af7ac33b804bd75f69",
+    "bytes": 1444,
     "line_count": 24,
     "encoding": "utf-8",
     "language": "en"
   },
   "document": {
-    "title": "iiCalendar Documentation",
+    "title": "iiCalendarIntegration Documentation",
     "role": "overview",
     "authority": "markdown_source"
   },
@@ -27,9 +27,9 @@
       "kind": "heading",
       "start_line": 1,
       "end_line": 1,
-      "raw": "# iiCalendar Documentation\n",
+      "raw": "# iiCalendarIntegration Documentation\n",
       "level": 1,
-      "title": "iiCalendar Documentation"
+      "title": "iiCalendarIntegration Documentation"
     },
     {
       "id": "b000002",
@@ -157,8 +157,8 @@
       "block_id": "b000001",
       "parent_id": null,
       "level": 1,
-      "title": "iiCalendar Documentation",
-      "anchor": "iicalendar-documentation",
+      "title": "iiCalendarIntegration Documentation",
+      "anchor": "iicalendarintegration-documentation",
       "start_line": 1
     },
     {

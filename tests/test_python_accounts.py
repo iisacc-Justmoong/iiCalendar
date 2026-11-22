@@ -2,7 +2,7 @@
 import gc
 import threading
 import unittest
-import iicalendar as cal
+import iicalendarintegration as cal
 
 
 class AccountTests(unittest.TestCase):
@@ -21,11 +21,12 @@ class AccountTests(unittest.TestCase):
             if "/events" in request.url:
                 return cal.CalendarHttpResponse(200, '{"items":[{"id":"e1","summary":"Meeting","start":{"dateTime":"2026-10-10T10:00:00Z"},"end":{"dateTime":"2026-10-10T11:00:00Z"}}]}')
             return cal.CalendarHttpResponse(200, '{"items":[{"id":"work","summary":"Work","timeZone":"UTC"}]}')
-        account = self.manager.connect_google(lambda: tokens[0], get)
+        window = cal.TimeRange(cal.Instant.parse("2026-10-01T00:00:00Z"), cal.Instant.parse("2026-11-01T00:00:00Z"))
+        account = self.manager.connect_google(lambda: tokens[0], get, initial_window=window)
         self.assertEqual(account.subject, "user")
         obj = self.manager.calendars(account.id)[0]
-        window = cal.TimeRange(cal.Instant.parse("2026-10-01T00:00:00Z"), cal.Instant.parse("2026-11-01T00:00:00Z"))
-        self.manager.load_events(account.id, obj.id, window)
+        self.assertEqual(len(seen), 3)  # profile, one calendar list, one event page
+        self.manager.synchronize(account.id, window)
         event = self.manager.calendar(obj.id).events[0]
         self.assertEqual((event.title, event.owner_id), ("Meeting", "owner"))
         self.assertNotIn("iisacc.subject", event.properties)

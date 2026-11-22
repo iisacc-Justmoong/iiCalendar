@@ -1,10 +1,10 @@
-#include <iiCalendar/iiCalendar.h>
+#include <iiCalendarIntegration/iiCalendarIntegration.h>
 #include <condition_variable>
 #include <future>
 #include <atomic>
 #include <iostream>
 
-using namespace iiCalendar;
+using namespace iiCalendarIntegration;
 namespace {
 int checks = 0;
 #define CHECK(...) do { ++checks; if (!(__VA_ARGS__)) throw std::runtime_error(std::string(#__VA_ARGS__) + " at " + std::to_string(__LINE__)); } while (false)
@@ -72,6 +72,12 @@ void persistence() {
     owner.setEnabled(account.id, false);
     const auto document = owner.connectionDocument();
     CHECK(document.find("accessToken") == std::string::npos && document.find("session-1") == std::string::npos);
+    auto legacyDocument = document;
+    const std::string format = "iiCalendarIntegration.AccountConnections";
+    CHECK(legacyDocument.find(format) != std::string::npos);
+    legacyDocument.replace(legacyDocument.find(format), format.size(), "iiCalendar.AccountConnections");
+    CalendarAccountManager legacy; legacy.setIisaccSession(session()); legacy.restoreConnections(legacyDocument);
+    CHECK(legacy.connectionDocument() == document);
     CalendarAccountManager restored; restored.setIisaccSession(session()); restored.restoreConnections(document);
     CHECK(restored.accounts().size() == 2 && !restored.accounts()[1].enabled);
     CHECK(restored.calendars().empty());
@@ -214,16 +220,115 @@ void staleWorkspace() {
     CHECK(pending.get() == ExternalCalendarErrorCode::StaleSession);
     CHECK(accounts.accounts().empty() && accounts.calendars().empty());
 }
+// A failure on the second calendar must not publish the first calendar's new data.
+void accountSnapshot() {
+    class SnapshotProvider final : public Provider {
+    public:
+        unsigned lists = 0;
+        std::string title = "Old";
+        std::optional<ExternalCalendarErrorCode> secondError;
+        bool thirdCalendar = false;
+        std::vector<RemoteCalendar> calendars() override {
+            ++lists;
+            std::vector<RemoteCalendar> result{{"a", title + " A"}, {"b", title + " B"}};
+            if (thirdCalendar) result.push_back({"c", title + " C"});
+            return result;
+        }
+        std::vector<Event> events(const RemoteCalendar &calendar, TimeRange range) override {
+            if (calendar.id == "b" && secondError) throw ExternalCalendarError(*secondError, "fixture");
+            auto result = Provider::events(calendar, range);
+            result.front().title = calendar.title;
+            return result;
+        }
+    };
+
+    CalendarAccountOptions options;
+    options.limits.maximumSnapshotEvents = 2;
+    CalendarAccountManager accounts(options);
+    accounts.setWorkspace(CalendarWorkspaceIdentity{"example.daymark", "owner", "device"});
+    auto provider = std::make_shared<SnapshotProvider>();
+    const auto account = accounts.connect({"remote-user", "fixture", "Work"}, provider, window());
+    CHECK(provider->lists == 1);
+    CHECK(account.state == CalendarAccountState::Ready);
+    const auto initial = accounts.calendars(account.id);
+    CHECK(initial.size() == 2 && initial[0].events[0].ownerId == "owner");
+    CHECK(initial[0].events[0].title == "Old A" && initial[1].events[0].title == "Old B");
+
+    provider->title = "New";
+    provider->secondError = ExternalCalendarErrorCode::RateLimited;
+    fails(*provider->secondError, [&] { accounts.synchronize(account.id, window()); });
+    const auto retained = accounts.calendars(account.id);
+    CHECK(retained.size() == 2 && retained[0].remote.title == "Old A" && retained[1].remote.title == "Old B");
+    CHECK(retained[0].events[0].title == "Old A" && retained[1].events[0].title == "Old B");
+    CHECK(accounts.accounts()[0].state == CalendarAccountState::Failed);
+
+    provider->secondError.reset();
+    provider->thirdCalendar = true;
+    fails(ExternalCalendarErrorCode::LimitExceeded, [&] { accounts.synchronize(account.id, window()); });
+    CHECK(accounts.calendars(account.id)[0].remote.title == "Old A");
+    provider->thirdCalendar = false;
+    const TimeRange nextWindow{window().start + Duration(3600), window().end};
+    accounts.synchronize(account.id, nextWindow);
+    const auto updated = accounts.calendars(account.id);
+    CHECK(updated[0].id == initial[0].id && updated[1].id == initial[1].id);
+    CHECK(updated[0].loadedWindow == nextWindow && updated[1].loadedWindow == nextWindow);
+    CHECK(updated[0].events[0].title == "New A" && updated[1].events[0].title == "New B");
+
+    provider->secondError = ExternalCalendarErrorCode::PermissionDenied;
+    fails(*provider->secondError, [&] { accounts.synchronize(account.id, window()); });
+    CHECK(accounts.calendars(account.id).empty());
+    CHECK(accounts.accounts()[0].state == CalendarAccountState::AuthenticationRequired);
+}
+
+// A disabled attachment stops issuing calendar reads, even if it is re-enabled
+// under the same public account ID before the old provider call completes.
+void retireSnapshot(bool retireWorkspace) {
+    class BlockingProvider final : public Provider {
+    public:
+        std::promise<void> entered, release;
+        unsigned reads = 0;
+        std::vector<RemoteCalendar> calendars() override { return {{"a", "A"}, {"b", "B"}}; }
+        std::vector<Event> events(const RemoteCalendar &calendar, TimeRange range) override {
+            if (++reads == 1) { entered.set_value(); release.get_future().wait(); }
+            return Provider::events(calendar, range);
+        }
+    };
+    CalendarAccountManager accounts;
+    accounts.setWorkspace(CalendarWorkspaceIdentity{"example.daymark", "owner", "device"});
+    auto provider = std::make_shared<BlockingProvider>();
+    const auto account = accounts.connect({"remote-user", "fixture", "Work"}, provider);
+    auto pending = std::async(std::launch::async, [&] {
+        try { accounts.synchronize(account.id, window()); }
+        catch (const ExternalCalendarError &error) { return error.code(); }
+        return ExternalCalendarErrorCode::InvalidResponse;
+    });
+    provider->entered.get_future().wait();
+    if (retireWorkspace) {
+        accounts.setWorkspace(std::nullopt);
+        accounts.setWorkspace(CalendarWorkspaceIdentity{"example.daymark", "owner", "device"});
+    } else {
+        accounts.setEnabled(account.id, false);
+        accounts.setEnabled(account.id, true);
+    }
+    provider->release.set_value();
+    CHECK(pending.get() == ExternalCalendarErrorCode::StaleSession);
+    CHECK(provider->reads == 1 && accounts.calendars(account.id).empty());
+}
+
 void replacingAConnectionWhileItsProviderIsStarting(bool toggleEnabled) {
     class DelayedIdentity final : public Provider {
     public:
-        mutable std::atomic<int> reads = 0;
+        mutable std::atomic<int> identityReads = 0;
+        unsigned calendarReads = 0;
         mutable std::promise<void> entered, release;
         std::string id() const override {
-            if (++reads == 2) { entered.set_value(); release.get_future().wait(); }
+            if (++identityReads == 2) { entered.set_value(); release.get_future().wait(); }
             return "fixture";
         }
-        std::vector<RemoteCalendar> calendars() override { return {{"calendar", "Retired"}}; }
+        std::vector<RemoteCalendar> calendars() override {
+            ++calendarReads;
+            return {{"calendar", "Retired"}};
+        }
     };
     CalendarAccountManager accounts; accounts.setIisaccSession(session());
     auto retired = std::make_shared<DelayedIdentity>();
@@ -242,6 +347,7 @@ void replacingAConnectionWhileItsProviderIsStarting(bool toggleEnabled) {
         (void)accounts.connect({"external", "fixture", "Current"}, std::make_shared<Provider>());
     }
     retired->release.set_value(); CHECK(pending.get() == ExternalCalendarErrorCode::StaleSession);
+    CHECK(retired->calendarReads == 0);
     if (toggleEnabled) {
         CHECK(accounts.calendars(id).empty());
         accounts.refresh(id); CHECK(accounts.calendars(id).size() == 1);
@@ -250,7 +356,9 @@ void replacingAConnectionWhileItsProviderIsStarting(bool toggleEnabled) {
 }
 int main() {
     try {
-        lifecycle(); persistence(); stale(); externalIdentities(); genericWorkspace(); staleWorkspace(); replacingAConnectionWhileItsProviderIsStarting(false); replacingAConnectionWhileItsProviderIsStarting(true); std::cout << checks << " account checks passed\n";
+        lifecycle(); persistence(); stale(); externalIdentities(); genericWorkspace(); staleWorkspace();
+        accountSnapshot(); retireSnapshot(false); retireSnapshot(true); replacingAConnectionWhileItsProviderIsStarting(false);
+        replacingAConnectionWhileItsProviderIsStarting(true); std::cout << checks << " account checks passed\n";
     }
     catch (const std::exception &e) { std::cerr << e.what() << '\n'; return 1; }
 }

@@ -2,7 +2,7 @@
 #include <nlohmann/json.hpp>
 #include <set>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 using Json = nlohmann::json;
 constexpr std::size_t maximumBody = 16 * 1024 * 1024;
@@ -226,4 +226,4 @@ std::vector<Event> GoogleCalendarProvider::events(const RemoteCalendar &calendar
         throw ExternalCalendarError(ExternalCalendarErrorCode::LimitExceeded, "Google Calendar page limit exceeded");
     });
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

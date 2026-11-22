@@ -8,6 +8,9 @@ Google·Microsoft·Apple 계정을 연결한다. 공급자 자격 증명과 OAut
 `CalendarObjectManager`는 외부 로그인 계정의 캘린더 목록과 일정 객체를 관리한다.
 `GoogleCalendarProvider`와 `AppleCalendarProvider`가 실제 조회를 담당한다. 공개 API는
 `src/Integration/ExternalCalendar.h`에 있으며 Qt·LVRS·Society·iiAccountManager를 참조하지 않는다.
+`login`에 최초 조회 구간을 주거나 `synchronize`를 부르면 목록과 구간 내 일정을
+모두 검증한 뒤 계정 스냅샷을 교체한다. 구간을 생략한 `login`과 `refresh`는 목록을
+조회하며, `loadEvents`는 한 캘린더의 일정만 갱신한다.
 
 ## 로그인 후 Google 캘린더 불러오기
 
@@ -16,19 +19,19 @@ Google·Microsoft·Apple 계정을 연결한다. 공급자 자격 증명과 OAut
 계정 ID는 관리자의 모든 제공자 사이에서 유일한 값으로 지정한다. 표시 이름이나 토큰을 ID로 쓰지 않는다.
 
 ```cpp
-#include <iiCalendar/iiCalendar.h>
+#include <iiCalendarIntegration/iiCalendarIntegration.h>
 
-void loadGoogleCalendar(iiCalendar::CalendarObjectManager &manager,
-                        iiCalendar::CalendarAccessToken currentToken) {
-    auto provider = std::make_shared<iiCalendar::GoogleCalendarProvider>(currentToken);
+void loadGoogleCalendar(iiCalendarIntegration::CalendarObjectManager &manager,
+                        iiCalendarIntegration::CalendarAccessToken currentToken) {
+    auto provider = std::make_shared<iiCalendarIntegration::GoogleCalendarProvider>(currentToken);
     // login()은 바로 캘린더 목록을 조회한다. 애플리케이션 작업 스레드에서 호출한다.
     manager.login({"google:stable-account-subject", "google", "업무 계정"}, provider);
 
     const auto objects = manager.calendars("google:stable-account-subject");
     for (const auto &object : objects) {
         manager.loadEvents(object.accountId, object.id,
-            {iiCalendar::Instant::parse("2026-10-01T00:00:00Z"),
-             iiCalendar::Instant::parse("2026-11-01T00:00:00Z")});
+            {iiCalendarIntegration::Instant::parse("2026-10-01T00:00:00Z"),
+             iiCalendarIntegration::Instant::parse("2026-11-01T00:00:00Z")});
     }
     const auto loaded = manager.calendars("google:stable-account-subject");
     // loaded의 각 CalendarObject.events를 UI나 Store에 전달한다.
@@ -50,7 +53,7 @@ Google이 조회 조건의 소수초를 무시하므로 요청 범위를 초 단
 연결 제한은 10초, 개별 HTTP 요청 제한은 30초, 응답 제한은 16 MiB이다. 로그아웃은 진행 중인
 HTTP 연결을 강제로 종료하지 않지만 그 결과가 관리자에 다시 반영되는 것을 차단한다.
 
-`IICALENDAR_WITH_CURL=OFF`로 빌드하면 Google 제공자 생성 시 `CalendarHttpGet`을 주입한다.
+`IICALENDARINTEGRATION_WITH_CURL=OFF`로 빌드하면 Google 제공자 생성 시 `CalendarHttpGet`을 주입한다.
 iOS·tvOS·watchOS·visionOS에서는 기본 OFF이다. 주입 전송은 요청의 인증 헤더를 Google 외의 서버로
 전달하지 않고 동일한 TLS·응답 상한·리다이렉트 정책을 지켜야 한다. 전송을 주입하지 않으면 첫 조회에
 `Unsupported`를 반환한다. 커스텀 전송을 사용해도 Google 응답 변환과 페이지 처리는 SDK가 담당한다.
@@ -62,9 +65,9 @@ iCloud·Google·Exchange·CalDAV·로컬 캘린더를 읽는다. `Sign in with A
 캘린더 데이터 접근 토큰으로 사용하지 않는다. Apple 계정의 로그인과 원격 동기화는 운영체제가 관리한다.
 
 ```cpp
-auto provider = std::make_shared<iiCalendar::AppleCalendarProvider>();
-if (iiCalendar::AppleCalendarProvider::authorization() ==
-    iiCalendar::AppleCalendarAuthorization::FullAccess) {
+auto provider = std::make_shared<iiCalendarIntegration::AppleCalendarProvider>();
+if (iiCalendarIntegration::AppleCalendarProvider::authorization() ==
+    iiCalendarIntegration::AppleCalendarAuthorization::FullAccess) {
     manager.login({"apple:device-calendars", "apple", "기기 캘린더"}, provider);
     // 이후 manager.loadEvents(accountId, object.id, window)를 작업 스레드에서 호출한다.
 }
@@ -127,8 +130,8 @@ StaleSession 오류이며 새 세션에 결과를 반영하지 않는다. manage
 ```cpp
 const auto object = manager.calendar(calendarId).value();
 for (const auto &event : object.events) store.put(event);
-const auto details = iiCalendar::dayDetails(store, iiCalendar::Date(2026, 10, 2),
-                                           iiCalendar::TimeZone("Asia/Seoul"));
+const auto details = iiCalendarIntegration::dayDetails(store, iiCalendarIntegration::Date(2026, 10, 2),
+                                           iiCalendarIntegration::TimeZone("Asia/Seoul"));
 ```
 
 관리자는 메모리 내 조회 객체를 관리하며 Store를 자동 수정하지 않는다. 위 코드는 명시적 upsert 예제이다.

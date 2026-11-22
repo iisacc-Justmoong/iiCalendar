@@ -3,21 +3,21 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:faa23d35cfa50ddf137fd383b85b0ff99f6887e1dcba821edaef55350ff060b8",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {
     "path": "docs/documentation-structure.md",
-    "sha256": "e28557473db5bb6b49ae33fcd6174c3feac952a287d5032b7b44d47d7910700b",
-    "bytes": 1657,
+    "sha256": "863ebef481270518ac4e6b5f947b27a9930a7812f8b8c751076404f2fdeb3278",
+    "bytes": 1668,
     "line_count": 21,
     "encoding": "utf-8",
     "language": "ko"
   },
   "document": {
-    "title": "iiCalendar 문서 구조",
+    "title": "iiCalendarIntegration 문서 구조",
     "role": "guide",
     "authority": "markdown_source"
   },
@@ -27,9 +27,9 @@
       "kind": "heading",
       "start_line": 1,
       "end_line": 1,
-      "raw": "# iiCalendar 문서 구조\n",
+      "raw": "# iiCalendarIntegration 문서 구조\n",
       "level": 1,
-      "title": "iiCalendar 문서 구조"
+      "title": "iiCalendarIntegration 문서 구조"
     },
     {
       "id": "b000002",
@@ -158,8 +158,8 @@
       "block_id": "b000001",
       "parent_id": null,
       "level": 1,
-      "title": "iiCalendar 문서 구조",
-      "anchor": "iicalendar-문서-구조",
+      "title": "iiCalendarIntegration 문서 구조",
+      "anchor": "iicalendarintegration-문서-구조",
       "start_line": 1
     }
   ],

@@ -3,21 +3,21 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:9349439802dd915625847f4cf00dc0bbcf8e3e6c99b98f8b500d074724afd1c4",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {
     "path": "README.md",
-    "sha256": "6eacda81c55369a67db8ad2eb17456784b16ffc9fbf69764d0af60e9048c8ff6",
-    "bytes": 6223,
-    "line_count": 102,
+    "sha256": "7f45e5cdde4be01cb32ab28cfe5fb9303abbaf2a930de6d4efce9de34393dcb1",
+    "bytes": 6610,
+    "line_count": 104,
     "encoding": "utf-8",
     "language": "en"
   },
   "document": {
-    "title": "iiCalendar",
+    "title": "iiCalendarIntegration",
     "role": "overview",
     "authority": "markdown_source"
   },
@@ -27,9 +27,9 @@
       "kind": "heading",
       "start_line": 1,
       "end_line": 1,
-      "raw": "# iiCalendar\n",
+      "raw": "# iiCalendarIntegration\n",
       "level": 1,
-      "title": "iiCalendar"
+      "title": "iiCalendarIntegration"
     },
     {
       "id": "b000002",
@@ -71,7 +71,7 @@
       "kind": "paragraph",
       "start_line": 9,
       "end_line": 11,
-      "raw": "Package release: **0.2.1** (2026-10-19). This patch packages the current\nsource snapshot; build, test and installation evidence is recorded in the SDK\npatch-release report. Earlier versioned feature notes remain historical.\n"
+      "raw": "Package version: **0.2.1**. The 2026-10-19 patch-release report records the build,\ntests and installation of the former package. The current source exports the\nrenamed package.\n"
     },
     {
       "id": "b000008",
@@ -99,7 +99,7 @@
       "kind": "paragraph",
       "start_line": 16,
       "end_line": 16,
-      "raw": "Public headers and implementations are grouped by responsibility under `src/`. Usage examples are `examples/day_details.cpp`. Consumers continue to use `<iiCalendar/...>` through the exported CMake target.\n"
+      "raw": "Public headers and implementations are grouped by responsibility under `src/`. Include `<iiCalendarIntegration>` and use the `iiCalendarIntegration` namespace. The renamed CMake package exports `iiCalendarIntegration::iiCalendarIntegration`. Python users import `iicalendarintegration`. Rebuild consumers of the former `iiCalendar` package. Existing connection documents retain their account identities.\n"
     },
     {
       "id": "b000012",
@@ -113,9 +113,9 @@
       "kind": "fenced_code",
       "start_line": 18,
       "end_line": 25,
-      "raw": "```sh\npython3 -B scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure \\\n  -E '^iiCalendar\\.(installed_consumer|external_apple)$'\ncmake --install build --prefix \"$HOME/.local/SDK/iiCalendar\"\n```\n",
+      "raw": "```sh\npython3 -B scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure \\\n  -E '^iiCalendarIntegration\\.(installed_consumer|external_apple)$'\ncmake --install build --prefix \"$HOME/.local/SDK/iiCalendarIntegration\"\n```\n",
       "language": "sh",
-      "code": "python3 -B scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure \\\n  -E '^iiCalendar\\.(installed_consumer|external_apple)$'\ncmake --install build --prefix \"$HOME/.local/SDK/iiCalendar\"\n",
+      "code": "python3 -B scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure \\\n  -E '^iiCalendarIntegration\\.(installed_consumer|external_apple)$'\ncmake --install build --prefix \"$HOME/.local/SDK/iiCalendarIntegration\"\n",
       "closed": true
     },
     {
@@ -130,7 +130,7 @@
       "kind": "paragraph",
       "start_line": 27,
       "end_line": 27,
-      "raw": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and a C++23 compiler. Bootstrap validates the official ICU 78.3 archive, retains sources and libraries in `resources/dependencies/`, and removes its temporary build after completion. Network download is performed only during explicit bootstrap execution. The example target is opt-in with `-DIICALENDAR_BUILD_EXAMPLES=ON`. `install.sh` uses `build/` and the normal user SDK prefix; set `IICALENDAR_VALIDATE_INTEGRATION=1` to run the installed-consumer and Apple authorization tests. See [BuildLayout.md](docs/BuildLayout.md).\n"
+      "raw": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and a C++23 compiler. Bootstrap validates the official ICU 78.3 archive, retains sources and libraries in `resources/dependencies/`, and removes its temporary build after completion. Network download is performed only during explicit bootstrap execution. The example target is opt-in with `-DIICALENDARINTEGRATION_BUILD_EXAMPLES=ON`. `install.sh` uses `build/` and the normal user SDK prefix; set `IICALENDARINTEGRATION_VALIDATE_INTEGRATION=1` to run the installed-consumer and Apple authorization tests. See [BuildLayout.md](docs/BuildLayout.md).\n"
     },
     {
       "id": "b000016",
@@ -144,9 +144,9 @@
       "kind": "fenced_code",
       "start_line": 29,
       "end_line": 32,
-      "raw": "```cmake\nfind_package(iiCalendar 0.2 CONFIG REQUIRED)\ntarget_link_libraries(MyApplication PRIVATE iiCalendar::iiCalendar)\n```\n",
+      "raw": "```cmake\nfind_package(iiCalendarIntegration 0.2 CONFIG REQUIRED)\ntarget_link_libraries(MyApplication PRIVATE iiCalendarIntegration::iiCalendarIntegration)\n```\n",
       "language": "cmake",
-      "code": "find_package(iiCalendar 0.2 CONFIG REQUIRED)\ntarget_link_libraries(MyApplication PRIVATE iiCalendar::iiCalendar)\n",
+      "code": "find_package(iiCalendarIntegration 0.2 CONFIG REQUIRED)\ntarget_link_libraries(MyApplication PRIVATE iiCalendarIntegration::iiCalendarIntegration)\n",
       "closed": true
     },
     {
@@ -161,7 +161,7 @@
       "kind": "paragraph",
       "start_line": 34,
       "end_line": 34,
-      "raw": "Installation consumers require SQLite and ICU development package or `ICU_ROOT`. The top-level SDK installer is auto-discovered via CMakeLists.txt. To update the actual user installation on the host, use the SDK installer's `--only iiCalendar` and the desired prefix.\n"
+      "raw": "Installation consumers require SQLite and ICU development package or `ICU_ROOT`. The top-level SDK installer is auto-discovered via CMakeLists.txt. To update the actual user installation on the host, use the SDK installer's `--only iiCalendarIntegration` and the desired prefix.\n"
     },
     {
       "id": "b000020",
@@ -218,63 +218,63 @@
       "id": "b000027",
       "kind": "paragraph",
       "start_line": 51,
-      "end_line": 61,
-      "raw": "`CalendarAccountManager` connects Google, Microsoft/Outlook, device-managed\nApple and custom providers in a host-owned workspace, with an optional\nauthenticated iisacc session for existing integrations.\nIt manages account-scoped calendars/events, enable/disable, disconnect,\ncredential-free connection restoration, expiry and stale-session isolation.\nThe native library remains Qt-free. A header-only adapter reads verified\niiAccountManager 0.2.9+ session bindings and their effective credential expiry.\nSee [Accounts](docs/Accounts.md) for the public API and complete host wiring.\nThe account-SDK integration test is configured separately from\n`examples/iisacc-bridge`; iiCalendar's own CMake does not find or link that SDK.\nThe calendar library itself does not link iiFileProvider Native.\n"
+      "end_line": 63,
+      "raw": "`CalendarAccountManager` connects Google, Microsoft/Outlook, device-managed\nApple and custom providers in a host-owned workspace, with an optional\nauthenticated iisacc session for existing integrations.\nIt manages account-scoped snapshots, enable/disable, disconnect,\ncredential-free connection restoration, expiry and stale-session isolation.\nPass an initial window to a connector or call `synchronize` to publish the\ncalendar list and all occurrences for that window together.\nThe native library remains Qt-free. A header-only adapter reads verified\niiAccountManager 0.2.9+ session bindings and their effective credential expiry.\nSee [Accounts](docs/Accounts.md) for the public API and complete host wiring.\nThe account-SDK integration test is configured separately from\n`examples/iisacc-bridge`; iiCalendarIntegration's own CMake does not find or link that SDK.\nThe calendar library itself does not link iiFileProvider Native.\n"
     },
     {
       "id": "b000028",
       "kind": "blank",
-      "start_line": 62,
-      "end_line": 62,
+      "start_line": 64,
+      "end_line": 64,
       "raw": "\n"
     },
     {
       "id": "b000029",
       "kind": "paragraph",
-      "start_line": 63,
-      "end_line": 67,
-      "raw": "The host owns OAuth, token refresh and secure credential custody. The SDK\nresolves/pins Google and Microsoft account identity, performs calendar reads and\nvalidates bounded snapshots. Apple uses the OS EventKit accounts and requires\nexplicit full-access authorization. Default HTTPS uses libcurl 7.85+; with\n`-DIICALENDAR_WITH_CURL=OFF`, inject `CalendarHttpGet`.\n"
+      "start_line": 65,
+      "end_line": 69,
+      "raw": "The host owns OAuth, token refresh and secure credential custody. The SDK\nresolves/pins Google and Microsoft account identity, performs calendar reads and\nvalidates bounded snapshots. Apple uses the OS EventKit accounts and requires\nexplicit full-access authorization. Default HTTPS uses libcurl 7.85+; with\n`-DIICALENDARINTEGRATION_WITH_CURL=OFF`, inject `CalendarHttpGet`.\n"
     },
     {
       "id": "b000030",
       "kind": "blank",
-      "start_line": 68,
-      "end_line": 68,
+      "start_line": 70,
+      "end_line": 70,
       "raw": "\n"
     },
     {
       "id": "b000031",
       "kind": "paragraph",
-      "start_line": 69,
-      "end_line": 71,
+      "start_line": 71,
+      "end_line": 73,
       "raw": "`CalendarObjectManager` remains the lower-level provider-object primitive used\nby the account facade. Its calendar/event formats, refresh rules and platform\nauthorization contract are in [External calendars](docs/ExternalCalendars.md).\n"
     },
     {
       "id": "b000032",
-      "kind": "blank",
-      "start_line": 72,
-      "end_line": 72,
-      "raw": "\n"
-    },
-    {
-      "id": "b000033",
-      "kind": "paragraph",
-      "start_line": 73,
-      "end_line": 73,
-      "raw": "The optional `iicalendar` Python account API, build requirements and examples are documented in [Accounts.md](docs/Accounts.md#python-account-api-contract).\n"
-    },
-    {
-      "id": "b000034",
       "kind": "blank",
       "start_line": 74,
       "end_line": 74,
       "raw": "\n"
     },
     {
-      "id": "b000035",
-      "kind": "heading",
+      "id": "b000033",
+      "kind": "paragraph",
       "start_line": 75,
       "end_line": 75,
+      "raw": "The optional `iicalendarintegration` Python account API, build requirements and examples are documented in [Accounts.md](docs/Accounts.md#python-account-api-contract).\n"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 76,
+      "end_line": 76,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "heading",
+      "start_line": 77,
+      "end_line": 77,
       "raw": "## License\n",
       "level": 2,
       "title": "License"
@@ -282,43 +282,43 @@
     {
       "id": "b000036",
       "kind": "blank",
-      "start_line": 76,
-      "end_line": 76,
-      "raw": "\n"
-    },
-    {
-      "id": "b000037",
-      "kind": "paragraph",
-      "start_line": 77,
-      "end_line": 77,
-      "raw": "SPDX-License-Identifier: Apache-2.0\n"
-    },
-    {
-      "id": "b000038",
-      "kind": "blank",
       "start_line": 78,
       "end_line": 78,
       "raw": "\n"
     },
     {
-      "id": "b000039",
+      "id": "b000037",
       "kind": "paragraph",
       "start_line": 79,
-      "end_line": 81,
+      "end_line": 79,
+      "raw": "SPDX-License-Identifier: Apache-2.0\n"
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 80,
+      "end_line": 80,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "paragraph",
+      "start_line": 81,
+      "end_line": 83,
       "raw": "The original code and documentation in this repository are licensed under the\n[Apache License 2.0](LICENSE). Third-party code, libraries, fonts, tools, and model\nweights retain their respective licenses.\n"
     },
     {
       "id": "b000040",
       "kind": "blank",
-      "start_line": 82,
-      "end_line": 82,
+      "start_line": 84,
+      "end_line": 84,
       "raw": "\n"
     },
     {
       "id": "b000041",
       "kind": "heading",
-      "start_line": 83,
-      "end_line": 83,
+      "start_line": 85,
+      "end_line": 85,
       "raw": "## Source header layout\n",
       "level": 2,
       "title": "Source header layout"
@@ -326,50 +326,50 @@
     {
       "id": "b000042",
       "kind": "blank",
-      "start_line": 84,
-      "end_line": 84,
+      "start_line": 86,
+      "end_line": 86,
       "raw": "\n"
     },
     {
       "id": "b000043",
       "kind": "paragraph",
-      "start_line": 85,
-      "end_line": 89,
-      "raw": "Public headers and implementations live together under `src/`, grouped by chronology, events, storage, presentation, integrations and security. See [source layout](docs/SourceLayout.md).\nThere is no separate authored `include/` tree. Existing public `#include` names\nand exported CMake targets are unchanged; installation still places only public\nheaders in the package include directory. Generated export headers belong to\n`build/`, not to the authored source tree.\n"
+      "start_line": 87,
+      "end_line": 91,
+      "raw": "Public headers and implementations live together under `src/`, grouped by chronology, events, storage, presentation, integrations and security. See [source layout](docs/SourceLayout.md).\nThere is no separate authored `include/` tree. The module provides the\n`<iiCalendarIntegration>` entry. Installation places only public\nheaders in the package include directory. Generated export headers belong to\n`build/`, not to the authored source tree.\n"
     },
     {
       "id": "b000044",
       "kind": "blank",
-      "start_line": 90,
-      "end_line": 90,
+      "start_line": 92,
+      "end_line": 92,
       "raw": "\n"
     },
     {
       "id": "b000045",
       "kind": "paragraph",
-      "start_line": 91,
-      "end_line": 93,
+      "start_line": 93,
+      "end_line": 95,
       "raw": "Validate this layout from the SDK workspace with\n`python3 -B tests/test_source_header_layout.py`. Reconfigure, build, run CTest,\nand verify a staged installed consumer after changing source/header paths.\n"
     },
     {
       "id": "b000046",
       "kind": "blank",
-      "start_line": 94,
-      "end_line": 94,
+      "start_line": 96,
+      "end_line": 96,
       "raw": "\n"
     },
     {
       "id": "b000047",
       "kind": "paragraph",
-      "start_line": 95,
-      "end_line": 95,
+      "start_line": 97,
+      "end_line": 97,
       "raw": "<!-- workspace-docs:readme:start -->\n"
     },
     {
       "id": "b000048",
       "kind": "heading",
-      "start_line": 96,
-      "end_line": 96,
+      "start_line": 98,
+      "end_line": 98,
       "raw": "## Documentation entry points\n",
       "level": 2,
       "title": "Documentation entry points"
@@ -377,15 +377,15 @@
     {
       "id": "b000049",
       "kind": "blank",
-      "start_line": 97,
-      "end_line": 97,
+      "start_line": 99,
+      "end_line": 99,
       "raw": "\n"
     },
     {
       "id": "b000050",
       "kind": "paragraph",
-      "start_line": 98,
-      "end_line": 102,
+      "start_line": 100,
+      "end_line": 104,
       "raw": "- Human overview: this English `README.md`.\n- Agent instructions: [AGENT.md](AGENT.md).\n- Human documentation: [documentation index](docs/README.md).\n- Structured agent documentation: [agent index](docs/agent-index.json).\n<!-- workspace-docs:readme:end -->\n"
     }
   ],
@@ -394,8 +394,8 @@
       "block_id": "b000001",
       "parent_id": null,
       "level": 1,
-      "title": "iiCalendar",
-      "anchor": "iicalendar",
+      "title": "iiCalendarIntegration",
+      "anchor": "iicalendarintegration",
       "start_line": 1
     },
     {
@@ -412,7 +412,7 @@
       "level": 2,
       "title": "License",
       "anchor": "license",
-      "start_line": 75
+      "start_line": 77
     },
     {
       "block_id": "b000041",
@@ -420,7 +420,7 @@
       "level": 2,
       "title": "Source header layout",
       "anchor": "source-header-layout",
-      "start_line": 83
+      "start_line": 85
     },
     {
       "block_id": "b000048",
@@ -428,7 +428,7 @@
       "level": 2,
       "title": "Documentation entry points",
       "anchor": "documentation-entry-points",
-      "start_line": 96
+      "start_line": 98
     }
   ],
   "indexes": {
@@ -436,7 +436,7 @@
       {
         "block_id": "b000015",
         "line": 27,
-        "text": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and a C++23 compiler. Bootstrap validates the official ICU 78.3 archive, retains sources and libraries in `resources/dependencies/`, and removes its temporary build after completion. Network download is performed only during explicit bootstrap execution. The example target is opt-in with `-DIICALENDAR_BUILD_EXAMPLES=ON`. `install.sh` uses `build/` and the normal user SDK prefix; set `IICALENDAR_VALIDATE_INTEGRATION=1` to run the installed-consumer and Apple authorization tests. See [BuildLayout.md](docs/BuildLayout.md).",
+        "text": "If ICU already exists, specify `-DICU_ROOT=/path/to/icu` without bootstrap. The required dependencies are SQLite 3.37+, ICU 69+, and a C++23 compiler. Bootstrap validates the official ICU 78.3 archive, retains sources and libraries in `resources/dependencies/`, and removes its temporary build after completion. Network download is performed only during explicit bootstrap execution. The example target is opt-in with `-DIICALENDARINTEGRATION_BUILD_EXAMPLES=ON`. `install.sh` uses `build/` and the normal user SDK prefix; set `IICALENDARINTEGRATION_VALIDATE_INTEGRATION=1` to run the installed-consumer and Apple authorization tests. See [BuildLayout.md](docs/BuildLayout.md).",
         "basis": "lexical_match",
         "context": "paragraph"
       },
@@ -459,7 +459,7 @@
       {
         "block_id": "b000013",
         "language": "sh",
-        "code": "python3 -B scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure \\\n  -E '^iiCalendar\\.(installed_consumer|external_apple)$'\ncmake --install build --prefix \"$HOME/.local/SDK/iiCalendar\"\n"
+        "code": "python3 -B scripts/bootstrap_icu.py\ncmake -S . -B build -DCMAKE_BUILD_TYPE=Debug\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure \\\n  -E '^iiCalendarIntegration\\.(installed_consumer|external_apple)$'\ncmake --install build --prefix \"$HOME/.local/SDK/iiCalendarIntegration\"\n"
       }
     ],
     "links": [
@@ -503,56 +503,56 @@
         "label": "Accounts",
         "target": "docs/Accounts.md",
         "kind": "relative",
-        "line": 58
+        "line": 60
       },
       {
         "block_id": "b000031",
         "label": "External calendars",
         "target": "docs/ExternalCalendars.md",
         "kind": "relative",
-        "line": 71
+        "line": 73
       },
       {
         "block_id": "b000033",
         "label": "Accounts.md",
         "target": "docs/Accounts.md#python-account-api-contract",
         "kind": "relative",
-        "line": 73
+        "line": 75
       },
       {
         "block_id": "b000039",
         "label": "Apache License 2.0",
         "target": "LICENSE",
         "kind": "relative",
-        "line": 80
+        "line": 82
       },
       {
         "block_id": "b000043",
         "label": "source layout",
         "target": "docs/SourceLayout.md",
         "kind": "relative",
-        "line": 85
+        "line": 87
       },
       {
         "block_id": "b000050",
         "label": "AGENT.md",
         "target": "AGENT.md",
         "kind": "relative",
-        "line": 99
+        "line": 101
       },
       {
         "block_id": "b000050",
         "label": "documentation index",
         "target": "docs/README.md",
         "kind": "relative",
-        "line": 100
+        "line": 102
       },
       {
         "block_id": "b000050",
         "label": "agent index",
         "target": "docs/agent-index.json",
         "kind": "relative",
-        "line": 101
+        "line": 103
       }
     ],
     "tables": []

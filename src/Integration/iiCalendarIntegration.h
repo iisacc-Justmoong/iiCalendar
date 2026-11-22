@@ -1,0 +1,10 @@
+#pragma once
+#include <iiCalendarIntegration/Calendar.h>
+#include <iiCalendarIntegration/Date.h>
+#include <iiCalendarIntegration/Event.h>
+#include <iiCalendarIntegration/ExternalCalendar.h>
+#include <iiCalendarIntegration/Accounts.h>
+#include <iiCalendarIntegration/Store.h>
+#include <iiCalendarIntegration/Time.h>
+#include <iiCalendarIntegration/TimeZone.h>
+#include <iiCalendarIntegration/View.h>

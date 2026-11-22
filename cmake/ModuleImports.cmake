@@ -1,8 +1,8 @@
 # Publish this SDK's extensionless C++ header from its own export targets.
 # Deferred registration sees the optional targets enabled by this configuration.
-function(_iisdk_iicalendar_module_imports)
+function(_iisdk_iicalendarintegration_module_imports)
     set(_root "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../src/ModuleImports")
-    set(_entries "iiCalendar|IISDK_IMPORT_IICALENDAR_ALL")
+    set(_entries "iiCalendarIntegration|IISDK_IMPORT_IICALENDARINTEGRATION_ALL")
     set(_includedir "${CMAKE_INSTALL_INCLUDEDIR}")
     if(NOT _includedir)
         set(_includedir include)
@@ -23,8 +23,8 @@ function(_iisdk_iicalendar_module_imports)
         target_compile_definitions("${_target}" INTERFACE "${_capability}=1")
     endforeach()
     if(_publish)
-        install(FILES "${_root}/iiCalendar" DESTINATION "${_includedir}/iisdk")
+        install(FILES "${_root}/iiCalendarIntegration" DESTINATION "${_includedir}/iisdk")
     endif()
 endfunction()
 
-cmake_language(DEFER CALL _iisdk_iicalendar_module_imports)
+cmake_language(DEFER CALL _iisdk_iicalendarintegration_module_imports)

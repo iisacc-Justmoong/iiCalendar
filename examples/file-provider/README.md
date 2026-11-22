@@ -1,6 +1,6 @@
 # Calendar file-provider composition
 
-This independently configured consumer links iiCalendar and iiFileProvider Native.
+This independently configured consumer links iiCalendarIntegration and iiFileProvider Native.
 `App/FileProviderAdapter.h` opens file databases through the provider and gives
 an owned SQLite connection to `Store`; it saves and restores account documents
 through the provider's bounded, atomic file API. The application owns this
@@ -10,7 +10,7 @@ contract tests create temporary files under `../../resources` and remove them.
 
 ```sh
 cmake -S examples/file-provider -B build/file-provider-consumer \
-  '-DCMAKE_PREFIX_PATH=/path/to/iiCalendar;/path/to/iiFileProvider' \
+  '-DCMAKE_PREFIX_PATH=/path/to/iiCalendarIntegration;/path/to/iiFileProvider' \
   -DICU_ROOT=/path/to/icu
 cmake --build build/file-provider-consumer
 ctest --test-dir build/file-provider-consumer --output-on-failure

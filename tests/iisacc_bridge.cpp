@@ -1,4 +1,4 @@
-#include <iiCalendar/IisaccAccount.h>
+#include <iiCalendarIntegration/IisaccAccount.h>
 #include <iiAccountManager/AccountManager.h>
 #include <iiFileProviderNative.h>
 #include <QCoreApplication>
@@ -14,15 +14,15 @@
 
 namespace {
 void check(bool condition, const char *message) { if (!condition) throw std::runtime_error(message); }
-class Provider final : public iiCalendar::ExternalCalendarProvider {
+class Provider final : public iiCalendarIntegration::ExternalCalendarProvider {
 public:
     std::string id() const override { return "fixture"; }
-    std::vector<iiCalendar::RemoteCalendar> calendars() override { return {{"calendar", "Work"}}; }
-    std::vector<iiCalendar::Event> events(const iiCalendar::RemoteCalendar &, iiCalendar::TimeRange) override { return {}; }
+    std::vector<iiCalendarIntegration::RemoteCalendar> calendars() override { return {{"calendar", "Work"}}; }
+    std::vector<iiCalendarIntegration::Event> events(const iiCalendarIntegration::RemoteCalendar &, iiCalendarIntegration::TimeRange) override { return {}; }
 };
 }
 int main(int argc, char **argv) {
-    QCoreApplication app(argc, argv); app.setApplicationName("iiCalendar.AccountBridgeTest");
+    QCoreApplication app(argc, argv); app.setApplicationName("iiCalendarIntegration.AccountBridgeTest");
     try {
         const std::string_view fixturePath = IISACC_ACCOUNT_FIXTURE;
         const std::u8string_view utf8Path(reinterpret_cast<const char8_t *>(fixturePath.data()), fixturePath.size());
@@ -56,9 +56,9 @@ int main(int argc, char **argv) {
         });
         const QUrl origin("http://127.0.0.1:" + QString::number(server.serverPort()));
         iisacc::accounts::AccountManager source(origin);
-        iiCalendar::CalendarAccountOptions options; options.iisaccOrigin = origin.toString().toStdString();
-        iiCalendar::CalendarAccountManager calendar(options);
-        const auto synchronize = [&] { iiCalendar::synchronizeIisaccAccount(calendar, source); };
+        iiCalendarIntegration::CalendarAccountOptions options; options.iisaccOrigin = origin.toString().toStdString();
+        iiCalendarIntegration::CalendarAccountManager calendar(options);
+        const auto synchronize = [&] { iiCalendarIntegration::synchronizeIisaccAccount(calendar, source); };
         QObject::connect(&source, &iisacc::accounts::AccountManager::authenticatedChanged, &source, synchronize);
         QObject::connect(&source, &iisacc::accounts::AccountManager::loginSessionChanged, &source, synchronize);
         QObject::connect(&source, &iisacc::accounts::AccountManager::sessionEnding, &source, [&] { calendar.setIisaccSession(std::nullopt); });

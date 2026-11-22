@@ -1,9 +1,9 @@
 #include "Checked.h"
-#include <iiCalendar/Time.h>
+#include <iiCalendarIntegration/Time.h>
 #include <iomanip>
 #include <sstream>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 void fractionCheck(std::uint64_t v) {
     if (v >= AttosecondsPerSecond)
@@ -164,4 +164,4 @@ bool TimeRange::overlaps(TimeRange other) const {
         return start >= other.start && start < other.end;
     return start < other.end && end > other.start;
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

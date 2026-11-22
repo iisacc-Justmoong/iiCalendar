@@ -1,10 +1,10 @@
 #pragma once
-#include <iiCalendar/Event.h>
+#include <iiCalendarIntegration/Event.h>
 #include <functional>
 #include <mutex>
 #include <stdexcept>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 enum class ExternalCalendarErrorCode {
     AuthenticationRequired, PermissionDenied, RateLimited, Transport, InvalidResponse,
     NotFound, LimitExceeded, Busy, StaleSession, Unsupported
@@ -49,8 +49,11 @@ struct ExternalAccountSnapshot {
 };
 struct ExternalCalendarLimits {
     std::size_t maximumCalendars = 1000, maximumEvents = 10000;
+    // Total retained events in one account-wide snapshot.
+    std::size_t maximumSnapshotEvents = 100000;
 };
-// Synchronous I/O: call login/refresh/loadEvents on an application worker.
+class CalendarAccountManager;
+// Run synchronous provider operations on an application worker.
 // Reads return owning copies. Logout/relogin invalidate in-flight results.
 class CalendarObjectManager {
   public:
@@ -58,14 +61,21 @@ class CalendarObjectManager {
     ~CalendarObjectManager();
     CalendarObjectManager(const CalendarObjectManager &) = delete;
     CalendarObjectManager &operator=(const CalendarObjectManager &) = delete;
-    void login(ExternalAccount account, std::shared_ptr<ExternalCalendarProvider> provider);
+    // Supply a window to publish the initial calendar list and events together.
+    void login(ExternalAccount account, std::shared_ptr<ExternalCalendarProvider> provider,
+               std::optional<TimeRange> window = {});
     void refresh(const std::string &accountId);
+    // Replace the whole account snapshot once the list and every requested calendar succeed.
+    void synchronize(const std::string &accountId, TimeRange window);
     void loadEvents(const std::string &accountId, const std::string &calendarId, TimeRange window);
     bool logout(const std::string &accountId);
     std::vector<ExternalAccountSnapshot> accounts() const;
     std::vector<CalendarObject> calendars(const std::optional<std::string> &accountId = {}) const;
     std::optional<CalendarObject> calendar(const std::string &id) const;
   private:
+    friend class CalendarAccountManager;
+    // The account facade permanently closes an attachment when it replaces it.
+    void retire();
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };
@@ -115,7 +125,11 @@ private:
 };
 
 enum class AppleCalendarAuthorization { NotDetermined, FullAccess, Denied, Restricted, WriteOnly };
-struct AppleCalendarSource { std::string id, title; };
+struct AppleCalendarSource {
+    std::string id, title;
+    // EventKit uses this type for both iCloud and other CalDAV sources.
+    bool calDav = false;
+};
 struct AppleCalendarOptions {
     std::string sourceId; // Empty means all device sources, including iCloud/Google/Exchange.
     std::size_t maximumCalendars = 1000, maximumEvents = 10000;
@@ -137,4 +151,4 @@ class AppleCalendarProvider final : public ExternalCalendarProvider {
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

@@ -1,10 +1,10 @@
 #include "Checked.h"
 #include "Icu.h"
 #include <algorithm>
-#include <iiCalendar/Calendar.h>
+#include <iiCalendarIntegration/Calendar.h>
 #include <unicode/uenum.h>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 class NativeCalendar final : public CalendarSystem {
     std::string id_;
@@ -169,4 +169,4 @@ std::vector<std::string> CalendarRegistry::ids() const {
     }
     return result;
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

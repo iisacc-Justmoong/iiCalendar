@@ -1,9 +1,9 @@
-# File creation ownership in iiCalendar
+# File creation ownership in iiCalendarIntegration
 
 Calendar index databases and connection documents are opened by the separate
 `examples/file-provider` application adapter using the native provider. Calendar
 schema, queries, transactions, recurrence and calendar semantics stay in
-iiCalendar, which has no provider SDK dependency.
+iiCalendarIntegration, which has no provider SDK dependency.
 
 The common [ownership contract](../../iiFileProvider/docs/FILE_OWNERSHIP.md) defines stream, staging, control-file and
 installed-package rules. Source regression tests remain with this module; the

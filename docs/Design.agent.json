@@ -3,21 +3,21 @@
   "schema_version": 1,
   "document_id": "urn:iisacc:document:24cb178a3998a9767e1f99a780231a46f4e02e482a4d023cdbf826ace69b0e06",
   "project": {
-    "id": "urn:iisacc:project:SDK%2FiiCalendar",
-    "name": "iiCalendar",
-    "root": "SDK/iiCalendar",
+    "id": "urn:iisacc:project:SDK%2FiiCalendarIntegration",
+    "name": "iiCalendarIntegration",
+    "root": "SDK/iiCalendarIntegration",
     "kind": "sdk"
   },
   "source": {
     "path": "docs/Design.md",
-    "sha256": "ace33396e301de57e5f3d391e95a89e7b8719bb0e49d721ac8702efc0002dbf4",
-    "bytes": 12746,
+    "sha256": "775f8e3129590111a1838a819f6aa43abc2aa22d2f3b1f596a0dbce49590bb54",
+    "bytes": 12779,
     "line_count": 170,
     "encoding": "utf-8",
     "language": "ko"
   },
   "document": {
-    "title": "iiCalendar 0.1 설계 및 지원 계약",
+    "title": "iiCalendarIntegration 0.1 설계 및 지원 계약",
     "role": "reference",
     "authority": "markdown_source"
   },
@@ -27,9 +27,9 @@
       "kind": "heading",
       "start_line": 1,
       "end_line": 1,
-      "raw": "# iiCalendar 0.1 설계 및 지원 계약\n",
+      "raw": "# iiCalendarIntegration 0.1 설계 및 지원 계약\n",
       "level": 1,
-      "title": "iiCalendar 0.1 설계 및 지원 계약"
+      "title": "iiCalendarIntegration 0.1 설계 및 지원 계약"
     },
     {
       "id": "b000002",
@@ -73,7 +73,7 @@
       "kind": "paragraph",
       "start_line": 7,
       "end_line": 12,
-      "raw": "화살표는 상위 기능이 앞선 하위 기능을 사용한다는 뜻이다. Society, LVRS, Qt 및 다른 상위 SDK를\n참조하지 않는다. 공개 헤더에 ICU 자료형은 노출하지 않으며, 저장소 연결 주입을 위해 SQLite의\n불투명 `sqlite3` 선언은 노출한다. `CalendarSystem`은 사용자 정의 역법의 교체 경계이고,\n`Store::Impl`은 스키마와 나머지 연결 관리를 숨긴다. 레지스트리 등록은 공유·사용 전에 완료해야\n한다. 같은 Store 객체의 접근은 mutex로 직렬화된다. 파일 제공자와 계정 SDK는 애플리케이션이\n별도 소비자에서 조합하며 iiCalendar 본체의 의존성이 아니다.\n"
+      "raw": "화살표는 상위 기능이 앞선 하위 기능을 사용한다는 뜻이다. Society, LVRS, Qt 및 다른 상위 SDK를\n참조하지 않는다. 공개 헤더에 ICU 자료형은 노출하지 않으며, 저장소 연결 주입을 위해 SQLite의\n불투명 `sqlite3` 선언은 노출한다. `CalendarSystem`은 사용자 정의 역법의 교체 경계이고,\n`Store::Impl`은 스키마와 나머지 연결 관리를 숨긴다. 레지스트리 등록은 공유·사용 전에 완료해야\n한다. 같은 Store 객체의 접근은 mutex로 직렬화된다. 파일 제공자와 계정 SDK는 애플리케이션이\n별도 소비자에서 조합하며 iiCalendarIntegration 본체의 의존성이 아니다.\n"
     },
     {
       "id": "b000008",
@@ -442,7 +442,7 @@
       "kind": "paragraph",
       "start_line": 106,
       "end_line": 115,
-      "raw": "`Store(std::shared_ptr<sqlite3>, calendars)`는 애플리케이션이 미리 열어 둔 읽기·쓰기 연결을\n받는다. 호출자는 `sqlite3_close_v2`와 같은 연결 종료 deleter를 지정하고, 활성 트랜잭션이 없는\n연결을 넘기며, Store가 살아 있는 동안 그 연결을 다른 Store나 외부 코드가 사용하지 않게 해야\n한다. 공유 포인터가 연결 수명을\n유지하며 Store가 파괴되어도 호출자가 보유한 연결은 닫히지 않는다. Store는 연결의 busy timeout,\nforeign key 설정과 스키마를 검사·설정한다. 연결이 null이거나 달력 레지스트리가 null이면\n`invalid_argument`를, 무관하거나 지원되지 않는 데이터베이스는 `StorageError`를 반환한다.\n`Store::inMemory()`는 파일을 만들지 않는다. 파일 기반 저장소는 별도 소비자의\n`iiCalendarFileProvider::openStore(path)`처럼 iiFileProvider로 연결을 열어 주입한다. 기존\n`Store(path)`는 제거됐으므로 애플리케이션을 다시 빌드하고 호출을 이전해야 한다.\n"
+      "raw": "`Store(std::shared_ptr<sqlite3>, calendars)`는 애플리케이션이 미리 열어 둔 읽기·쓰기 연결을\n받는다. 호출자는 `sqlite3_close_v2`와 같은 연결 종료 deleter를 지정하고, 활성 트랜잭션이 없는\n연결을 넘기며, Store가 살아 있는 동안 그 연결을 다른 Store나 외부 코드가 사용하지 않게 해야\n한다. 공유 포인터가 연결 수명을\n유지하며 Store가 파괴되어도 호출자가 보유한 연결은 닫히지 않는다. Store는 연결의 busy timeout,\nforeign key 설정과 스키마를 검사·설정한다. 연결이 null이거나 달력 레지스트리가 null이면\n`invalid_argument`를, 무관하거나 지원되지 않는 데이터베이스는 `StorageError`를 반환한다.\n`Store::inMemory()`는 파일을 만들지 않는다. 파일 기반 저장소는 별도 소비자의\n`iiCalendarIntegrationFileProvider::openStore(path)`처럼 iiFileProvider로 연결을 열어 주입한다. 기존\n`Store(path)`는 제거됐으므로 애플리케이션을 다시 빌드하고 호출을 이전해야 한다.\n"
     },
     {
       "id": "b000050",
@@ -691,8 +691,8 @@
       "block_id": "b000001",
       "parent_id": null,
       "level": 1,
-      "title": "iiCalendar 0.1 설계 및 지원 계약",
-      "anchor": "iicalendar-01-설계-및-지원-계약",
+      "title": "iiCalendarIntegration 0.1 설계 및 지원 계약",
+      "anchor": "iicalendarintegration-01-설계-및-지원-계약",
       "start_line": 1
     },
     {

@@ -1,11 +1,11 @@
 #pragma once
-#include <iiCalendar/Date.h>
+#include <iiCalendarIntegration/Date.h>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 struct CalendarDate {
     int year = 1970; // Extended year, independent of era numbering.
     unsigned month = 1;
@@ -34,4 +34,4 @@ class CalendarRegistry {
   private:
     std::map<std::string, std::shared_ptr<const CalendarSystem>, std::less<>> systems_;
 };
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

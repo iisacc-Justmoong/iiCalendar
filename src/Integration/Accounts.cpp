@@ -1,15 +1,19 @@
-#include <iiCalendar/Accounts.h>
+#include <iiCalendarIntegration/Accounts.h>
 #include "Http.h"
 #include "../Security/Sha256.h"
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <set>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 using Json = nlohmann::json;
 using Code = ExternalCalendarErrorCode;
 [[noreturn]] void fail(Code code, const char *message) { throw ExternalCalendarError(code, message); }
+// Reject nonpositive windows before changing the account state or doing I/O.
+void validateWindow(const std::optional<TimeRange> &window) {
+    if (window && window->end <= window->start) throw std::invalid_argument("event window must have positive duration");
+}
 std::string part(const std::string &value) { return std::to_string(value.size()) + ':' + value; }
 std::string accountKey(const std::string &origin, const std::string &owner, const std::string &provider, const std::string &subject) {
     return "account:" + part(origin) + part(owner) + part(provider) + part(subject);
@@ -104,11 +108,20 @@ public:
     mutable std::mutex mutex;
     mutable std::shared_ptr<Context> current;
     explicit Impl(CalendarAccountOptions value) : options(std::move(value)) {
-        if (!validText(options.iisaccOrigin) || !options.now || !options.maximumAccounts || !options.limits.maximumCalendars || !options.limits.maximumEvents)
+        if (!validText(options.iisaccOrigin) || !options.now || !options.maximumAccounts || !options.limits.maximumCalendars
+            || !options.limits.maximumEvents || !options.limits.maximumSnapshotEvents)
             throw std::invalid_argument("calendar account options must have positive limits and an iisacc origin/clock");
     }
+    // The caller holds the account mutex. Retire the lower attachments so an
+    // in-flight snapshot stops before issuing its next provider request.
+    void replaceContext(std::shared_ptr<Context> replacement = {}) const {
+        if (current) {
+            for (const auto &entry : current->connections) entry.second->objects.retire();
+        }
+        current = std::move(replacement);
+    }
     std::shared_ptr<Context> get(bool required = true) const { // mutex held
-        if (current && current->session && current->session->expiresAt <= options.now()) current.reset();
+        if (current && current->session && current->session->expiresAt <= options.now()) replaceContext();
         if (!current && required) fail(Code::AuthenticationRequired, "an open calendar workspace is required");
         return current;
     }
@@ -170,7 +183,8 @@ public:
         }
     }
     CalendarAccount connect(const std::shared_ptr<Context> &context, ExternalAccount account,
-                            std::shared_ptr<ExternalCalendarProvider> provider, std::string email = {}) {
+                            std::shared_ptr<ExternalCalendarProvider> provider, std::optional<TimeRange> window,
+                            std::string email = {}) {
         if (!provider || !validText(account.id) || !validText(account.providerId, 128)
             || account.providerId == "iisacc" || account.providerId != provider->id()
             || !validText(account.displayName, 4096, false) || !validText(email, 4096, false))
@@ -190,8 +204,8 @@ public:
                 false, enabled, enabled ? CalendarAccountState::Linked : CalendarAccountState::Disabled, {}};
             connection->provider = std::move(provider); context->connections[key] = connection;
         }
-        if (enabled) run(context, key, [](CalendarObjectManager &objects, const CalendarAccount &value, const auto &source, bool) {
-            objects.login({value.id, value.providerId, value.displayName}, source);
+        if (enabled) run(context, key, [&](CalendarObjectManager &objects, const CalendarAccount &value, const auto &source, bool) {
+            objects.login({value.id, value.providerId, value.displayName}, source, window);
         }, connection);
         std::lock_guard lock(mutex); check(context);
         if (!context->connections.contains(key) || context->connections.at(key) != connection)
@@ -205,18 +219,18 @@ void CalendarAccountManager::setWorkspace(std::optional<CalendarWorkspaceIdentit
     if (identity && (!validText(identity->nameSpace) || !validText(identity->ownerId) || !validText(identity->deviceId)))
         throw std::invalid_argument("calendar workspace namespace, owner and device are required");
     std::lock_guard lock(impl_->mutex);
-    if (!identity) { impl_->current.reset(); return; }
+    if (!identity) { impl_->replaceContext(); return; }
     const auto current = impl_->get(false);
     if (current && !current->session && current->workspace == *identity) return;
-    impl_->current = std::make_shared<Impl::Context>(std::move(*identity));
+    impl_->replaceContext(std::make_shared<Impl::Context>(std::move(*identity)));
 }
 void CalendarAccountManager::setIisaccSession(std::optional<IisaccCalendarSession> session) {
     std::lock_guard lock(impl_->mutex);
-    if (!session) { impl_->current.reset(); return; }
+    if (!session) { impl_->replaceContext(); return; }
     if (session->origin != impl_->options.iisaccOrigin || !validText(session->subject) || !validText(session->userId, 4096, false)
         || !validText(session->sessionId) || !validText(session->deviceId) || !validText(session->email, 4096, false)
         || !validText(session->displayName, 4096, false) || session->expiresAt <= impl_->options.now()) {
-        impl_->current.reset(); fail(Code::AuthenticationRequired, "a current verified iisacc session is required");
+        impl_->replaceContext(); fail(Code::AuthenticationRequired, "a current verified iisacc session is required");
     }
     const auto old = impl_->get(false);
     if (old && old->session && old->session->origin == session->origin && old->session->subject == session->subject
@@ -225,7 +239,7 @@ void CalendarAccountManager::setIisaccSession(std::optional<IisaccCalendarSessio
         old->session->email = std::move(session->email); old->session->displayName = std::move(session->displayName);
         old->session->expiresAt = session->expiresAt;
     }
-    else impl_->current = std::make_shared<Impl::Context>(std::move(*session));
+    else impl_->replaceContext(std::make_shared<Impl::Context>(std::move(*session)));
 }
 bool CalendarAccountManager::authenticated() const {
     std::lock_guard lock(impl_->mutex); const auto context = impl_->get(false); return context && context->session.has_value();
@@ -241,24 +255,31 @@ std::vector<CalendarAccount> CalendarAccountManager::accounts() const {
     for (const auto &[key, connection] : context->connections) { (void)key; result.push_back(connection->value); }
     return result;
 }
-CalendarAccount CalendarAccountManager::connect(ExternalAccount account, std::shared_ptr<ExternalCalendarProvider> provider) {
-    return impl_->connect(impl_->capture(), std::move(account), std::move(provider));
+CalendarAccount CalendarAccountManager::connect(ExternalAccount account, std::shared_ptr<ExternalCalendarProvider> provider,
+                                                std::optional<TimeRange> initialWindow) {
+    validateWindow(initialWindow);
+    return impl_->connect(impl_->capture(), std::move(account), std::move(provider), initialWindow);
 }
-CalendarAccount CalendarAccountManager::connectGoogle(CalendarAccessToken token, CalendarHttpGet get, GoogleCalendarOptions options) {
+CalendarAccount CalendarAccountManager::connectGoogle(CalendarAccessToken token, CalendarHttpGet get, GoogleCalendarOptions options,
+                                                      std::optional<TimeRange> initialWindow) {
+    validateWindow(initialWindow);
     const auto context = impl_->capture();
     auto identity = std::make_shared<IdentityToken>("google", std::move(token), get);
     const auto profile = identity->profile();
     auto provider = std::make_shared<GoogleCalendarProvider>([identity] { return identity->token(); }, std::move(get), options);
-    return impl_->connect(context, {profile.subject, "google", profile.name}, std::move(provider), profile.email);
+    return impl_->connect(context, {profile.subject, "google", profile.name}, std::move(provider), initialWindow, profile.email);
 }
-CalendarAccount CalendarAccountManager::connectMicrosoft(CalendarAccessToken token, CalendarHttpGet get, MicrosoftCalendarOptions options) {
+CalendarAccount CalendarAccountManager::connectMicrosoft(CalendarAccessToken token, CalendarHttpGet get, MicrosoftCalendarOptions options,
+                                                         std::optional<TimeRange> initialWindow) {
+    validateWindow(initialWindow);
     const auto context = impl_->capture();
     auto identity = std::make_shared<IdentityToken>("microsoft", std::move(token), get);
     const auto profile = identity->profile();
     auto provider = std::make_shared<MicrosoftCalendarProvider>([identity] { return identity->token(); }, std::move(get), options);
-    return impl_->connect(context, {profile.subject, "microsoft", profile.name}, std::move(provider), profile.email);
+    return impl_->connect(context, {profile.subject, "microsoft", profile.name}, std::move(provider), initialWindow, profile.email);
 }
-CalendarAccount CalendarAccountManager::connectApple(AppleCalendarOptions options) {
+CalendarAccount CalendarAccountManager::connectApple(AppleCalendarOptions options, std::optional<TimeRange> initialWindow) {
+    validateWindow(initialWindow);
     const auto context = impl_->capture();
     auto provider = std::make_shared<AppleCalendarProvider>(options);
     std::string name = "Device calendars";
@@ -268,11 +289,18 @@ CalendarAccount CalendarAccountManager::connectApple(AppleCalendarOptions option
         if (source == sources.end()) fail(Code::NotFound, "Apple calendar source was not found");
         name = source->title;
     }
-    return impl_->connect(context, {part(context->workspace.deviceId) + part(options.sourceId), "apple", name}, std::move(provider));
+    return impl_->connect(context, {part(context->workspace.deviceId) + part(options.sourceId), "apple", name}, std::move(provider), initialWindow);
 }
 void CalendarAccountManager::refresh(const std::string &accountId) {
     impl_->run(impl_->capture(), accountId, [](CalendarObjectManager &objects, const CalendarAccount &value, const auto &provider, bool bound) {
         if (!bound) objects.login({value.id, value.providerId, value.displayName}, provider); else objects.refresh(value.id);
+    });
+}
+void CalendarAccountManager::synchronize(const std::string &accountId, TimeRange window) {
+    validateWindow(window);
+    impl_->run(impl_->capture(), accountId, [&](CalendarObjectManager &objects, const CalendarAccount &value, const auto &provider, bool bound) {
+        if (!bound) objects.login({value.id, value.providerId, value.displayName}, provider, window);
+        else objects.synchronize(value.id, window);
     });
 }
 void CalendarAccountManager::loadEvents(const std::string &accountId, const std::string &calendarId, TimeRange window) {
@@ -291,6 +319,7 @@ void CalendarAccountManager::setEnabled(const std::string &accountId, bool enabl
     replacement->value.enabled = enabled; replacement->value.error.reset();
     replacement->value.state = !enabled ? CalendarAccountState::Disabled
         : replacement->provider ? CalendarAccountState::Linked : CalendarAccountState::AuthenticationRequired;
+    connection->objects.retire();
     context->connections[accountId] = std::move(replacement);
 }
 bool CalendarAccountManager::disconnect(const std::string &accountId) {
@@ -298,7 +327,7 @@ bool CalendarAccountManager::disconnect(const std::string &accountId) {
     if (context->session && accountId == Impl::primary(*context).id) fail(Code::PermissionDenied, "the required iisacc account cannot be disconnected here");
     const auto found = context->connections.find(accountId);
     if (found == context->connections.end()) return false;
-    found->second->objects.logout(accountId); context->connections.erase(found); return true;
+    found->second->objects.retire(); context->connections.erase(found); return true;
 }
 std::vector<CalendarObject> CalendarAccountManager::calendars(const std::optional<std::string> &accountId) const {
     std::lock_guard lock(impl_->mutex); const auto context = impl_->get(); std::vector<CalendarObject> result;
@@ -327,7 +356,7 @@ std::string CalendarAccountManager::connectionDocument() const {
         accounts.push_back({{"id", id}, {"provider", value.providerId}, {"subject", value.subject}, {"displayName", value.displayName},
             {"email", value.email}, {"enabled", value.enabled}});
     }
-    auto root = Json{{"format", "iiCalendar.AccountConnections"}, {"schema", 1}, {"origin", context->keyOrigin()},
+    auto root = Json{{"format", "iiCalendarIntegration.AccountConnections"}, {"schema", 1}, {"origin", context->keyOrigin()},
         {"owner", context->workspace.ownerId}, {"accounts", accounts}};
     if (!context->session) root["scope"] = "workspace";
     auto document = root.dump();
@@ -340,7 +369,10 @@ void CalendarAccountManager::restoreConnections(const std::string &document) {
     std::map<std::string, std::shared_ptr<Impl::Connection>> connections;
     try {
         const auto root = Json::parse(document, [](int depth, Json::parse_event_t, Json &) { if (depth > 16) throw std::invalid_argument("depth"); return true; });
-        if (root.at("format") != "iiCalendar.AccountConnections" || root.at("schema") != 1) throw std::invalid_argument("schema");
+        const auto &format = root.at("format");
+        // Preserve schema 1 documents and connection IDs through the package rename.
+        if ((format != "iiCalendarIntegration.AccountConnections" && format != "iiCalendar.AccountConnections") || root.at("schema") != 1)
+            throw std::invalid_argument("schema");
         if ((!context->session && root.value("scope", std::string{}) != "workspace")
             || (context->session && root.contains("scope"))
             || root.at("origin") != context->keyOrigin() || root.at("owner") != context->workspace.ownerId)
@@ -365,4 +397,4 @@ void CalendarAccountManager::restoreConnections(const std::string &document) {
     if (!context->connections.empty()) fail(Code::Busy, "restore connections before attaching providers");
     context->connections = std::move(connections);
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

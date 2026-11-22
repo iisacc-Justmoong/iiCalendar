@@ -1,11 +1,11 @@
 #include "Checked.h"
 #include <algorithm>
 #include <charconv>
-#include <iiCalendar/Date.h>
+#include <iiCalendarIntegration/Date.h>
 #include <iomanip>
 #include <sstream>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 // Integer 400-year era decomposition; no std::chrono::year 16-bit range limit.
 std::int64_t epoch(int year, unsigned month, unsigned day) noexcept {
@@ -115,4 +115,4 @@ Date Date::parse(const std::string &iso) {
     return Date(y, static_cast<unsigned>(number(n + 1, 2)),
                 static_cast<unsigned>(number(n + 4, 2)));
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

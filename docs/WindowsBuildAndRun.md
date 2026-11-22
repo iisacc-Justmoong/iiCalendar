@@ -1,4 +1,4 @@
-# iiCalendar: Windows 빌드 및 실행
+# iiCalendarIntegration: Windows 빌드 및 실행
 
 시간대, 국제 달력, 일정 및 외부 캘린더 전송을 제공하는 Qt 비의존 C++23 SDK이다.
 
@@ -10,16 +10,16 @@ Release 빌드·실행 검사·설치를 완료하였다. 등록 검사 14개 �
 
 ## 이 프로젝트의 의존성과 실행 범위
 
-파일 조합 소비자를 검증할 때는 iiFileProvider의 Windows 지침을 따른다. iiCalendar 본체를 빌드할 때 다른 SDK는 필요하지 않다.
+파일 조합 소비자를 검증할 때는 iiFileProvider의 Windows 지침을 따른다. iiCalendarIntegration 본체를 빌드할 때 다른 SDK는 필요하지 않다.
 
 - [iiFileProvider](../../../SDK/iiFileProvider/docs/WindowsBuildAndRun.md)
 
-- iiCalendar 본체에는 ICU i18n/uc/data, SQLite 3.37 이상 및 CURL 7.85 이상이 필요하다. 파일 조합 소비자에는 iiFileProvider Native가 별도로 필요하다.
+- iiCalendarIntegration 본체에는 ICU i18n/uc/data, SQLite 3.37 이상 및 CURL 7.85 이상이 필요하다. 파일 조합 소비자에는 iiFileProvider Native가 별도로 필요하다.
 - 현재 vcpkg x64-windows 설치를 사용한다. OAuth 계정과 외부 서비스 실연동은 fixture 실행과 구분한다.
 
 프로젝트별 Windows 조건은 다음과 같다.
 
-- iisacc 계정 브리지는 `examples/iisacc-bridge`에서 별도 소비자로 구성한다. 기존 `IICALENDAR_TEST_IISACC_BRIDGE=ON` 캐시는 이전 안내와 함께 실패하며 `OFF`로 정리한다.
+- iisacc 계정 브리지는 `examples/iisacc-bridge`에서 별도 소비자로 구성한다. 기존 `IICALENDARINTEGRATION_TEST_IISACC_BRIDGE=ON` 캐시는 이전 안내와 함께 실패하며 `OFF`로 정리한다.
 - 설치 소비자는 SDK와 같은 Release 구성을 사용해야 MSVC iterator 및 런타임 ABI가 일치한다.
 
 ## 환경 준비
@@ -38,7 +38,7 @@ $python = (Join-Path $workspace 'Tools/Python314/tools/python.exe').Replace('\',
 $compiler = (Get-Command cl.exe -ErrorAction Stop).Source.Replace('\', '/')
 $toolchain = (Join-Path $workspace 'Tools/vcpkg/scripts/buildsystems/vcpkg.cmake').Replace('\', '/')
 $msvcInclude = (Join-Path $workspace 'SDK/Windows/WindowsMsvcPrefix.cmake').Replace('\', '/')
-$prefix = (Join-Path $env:USERPROFILE '.local/SDK/iiCalendar').Replace('\', '/')
+$prefix = (Join-Path $env:USERPROFILE '.local/SDK/iiCalendarIntegration').Replace('\', '/')
 ```
 
 `Enter-DevEnvironment.ps1`은 Qt MSVC kit, vcpkg, 설치된 SDK의 검색 경로와 UTF-8 설정을 준비한다. `CMAKE_PREFIX_PATH`의 디렉터리 존재만으로 의존성 검증을 대신하지 않는다. 선행 SDK의 실행 검사와 설치를 먼저 완료해야 한다.
@@ -60,8 +60,8 @@ $configure = @(
     "-DPython_EXECUTABLE=$python"
     '-DQt6_DIR=C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6'
     '-DBUILD_TESTING=ON'
-    '-DIICALENDAR_WITH_CURL=ON'
-    '-DIICALENDAR_TEST_IISACC_BRIDGE=OFF'
+    '-DIICALENDARINTEGRATION_WITH_CURL=ON'
+    '-DIICALENDARINTEGRATION_TEST_IISACC_BRIDGE=OFF'
 )
 & cmake @configure
 if ($LASTEXITCODE -ne 0) { throw 'CMake 구성 실패' }
@@ -92,7 +92,7 @@ ctest --test-dir build -C Release --output-on-failure --parallel 1 --no-tests=er
 if ($LASTEXITCODE -ne 0) { throw '전체 실행 검사 실패' }
 ```
 
-현재 빌드에 실제 등록된 실행 경로의 예는 `iiCalendar.accounts`, `iiCalendar.external_microsoft`, `iiCalendar.external_manager`이다. 전체 목록은 `ctest --test-dir build -N`으로 확인한다.
+현재 빌드에 실제 등록된 실행 경로의 예는 `iiCalendarIntegration.accounts`, `iiCalendarIntegration.external_microsoft`, `iiCalendarIntegration.external_manager`이다. 전체 목록은 `ctest --test-dir build -N`으로 확인한다.
 
 ## 설치와 배포 범위
 

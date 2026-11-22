@@ -1,8 +1,8 @@
 #pragma once
-#include <iiCalendar/Accounts.h>
+#include <iiCalendarIntegration/Accounts.h>
 #include <type_traits>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 // Header-only integration with iiAccountManager >= 0.2.9. All account/Qt types
 // are dependent: including this header never introduces a Qt dependency.
 // Call on the source manager's thread after authenticated/login-session changes
@@ -31,4 +31,4 @@ void synchronizeIisaccAccount(CalendarAccountManager &calendar, const IisaccAcco
         throw ExternalCalendarError(ExternalCalendarErrorCode::AuthenticationRequired, "a verified iisacc app session is required");
     }
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration

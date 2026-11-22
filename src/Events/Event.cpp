@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <cmath>
-#include <iiCalendar/Event.h>
+#include <iiCalendarIntegration/Event.h>
 #include <set>
 
-namespace iiCalendar {
+namespace iiCalendarIntegration {
 namespace {
 void require(bool condition, const char *message) {
     if (!condition)
@@ -145,4 +145,4 @@ std::optional<LocalDateTime> Event::localStart() const {
         return TimeZone(zone()).at(r->start).local;
     return {};
 }
-} // namespace iiCalendar
+} // namespace iiCalendarIntegration
