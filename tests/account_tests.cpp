@@ -30,6 +30,47 @@ public:
         Event e; e.id = "same"; e.title = "Account event"; e.schedule = TimedSchedule{range, "UTC"}; return {e};
     }
 };
+// Facade dispatch must retain the attachment that owns the selected calendar.
+void accountCreation() {
+    class Writer final : public Provider {
+    public:
+        int writes = 0, reads = 0, taskWrites = 0;
+        std::vector<RemoteCalendar> calendars() override {
+            ++reads; auto result = Provider::calendars(); result[0].readOnly = false; return result;
+        }
+        std::vector<Event> events(const RemoteCalendar &calendar, TimeRange range) override {
+            ++reads; return Provider::events(calendar, range);
+        }
+        Event createEvent(const RemoteCalendar &, const Event &draft) override {
+            ++writes; if (error) throw ExternalCalendarError(*error, "fixture");
+            auto saved = draft; saved.id = "created"; return saved;
+        }
+        std::vector<RemoteTaskList> taskLists() override { return {{"tasks", "Tasks", true}}; }
+        Event createTask(const RemoteTaskList &, const Event &draft, bool) override {
+            ++taskWrites; auto saved = draft; saved.id = "task"; return saved;
+        }
+    };
+    CalendarAccountManager accounts;
+    accounts.setWorkspace(CalendarWorkspaceIdentity{"test", "owner", "device"});
+    auto first = std::make_shared<Writer>(), second = std::make_shared<Writer>();
+    auto a = accounts.connect({"a", "fixture", "A"}, first, window());
+    auto b = accounts.connect({"b", "fixture", "B"}, second, window());
+    auto calendar = accounts.calendars(b.id).at(0);
+    Event draft; draft.calendarId = calendar.id; draft.title = "Created"; draft.schedule = TimedSchedule{window(), "UTC"};
+    auto saved = accounts.createEvent(b.id, calendar.id, draft);
+    CHECK(saved.ownerId == "owner" && first->writes == 0 && second->writes == 1 && second->reads == 2);
+    CHECK(accounts.calendars(b.id).at(0).events.size() == 2);
+    fails(ExternalCalendarErrorCode::NotFound, [&] { (void)accounts.createEvent(a.id, calendar.id, draft); });
+    CHECK(first->writes == 0 && second->writes == 1);
+    auto lists = accounts.taskLists(b.id);
+    draft.kind = EventKind::Task;
+    auto task = accounts.createTask(b.id, calendar.id, lists.at(0).id, draft);
+    CHECK(task.ownerId == "owner" && first->taskWrites == 0 && second->taskWrites == 1);
+    draft.kind = EventKind::Event; second->error = ExternalCalendarErrorCode::PermissionDenied;
+    fails(ExternalCalendarErrorCode::PermissionDenied, [&] { (void)accounts.createEvent(b.id, calendar.id, draft); });
+    CHECK(accounts.calendars(b.id).at(0).events.size() == 2);
+    CHECK(accounts.accounts().at(1).state == CalendarAccountState::Ready);
+}
 void lifecycle() {
     CalendarAccountManager accounts;
     auto provider = std::make_shared<Provider>();
@@ -141,6 +182,25 @@ void externalIdentities() {
         (void)anonymous.connectGoogle([] { return "fixture-token"; }, [&](auto &) { ++io; return CalendarHttpResponse{}; });
     });
     CHECK(io == 0);
+
+    // Restoration pins the expected subject before any calendar endpoint is read.
+    CalendarAccountManager restored;
+    restored.setWorkspace(CalendarWorkspaceIdentity{"example.daymark", "owner", "device"});
+    for (const bool googleProvider : {true, false}) {
+        int profileReads = 0, calendarReads = 0;
+        auto wrongSubject = [&](const CalendarHttpRequest &request) -> CalendarHttpResponse {
+            if (request.url.find("userinfo") != std::string::npos || request.url.find("$select=id") != std::string::npos) {
+                ++profileReads;
+                return {200, googleProvider ? R"({"sub":"wrong"})" : R"({"id":"wrong"})"};
+            }
+            ++calendarReads; return {200, googleProvider ? R"({"items":[]})" : R"({"value":[]})"};
+        };
+        fails(ExternalCalendarErrorCode::AuthenticationRequired, [&] {
+            if (googleProvider) (void)restored.connectGoogleForSubject("expected", [] { return "fixture-token"; }, wrongSubject);
+            else (void)restored.connectMicrosoftForSubject("expected", [] { return "fixture-token"; }, wrongSubject);
+        });
+        CHECK(profileReads == 1 && calendarReads == 0);
+    }
 }
 void genericWorkspace() {
     CalendarAccountManager accounts;
@@ -356,7 +416,7 @@ void replacingAConnectionWhileItsProviderIsStarting(bool toggleEnabled) {
 }
 int main() {
     try {
-        lifecycle(); persistence(); stale(); externalIdentities(); genericWorkspace(); staleWorkspace();
+        accountCreation(); lifecycle(); persistence(); stale(); externalIdentities(); genericWorkspace(); staleWorkspace();
         accountSnapshot(); retireSnapshot(false); retireSnapshot(true); replacingAConnectionWhileItsProviderIsStarting(false);
         replacingAConnectionWhileItsProviderIsStarting(true); std::cout << checks << " account checks passed\n";
     }

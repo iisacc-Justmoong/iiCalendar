@@ -75,12 +75,10 @@ calendars.synchronize(outlook.id, requestedWindow);
 calendars.disconnect(google.id);
 ```
 
-| Provider | Host authorization | SDK connection |
-| --- | --- | --- |
-| Google | OAuth `openid email https://www.googleapis.com/auth/calendar.readonly` | OIDC userinfo verifies the subject; Calendar v3 reads calendar lists and expanded events |
-| Microsoft / Outlook | Delegated OAuth `User.Read Calendars.Read` | Graph `/me` verifies the subject; `/me/calendars` and `calendarView` read calendars/occurrences |
-| Apple device sources | EventKit full-access authorization; host usage descriptions/entitlements | `connectApple(options)` connects device-managed iCloud/Google/Exchange/CalDAV/local sources; `options.sourceId` selects one source |
-| Custom service | Host-authenticated external identity and provider | `connect(ExternalAccount, ExternalCalendarProvider)` reuses the same ownership/lifecycle rules |
+- Provider: Google; Host authorization: OAuth `openid email https://www.googleapis.com/auth/calendar.readonly`; SDK connection: OIDC userinfo verifies the subject; Calendar v3 reads calendar lists and expanded events
+- Provider: Microsoft / Outlook; Host authorization: Delegated OAuth `User.Read Calendars.Read`; SDK connection: Graph `/me` verifies the subject; `/me/calendars` and `calendarView` read calendars/occurrences
+- Provider: Apple device sources; Host authorization: EventKit full-access authorization; host usage descriptions/entitlements; SDK connection: `connectApple(options)` connects device-managed iCloud/Google/Exchange/CalDAV/local sources; `options.sourceId` selects one source
+- Provider: Custom service; Host authorization: Host-authenticated external identity and provider; SDK connection: `connect(ExternalAccount, ExternalCalendarProvider)` reuses the same ownership/lifecycle rules
 
 Google and Microsoft acquire the current token for each request/page. Newly
 supplied tokens are checked against the original subject before they reach
@@ -258,3 +256,67 @@ errors; callback exceptions are translated to sanitized native errors.
 `Event`, calendar and account lists are snapshots. Python lists/maps are copies:
 assign changed lists or maps back to their attribute. `TimeRange` uses half-open
 RFC 3339 instants; all-day schedules use exclusive end dates.
+
+## Creating external events and tasks
+
+`CalendarAccountManager::createEvent(accountId, calendarId, draft)` writes a
+new non-recurring event to the selected connected account and writable calendar.
+`taskLists(accountId)` returns writable lists and flags unverified candidates;
+`createTask(accountId, calendarId, taskListId, draft)` uses a previously
+resolved list; unverified sources require explicit user confirmation. The calendar
+ID supplies account context, not a task list. Python exposes `create_event`, `task_lists`,
+`create_task` and `RemoteTaskList`. A custom provider can override these three
+operations; existing read-only providers inherit `Unsupported`.
+
+Calls are synchronous and belong on a host worker. A successful event response
+is projected into the already-loaded event snapshot when it overlaps the loaded
+window; no provider read follows the write. Tasks are returned to the caller but
+are not placed in an event snapshot. Use `readTasks` for a separate account task
+snapshot. Google resolves its default Tasks list without a list request;
+Microsoft list results are cached within the connection. Apple lists are
+rechecked because the device-wide default can change and must belong to the
+selected source. Same-named candidates are never automatically selected. A transport failure or
+retired session after a write begins can leave the remote outcome unknown;
+the host must not automatically retry and should tell the user to check first.
+
+Hosts must request provider write scopes as well as read scopes: Google Calendar
+events and Tasks, Microsoft `Calendars.ReadWrite` and `Tasks.ReadWrite`. EventKit
+Reminders requires its own explicit access request and usage description. The
+legacy-named injected `CalendarHttpGet` callback receives `CalendarHttpRequest`
+with `method` (`GET` or `POST`) and a JSON `body` for writes. It must not follow
+redirects or expose authorization headers. Provider-specific field limits and
+date semantics are described in [ExternalCalendars.md](ExternalCalendars.md).
+
+An Apple reminder list whose source has the same name and type but a different
+identifier is returned only as `requiresConfirmation`, never as the default.
+The host must obtain the user's confirmation that it belongs to the selected
+account and pass `confirmUnverifiedSource=true` to `createTask`; Python uses
+`confirm_unverified_source=True`. Both the account manager and the Apple
+provider reject an unconfirmed candidate before writing. The target identity is
+checked again before saving. This flag does not prove the two sources are the
+same account. Existing snapshots survive task-list and write failures.
+
+## External task reading contract
+
+`CalendarAccountManager::readTasks(accountId)` and Python `read_tasks` read every
+Google or Microsoft task list available to the account. Completed, assigned and
+undated tasks are included where the provider exposes them. Task identity is
+scoped to the account and list; a task is not attached to an arbitrary calendar.
+Google scheduled dates remain date-only, whereas Microsoft To Do start and due
+times retain their instants. An absent date or time stays absent. A bounded read
+either returns the complete snapshot or fails without publishing partial results.
+The call runs on a worker, and a retired account rejects an in-flight result.
+Task creation continues to use the recognized default list. Apple task reading
+and automatic task-change synchronization are not yet implemented.
+Restoration can call `connectGoogleForSubject` or `connectMicrosoftForSubject`
+(Python: `connect_google_for_subject`, `connect_microsoft_for_subject`) to reject
+a different authenticated subject before fetching its calendar data.
+
+## Updating one occurrence
+
+`updateOccurrence(accountId, calendarId, eventId, change)` accepts a title and
+schedule for one occurrence from the current snapshot. It preserves other fields,
+checks calendar permissions and session ownership, and publishes only a confirmed
+provider response. `update_occurrence` and a custom-provider callback expose the
+same contract to Python. A conflict or uncertain transport result must be surfaced
+to the caller; reconnecting or retrying is a host decision.

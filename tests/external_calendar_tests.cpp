@@ -36,7 +36,104 @@ class FakeProvider : public ExternalCalendarProvider {
         maybeFail(); return entries;
     }
 };
+// A write must use the selected account's existing calendar metadata, return
+// the provider result, and update the loaded snapshot without another read.
+void creationTests() {
+    class Writable final : public FakeProvider {
+    public:
+        int reads = 0, writes = 0, listReads = 0, taskWrites = 0;
+        std::string target;
+        Writable() { list[0].readOnly = false; entries.clear(); }
+        std::vector<RemoteCalendar> calendars() override { ++reads; return FakeProvider::calendars(); }
+        std::vector<Event> events(const RemoteCalendar &calendar, TimeRange range) override {
+            ++reads; return FakeProvider::events(calendar, range);
+        }
+        Event createEvent(const RemoteCalendar &calendar, const Event &draft) override {
+            ++writes; target = calendar.id; maybeFail();
+            auto saved = draft; saved.id = "saved"; return saved;
+        }
+        std::vector<RemoteTaskList> taskLists() override { ++listReads; return {{"list", "Tasks", true}, {"candidate", "Tasks", false, "other-source", "iCloud", true}}; }
+        Event createTask(const RemoteTaskList &list, const Event &draft, bool) override {
+            ++taskWrites; target = list.id; auto saved = draft; saved.id = "saved-task"; return saved;
+        }
+    };
+    CalendarObjectManager manager;
+    auto first = std::make_shared<Writable>(), second = std::make_shared<Writable>();
+    manager.login({"a", "test"}, first, window());
+    manager.login({"b", "test"}, second, window());
+    const auto a = manager.calendars("a").at(0), b = manager.calendars("b").at(0);
+    auto draft = event("draft"); draft.calendarId = b.id;
+    const auto saved = manager.createEvent("b", b.id, draft);
+    CHECK(first->writes == 0 && second->writes == 1 && second->target == b.remote.id);
+    CHECK(second->reads == 2 && saved.calendarId == b.id && saved.ownerId == "b");
+    CHECK(manager.calendar(b.id)->events.size() == 1 && manager.calendar(a.id)->events.empty());
+    fails(ExternalCalendarErrorCode::NotFound, [&] { (void)manager.createEvent("a", b.id, draft); });
+    CHECK(first->writes == 0 && second->writes == 1);
+    const auto lists = manager.taskLists("b");
+    CHECK(lists.size() == 2 && lists[0].isDefault && manager.taskLists("b").size() == 2 && second->listReads == 1);
+    draft.kind = EventKind::Task;
+    const auto task = manager.createTask("b", b.id, lists[0].id, draft);
+    CHECK(task.kind == EventKind::Task && task.ownerId == "b" && first->taskWrites == 0 && second->taskWrites == 1);
+    CHECK(second->target == "list" && manager.calendar(b.id)->events.size() == 1);
+    fails(ExternalCalendarErrorCode::Unsupported, [&] { (void)manager.createTask("b", b.id, "candidate", draft); });
+    CHECK(second->taskWrites == 1);
+    (void)manager.createTask("b", b.id, "candidate", draft, true);
+    CHECK(second->taskWrites == 2 && second->target == "candidate");
+    fails(ExternalCalendarErrorCode::NotFound, [&] { (void)manager.createTask("b", b.id, "other", draft); });
+    CHECK(second->taskWrites == 2);
+    draft.kind = EventKind::Event; second->error = ExternalCalendarErrorCode::PermissionDenied;
+    fails(ExternalCalendarErrorCode::PermissionDenied, [&] { (void)manager.createEvent("b", b.id, draft); });
+    CHECK(manager.calendar(b.id)->events.size() == 1 && manager.accounts().at(1).state == ExternalAccountState::Ready);
+    CalendarObjectManager limited({1000, 10000, 1});
+    auto full = std::make_shared<Writable>(); full->entries = {event("existing")};
+    limited.login({"limited", "test"}, full, window());
+    const auto fullCalendar = limited.calendars("limited").at(0);
+    draft.calendarId = fullCalendar.id;
+    fails(ExternalCalendarErrorCode::LimitExceeded, [&] { (void)limited.createEvent("limited", fullCalendar.id, draft); });
+    CHECK(full->writes == 0 && limited.calendar(fullCalendar.id)->events.size() == 1);
+}
+// Editing targets exactly the selected occurrence and publishes only a confirmed result.
+void occurrenceUpdateTests() {
+    class Writable final : public FakeProvider {
+    public:
+        int writes = 0; bool ignoreChanges = false;
+        Writable() { list[0].readOnly = false; entries = {event("first"), event("second")}; }
+        Event updateOccurrence(const RemoteCalendar &, const Event &original, const EventOccurrenceUpdate &change) override {
+            ++writes; maybeFail();
+            auto saved = original;
+            if (!ignoreChanges) { saved.title = change.title; saved.schedule = change.schedule; }
+            return saved;
+        }
+    };
+    CalendarObjectManager manager;
+    auto provider = std::make_shared<Writable>();
+    manager.login({"owner", "test"}, provider, window());
+    auto object = manager.calendars("owner").at(0);
+    const auto original = object.events.at(0);
+    EventOccurrenceUpdate change{"Changed", TimedSchedule{{Instant::parse("2026-10-03T00:00:00Z"),
+        Instant::parse("2026-10-03T01:00:00Z")}, "Asia/Seoul"}};
+    provider->error = ExternalCalendarErrorCode::Transport;
+    fails(*provider->error, [&] { manager.updateOccurrence("owner", object.id, original.id, change); });
+    CHECK(manager.calendar(object.id)->events == object.events);
+    provider->error.reset(); provider->ignoreChanges = true;
+    fails(ExternalCalendarErrorCode::InvalidResponse, [&] { manager.updateOccurrence("owner", object.id, original.id, change); });
+    CHECK(manager.calendar(object.id)->events == object.events);
+    provider->ignoreChanges = false;
+    const auto saved = manager.updateOccurrence("owner", object.id, original.id, change);
+    CHECK(saved.id == original.id && saved.title == "Changed");
+    auto updated = manager.calendar(object.id).value();
+    CHECK(updated.events.size() == 2 && updated.events.at(1).title == "Changed");
+    CHECK(updated.events.at(0).id != saved.id && updated.events.at(0).title == original.title);
+    fails(ExternalCalendarErrorCode::NotFound, [&] { manager.updateOccurrence("other", object.id, original.id, change); });
+    auto readOnly = std::make_shared<FakeProvider>();
+    manager.login({"reader", "test"}, readOnly, window());
+    const auto locked = manager.calendars("reader").at(0);
+    fails(ExternalCalendarErrorCode::PermissionDenied, [&] { manager.updateOccurrence("reader", locked.id, locked.events.at(0).id, change); });
+    CHECK(provider->writes == 3);
+}
 void managerTests() {
+    occurrenceUpdateTests();
+    creationTests();
     CalendarObjectManager manager;
     auto a = std::make_shared<FakeProvider>(), b = std::make_shared<FakeProvider>();
     manager.login({"a", "test", "A"}, a);
@@ -137,6 +234,42 @@ void googleTests() {
     CHECK(calendars[1].readOnly && calendars[1].zone == "UTC");
     CHECK(requests[1].url.find("pageToken=p%2F%2B") != std::string::npos);
     CHECK(tokens == 2 && requests[0].headers.at("Authorization") == "Bearer fixture-token");
+    cursor = 0; requests.clear();
+    responses = {{200, R"({"id":"created","summary":"Review","description":"Notes","location":"Studio","start":{"dateTime":"2026-10-02T00:00:00Z","timeZone":"Asia/Seoul"},"end":{"dateTime":"2026-10-02T01:00:00Z","timeZone":"Asia/Seoul"}})"}};
+    auto draft = event("draft"); draft.title = "Review"; draft.description = "Notes"; draft.location.name = "Studio";
+    auto created = provider.createEvent(calendars[0], draft);
+    CHECK(requests.size() == 1 && requests[0].method == "POST");
+    CHECK(requests[0].url == "https://www.googleapis.com/calendar/v3/calendars/a%2Fb%40example.com/events");
+    CHECK(requests[0].body.find("\"summary\":\"Review\"") != std::string::npos);
+    CHECK(requests[0].body.find("\"timeZone\":\"Asia/Seoul\"") != std::string::npos);
+    CHECK(created.id == "created" && created.title == "Review" && created.location.name == "Studio");
+    // A recurring instance is patched by its occurrence ID, preserving all other fields.
+    cursor = 0; requests.clear();
+    responses = {{200, R"({"id":"instance/2","summary":"Updated","recurringEventId":"series","etag":"v2","start":{"dateTime":"2026-10-03T00:00:00Z"},"end":{"dateTime":"2026-10-03T01:00:00Z"}})"}};
+    auto original = event("instance/2"); original.properties["external.etag"] = "v1";
+    EventOccurrenceUpdate change{"Updated", TimedSchedule{{Instant::parse("2026-10-03T00:00:00Z"), Instant::parse("2026-10-03T01:00:00Z")}, "UTC"}};
+    CHECK(provider.updateOccurrence(calendars[0], original, change).title == "Updated");
+    CHECK(requests[0].method == "PATCH" && requests[0].url.ends_with("/events/instance%2F2"));
+    CHECK(requests[0].headers.at("If-Match") == "v1");
+    CHECK(requests[0].body.find("recurrence") == std::string::npos && requests[0].body.find("attendees") == std::string::npos);
+    cursor = 0; responses = {{412, ""}};
+    fails(ExternalCalendarErrorCode::Conflict, [&] { provider.updateOccurrence(calendars[0], original, change); });
+    const auto count = requests.size();
+    fails(ExternalCalendarErrorCode::PermissionDenied, [&] { (void)provider.createEvent(calendars[1], draft); });
+    CHECK(requests.size() == count);
+    draft.alarms.push_back({Duration(600)});
+    fails(ExternalCalendarErrorCode::Unsupported, [&] { (void)provider.createEvent(calendars[0], draft); });
+    CHECK(requests.size() == count); draft.alarms.clear();
+    const auto lists = provider.taskLists();
+    CHECK(lists.size() == 1 && lists[0].isDefault && requests.size() == count);
+    draft.kind = EventKind::Task; draft.location.name.clear();
+    cursor = 0; requests.clear();
+    responses = {{200, R"({"id":"task-id","title":"Review","notes":"Notes","due":"2026-10-02T00:00:00.000Z"})"}};
+    const auto task = provider.createTask(lists[0], draft);
+    CHECK(requests.size() == 1 && requests[0].method == "POST");
+    CHECK(requests[0].url == "https://tasks.googleapis.com/tasks/v1/lists/@default/tasks");
+    CHECK(requests[0].body.find("2026-10-02T00:00:00Z") != std::string::npos);
+    CHECK(task.kind == EventKind::Task && task.id == "task-id" && std::holds_alternative<AllDaySchedule>(task.schedule));
     responses = {{200, R"({"timeZone":"Asia/Seoul","items":[{"id":"timed","summary":"Review","start":{"dateTime":"2026-10-02T09:00:00+09:00"},"end":{"dateTime":"2026-10-02T10:00:00+09:00"},"transparency":"transparent","visibility":"public","updated":"2026-10-01T00:00:00Z","recurringEventId":"series","attendees":[{"email":"a@example.test","responseStatus":"accepted"}]},{"id":"cancelled","status":"cancelled"}],"nextPageToken":"next"})"},
                  {200, R"({"items":[{"id":"day","start":{"date":"2026-10-03"},"end":{"date":"2026-10-04"}}]})"}};
     cursor = 0; requests.clear();

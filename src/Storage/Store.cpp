@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iiCalendarIntegration/Store.h>
 #include <limits>
+#include <set>
 #include <sqlite3.h>
 
 namespace iiCalendarIntegration {
@@ -170,70 +171,85 @@ Store::Store(std::shared_ptr<sqlite3> connection, std::shared_ptr<const Calendar
 }
 Store::~Store() = default;
 Event Store::put(Event event, std::optional<std::uint64_t> expected) {
-    event.validate(*impl_->calendars);
-    auto range = event.range();
-    auto local = event.localStart();
+    auto saved = putBatch({{std::move(event), expected}});
+    return std::move(saved.front());
+}
+std::vector<Event> Store::putBatch(std::vector<EventWrite> writes) {
+    if (writes.empty()) return {};
+    std::set<std::string> ids;
+    for (const auto &write : writes) {
+        write.event.validate(*impl_->calendars);
+        if (!ids.insert(write.event.id).second) throw std::invalid_argument("duplicate event in batch");
+    }
     std::lock_guard lock(impl_->mutex);
     auto *db = impl_->db.get();
     Transaction tx(db);
-    std::int64_t previous = 0;
-    {
-        Statement s(db, "SELECT revision FROM events WHERE id=?");
+    std::vector<Event> saved; saved.reserve(writes.size());
+    for (auto &write : writes) {
+        auto event = std::move(write.event);
+        const auto expected = write.expectedRevision;
+        auto range = event.range();
+        auto local = event.localStart();
+        std::int64_t previous = 0;
+        {
+            Statement s(db, "SELECT revision FROM events WHERE id=?");
+            s.text(1, event.id);
+            if (s.step())
+                previous = sqlite3_column_int64(s.stmt, 0);
+        }
+        if (expected && *expected != static_cast<std::uint64_t>(previous))
+            throw RevisionConflict("event revision changed");
+        if (previous == std::numeric_limits<std::int64_t>::max())
+            throw StorageError("event revision exhausted");
+        event.revision = static_cast<std::uint64_t>(previous + 1);
+        auto payload = detail::encode(event);
+        Statement s(db, R"SQL(INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET calendar_id=excluded.calendar_id,kind=excluded.kind,status=excluded.status,title=excluded.title,
+         revision=excluded.revision,recurring=excluded.recurring,start_sec=excluded.start_sec,start_sub=excluded.start_sub,
+         end_sec=excluded.end_sec,end_sub=excluded.end_sub,local_day=excluded.local_day,local_second=excluded.local_second,
+         local_sub=excluded.local_sub,zone=excluded.zone,all_day=excluded.all_day,due_sec=excluded.due_sec,due_sub=excluded.due_sub,
+         updated_sec=excluded.updated_sec,updated_sub=excluded.updated_sub,payload=excluded.payload)SQL");
         s.text(1, event.id);
-        if (s.step())
-            previous = sqlite3_column_int64(s.stmt, 0);
-    }
-    if (expected && *expected != static_cast<std::uint64_t>(previous))
-        throw RevisionConflict("event revision changed");
-    if (previous == std::numeric_limits<std::int64_t>::max())
-        throw StorageError("event revision exhausted");
-    event.revision = static_cast<std::uint64_t>(previous + 1);
-    auto payload = detail::encode(event);
-    Statement s(db, R"SQL(INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-     ON CONFLICT(id) DO UPDATE SET calendar_id=excluded.calendar_id,kind=excluded.kind,status=excluded.status,title=excluded.title,
-     revision=excluded.revision,recurring=excluded.recurring,start_sec=excluded.start_sec,start_sub=excluded.start_sub,
-     end_sec=excluded.end_sec,end_sub=excluded.end_sub,local_day=excluded.local_day,local_second=excluded.local_second,
-     local_sub=excluded.local_sub,zone=excluded.zone,all_day=excluded.all_day,due_sec=excluded.due_sec,due_sub=excluded.due_sub,
-     updated_sec=excluded.updated_sec,updated_sub=excluded.updated_sub,payload=excluded.payload)SQL");
-    s.text(1, event.id);
-    s.text(2, event.calendarId);
-    s.number(3, static_cast<int>(event.kind));
-    s.number(4, static_cast<int>(event.status));
-    s.text(5, event.title);
-    s.number(6, previous + 1);
-    s.number(7,
-             event.recurrence.frequency != Frequency::None || !event.recurrence.additional.empty());
-    bindInstant(s, 8, range ? std::optional(range->start) : std::nullopt);
-    bindInstant(s, 10, range ? std::optional(range->end) : std::nullopt);
-    if (local) {
-        s.number(12, local->date.epochDay());
-        s.number(13, local->time.secondOfDay());
-        s.number(14, static_cast<std::int64_t>(local->time.fraction()));
-    } else {
-        s.null(12);
-        s.null(13);
-        s.null(14);
-    }
-    s.text(15, event.zone());
-    s.number(16, std::holds_alternative<AllDaySchedule>(event.schedule));
-    bindInstant(s, 17, event.due);
-    bindInstant(s, 19, event.updated);
-    sqlCheck(db, sqlite3_bind_blob(s.stmt, 21, payload.data(), static_cast<int>(payload.size()),
-                                   SQLITE_TRANSIENT));
-    (void)s.step();
-    {
-        Statement clear(db, "DELETE FROM event_tags WHERE event_id=?");
-        clear.text(1, event.id);
-        (void)clear.step();
-    }
-    for (const auto &tag : event.tags) {
-        Statement insert(db, "INSERT INTO event_tags VALUES (?,?)");
-        insert.text(1, event.id);
-        insert.text(2, tag);
-        (void)insert.step();
+        s.text(2, event.calendarId);
+        s.number(3, static_cast<int>(event.kind));
+        s.number(4, static_cast<int>(event.status));
+        s.text(5, event.title);
+        s.number(6, previous + 1);
+        s.number(7,
+                 event.recurrence.frequency != Frequency::None || !event.recurrence.additional.empty());
+        bindInstant(s, 8, range ? std::optional(range->start) : std::nullopt);
+        bindInstant(s, 10, range ? std::optional(range->end) : std::nullopt);
+        if (local) {
+            s.number(12, local->date.epochDay());
+            s.number(13, local->time.secondOfDay());
+            s.number(14, static_cast<std::int64_t>(local->time.fraction()));
+        } else {
+            s.null(12);
+            s.null(13);
+            s.null(14);
+        }
+        s.text(15, event.zone());
+        s.number(16, std::holds_alternative<AllDaySchedule>(event.schedule));
+        bindInstant(s, 17, event.due);
+        bindInstant(s, 19, event.updated);
+        sqlCheck(db, sqlite3_bind_blob(s.stmt, 21, payload.data(), static_cast<int>(payload.size()),
+                                       SQLITE_TRANSIENT));
+        (void)s.step();
+        {
+            Statement clear(db, "DELETE FROM event_tags WHERE event_id=?");
+            clear.text(1, event.id);
+            (void)clear.step();
+        }
+        for (const auto &tag : event.tags) {
+            Statement insert(db, "INSERT INTO event_tags VALUES (?,?)");
+            insert.text(1, event.id);
+            insert.text(2, tag);
+            (void)insert.step();
+        }
+        saved.push_back(std::move(event));
     }
     tx.commit();
-    return event;
+    return saved;
 }
 std::optional<Event> Store::get(const std::string &id) const {
     std::lock_guard lock(impl_->mutex);

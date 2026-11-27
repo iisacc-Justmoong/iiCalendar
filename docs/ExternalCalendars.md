@@ -98,14 +98,12 @@ macOS/iOS 이외의 플랫폼에서는 `available()==false`이며 조회 시 `Un
 
 ## 객체 수명·조회·실패 계약
 
-| API/객체 | 계약 |
-|---|---|
-| `login(account, provider)` | 계정을 등록하고 캘린더 목록을 즉시 조회한다. 같은 account.id의 재로그인은 기존 세션과 캐시를 교체한다. |
-| `refresh(accountId)` | 전체 캘린더 목록을 교체한다. 남은 동일 캘린더의 일정 캐시는 보존하고 사라진 캘린더는 제거한다. 시간대/소스가 바뀌면 일정 캐시도 제거한다. |
-| `loadEvents(accountId, object.id, window)` | 양수 길이의 시작 포함·종료 제외 기간을 조회한다. 성공 시 해당 캘린더의 일정과 loadedWindow를 **최신 조회 하나**로 교체한다. 여러 기간을 무제한 누적하지 않는다. |
-| `calendars(accountId)` / `calendar(id)` | 참조 수명에 의존하지 않는 소유 복사본을 반환한다. 객체의 remote.id는 원격 ID, object.id는 관리자 ID이다. |
-| `accounts()` | Loading/Ready/Failed/AuthenticationRequired 상태와 오류 코드를 반환한다. 실패를 빈 성공으로 처리하지 않는다. |
-| `logout(accountId)` | 계정과 캘린더·일정 캐시 및 제공자에 대한 관리자 참조를 제거한다. 이미 반환된 복사본이나 호스트가 별도 저장한 객체는 호스트가 정리한다. |
+- API/객체: `login(account, provider)`; 계약: 계정을 등록하고 캘린더 목록을 즉시 조회한다. 같은 account.id의 재로그인은 기존 세션과 캐시를 교체한다.
+- API/객체: `refresh(accountId)`; 계약: 전체 캘린더 목록을 교체한다. 남은 동일 캘린더의 일정 캐시는 보존하고 사라진 캘린더는 제거한다. 시간대/소스가 바뀌면 일정 캐시도 제거한다.
+- API/객체: `loadEvents(accountId, object.id, window)`; 계약: 양수 길이의 시작 포함·종료 제외 기간을 조회한다. 성공 시 해당 캘린더의 일정과 loadedWindow를 **최신 조회 하나**로 교체한다. 여러 기간을 무제한 누적하지 않는다.
+- API/객체: `calendars(accountId)` / `calendar(id)`; 계약: 참조 수명에 의존하지 않는 소유 복사본을 반환한다. 객체의 remote.id는 원격 ID, object.id는 관리자 ID이다.
+- API/객체: `accounts()`; 계약: Loading/Ready/Failed/AuthenticationRequired 상태와 오류 코드를 반환한다. 실패를 빈 성공으로 처리하지 않는다.
+- API/객체: `logout(accountId)`; 계약: 계정과 캘린더·일정 캐시 및 제공자에 대한 관리자 참조를 제거한다. 이미 반환된 복사본이나 호스트가 별도 저장한 객체는 호스트가 정리한다.
 
 관리자 ID는 제공자·계정·원격 캘린더·원격 일정 ID를 길이 접두사로 구분하여 만든다.
 서로 다른 계정/캘린더의 동일 원격 ID가 Store의 전역 Event ID에서도 충돌하지 않는다.
@@ -136,7 +134,7 @@ const auto details = iiCalendarIntegration::dayDetails(store, iiCalendarIntegrat
 
 관리자는 메모리 내 조회 객체를 관리하며 Store를 자동 수정하지 않는다. 위 코드는 명시적 upsert 예제이다.
 재조회에서 사라진 원격 일정의 영구 저장소 삭제나 로그아웃 후 저장소 정리는 호출 애플리케이션의 책임이다.
-loadedWindow 밖을 완전한 원격 일정 목록으로 간주하지 않는다. 원격 일정 편집/삭제, 웹훅, 증분 syncToken,
+loadedWindow 밖을 완전한 원격 일정 목록으로 간주하지 않는다. 원격 일정 삭제, 웹훅, 증분 syncToken,
 독립 iCloud CalDAV 로그인 클라이언트 및 OAuth 로그인 UI는 이 API에 포함하지 않는다.
 
 ## 1차 자료
@@ -151,3 +149,52 @@ loadedWindow 밖을 완전한 원격 일정 목록으로 간주하지 않는다.
 Apple 조회 API·식별자·4년 범위 한계는 설치된 Apple SDK의 `EKEventStore.h`, `EKEvent.h`,
 `EKCalendarItem.h`도 대조했다. JSON 의존성의 버전·공식 해시·라이선스는
 `ThirdParty/nlohmann/README.md`에 기록했다.
+
+## 새 이벤트와 작업 쓰기
+
+관리자는 선택한 계정과 캘린더가 현재 연결되어 있고 쓰기 가능한지 확인한 다음
+공급자에 새 이벤트를 한 번 요청한다. Google은 선택한 Calendar ID에, Microsoft는
+선택한 Graph Calendar ID에 POST하며 Apple은 선택한 EventKit 원본과 캘린더의
+쓰기 권한을 다시 확인한다. 기본 전송은 HTTPS와 요청·응답 크기 제한을 적용하고
+리다이렉트와 자동 재시도를 하지 않는다.
+
+작업은 해당 계정의 별도 목록에 저장한다. Google은 `@default`를 사용하며 제목과
+메모, 입력한 종료 날짜를 예정일로 보존한다. `due`는 마감일이 아니며 시작 날짜와
+모든 시각은 저장되지 않으므로 호스트는 사용자에게 미리 알려야 한다. Microsoft는 Graph To Do의 `defaultList`를 찾아
+시간이 포함된 시작·마감을 기록한다. Outlook의 날짜만 있는 작업은 현재 거부한다.
+Apple은 미리 알림 권한을 별도로 요청하고 선택 원본의 쓰기 가능한 목록을 우선한다.
+목록이 없으면 이름·종류가 같은 다른 원본의 목록을 미확인 후보로 반환하며
+호스트의 명시적 계정 확인 없이 그 후보에 저장할 수 없다.
+
+현재 외부 쓰기는 반복, 알림, 참석자, 첨부, 링크, 태그와 구조화된 장소 등의
+미지원 필드를 조용히 버리지 않고 저장 전에 `Unsupported`로 거부한다. 작업은
+장소도 지원하지 않는다. Microsoft 시간대는 Windows 시간대로 변환하며 변환
+후의 시각이 다르거나 로컬 시각이 모호하면 거부한다. Apple 종일 이벤트는 기기
+시간대만 허용하고 미리 알림의 시간은 초 단위와 모호하지 않은 로컬 시각을
+요구한다. 실제 제공자와 운영체제의 권한 및 기능 제한이 별도로 적용된다.
+EventKit은 대상 캘린더를 먼저 지정한 뒤 가용 상태와 알림 없음을 적용한다.
+저장 전에 요청한 가용 상태를 유지할 수 없으면 거부한다. 저장 응답에서 값이
+바뀌거나 알림이 추가된 경우에는 생성 결과가 불명확하다고 보고하며 재시도하지 않는다.
+
+EventKit이 종일 일정을 시작일 자정부터 같은 날의 이후 시각까지의 양수 구간으로
+반환하면 표시 모델에서는 종료일을 다음 날로 보정한다. 이 보정은 원본을 수정하지
+않으며 `external.apple.allDayEndNormalized` 속성으로 표시한다. 역순이거나 다른
+모호한 구간은 계속 거부한다.
+
+## 기존 발생 건의 제한적 수정 계약
+
+호스트는 현재 스냅샷에 포함된 발생 건의 식별자와 제목·시작·종료만 전달한다.
+제공자는 해당 발생 건 하나를 갱신하고 다른 속성이나 반복 시리즈를 변경하지 않는다.
+읽기 전용 캘린더, 다른 계정의 식별자, 사라진 발생 건은 요청 전에 거부한다.
+실패하거나 계정이 교체되면 기존 스냅샷은 유지하며 성공 응답이 확인된 경우에만
+해당 발생 건을 교체한다. 네트워크 실패는 원격 저장 여부를 보장하지 않는다.
+
+Google과 Microsoft는 수정된 제목 또는 시간 필드만 PATCH하고 버전 정보가 있으면
+`If-Match`로 충돌을 검사한다. EventKit은 선택한 발생 건을 조회해
+`EKSpanThisEvent`로 저장한다. Python은 `EventOccurrenceUpdate`,
+`CalendarAccountManager.update_occurrence`와 사용자 정의 공급자의
+`update_occurrence` 콜백을 제공한다. Google·Microsoft·기기 계정은 이 변경의
+합성 전송과 네이티브 변환 검사로 검증하며 실제 계정 동기화는 별도 검증 대상이다.
+
+`ExternalCalendarProvider`에 가상 수정 메서드가 추가되었으므로 이 버전의 공유
+라이브러리와 사용자 정의 공급자를 함께 사용하는 기존 소비자는 다시 빌드해야 한다.

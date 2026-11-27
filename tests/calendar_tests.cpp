@@ -265,6 +265,16 @@ void storageMemory() {
         const auto saved = convenience.put(example("convenience"), 0);
         CHECK(convenience.get(saved.id) == saved);
     }
+    {
+        auto store = Store::inMemory();
+        auto first = store.put(example("series"), 0);
+        auto second = example("exception");
+        auto changed = first; changed.title = "Changed";
+        fails<RevisionConflict>([&] { (void)store.putBatch({{changed, first.revision}, {second, 1}}); });
+        CHECK(store.get(first.id) == first && !store.get(second.id));
+        const auto saved = store.putBatch({{changed, first.revision}, {second, 0}});
+        CHECK(saved.size() == 2 && store.get(first.id)->title == "Changed" && store.get(second.id));
+    }
     fails<std::invalid_argument>([] { (void)Store::inMemory({}); });
     sqlite3 *raw = nullptr;
     const int opened = sqlite3_open_v2(":memory:", &raw,

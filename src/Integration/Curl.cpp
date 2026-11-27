@@ -20,6 +20,9 @@ std::size_t receive(char *data, std::size_t size, std::size_t count, void *opaqu
 }
 CalendarHttpGet defaultCalendarHttpGet() {
     return [](const CalendarHttpRequest &request) -> CalendarHttpResponse {
+        if ((request.method != "GET" && request.method != "POST" && request.method != "PATCH") ||
+            (request.method == "GET" && !request.body.empty()) || request.body.size() > 1024 * 1024)
+            throw std::invalid_argument("unsupported Calendar HTTPS request");
         static const auto initialized = curl_global_init(CURL_GLOBAL_DEFAULT);
         if (initialized != CURLE_OK) throw ExternalCalendarError(ExternalCalendarErrorCode::Transport, "could not initialize Calendar HTTPS");
         std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> handle(curl_easy_init(), curl_easy_cleanup);
@@ -47,6 +50,12 @@ CalendarHttpGet defaultCalendarHttpGet() {
         option(CURLOPT_NOSIGNAL, 1L);
         option(CURLOPT_WRITEFUNCTION, &receive);
         option(CURLOPT_WRITEDATA, &body);
+        if (request.method == "POST" || request.method == "PATCH") {
+            if (request.method == "POST") option(CURLOPT_POST, 1L);
+            else option(CURLOPT_CUSTOMREQUEST, "PATCH");
+            option(CURLOPT_POSTFIELDS, request.body.data());
+            option(CURLOPT_POSTFIELDSIZE_LARGE, static_cast<curl_off_t>(request.body.size()));
+        }
         const auto result = curl_easy_perform(handle.get());
         if (body.tooLarge) throw ExternalCalendarError(ExternalCalendarErrorCode::LimitExceeded, "Calendar HTTPS response size limit exceeded");
         if (result != CURLE_OK || body.allocationFailed)

@@ -40,9 +40,10 @@ class IdentityToken {
     std::mutex mutex_;
     Profile profile_;
 public:
-    IdentityToken(std::string provider, CalendarAccessToken source, CalendarHttpGet get)
+    IdentityToken(std::string provider, CalendarAccessToken source, CalendarHttpGet get, std::string expectedSubject = {})
         : provider_(std::move(provider)), source_(std::move(source)), get_(get ? std::move(get) : detail::defaultCalendarHttpGet()) {
         if (!source_) throw std::invalid_argument("a current OAuth token callback is required");
+        if (!expectedSubject.empty()) profile_.subject = std::move(expectedSubject);
     }
     std::string token() {
         std::lock_guard lock(mutex_);
@@ -148,7 +149,7 @@ public:
         return found->second;
     }
     template<class Work> void run(const std::shared_ptr<Context> &context, const std::string &id, Work work,
-                                  const std::shared_ptr<Connection> &expected = {}) {
+                                  const std::shared_ptr<Connection> &expected = {}, bool preserveSnapshotOnFailure = false) {
         std::shared_ptr<Connection> connection;
         std::shared_ptr<ExternalCalendarProvider> provider;
         bool bound = false;
@@ -177,8 +178,9 @@ public:
             if (!connection->value.enabled) fail(Code::StaleSession, "calendar account was disabled during operation");
             connection->value.error = code;
             const bool denied = code == Code::AuthenticationRequired || code == Code::PermissionDenied;
-            connection->value.state = denied ? CalendarAccountState::AuthenticationRequired : CalendarAccountState::Failed;
-            if (denied) { connection->objects.logout(id); connection->bound = false; }
+            connection->value.state = preserveSnapshotOnFailure && connection->bound ? CalendarAccountState::Ready :
+                denied ? CalendarAccountState::AuthenticationRequired : CalendarAccountState::Failed;
+            if (denied && !preserveSnapshotOnFailure) { connection->objects.logout(id); connection->bound = false; }
             fail(code, "calendar account operation failed");
         }
     }
@@ -278,6 +280,26 @@ CalendarAccount CalendarAccountManager::connectMicrosoft(CalendarAccessToken tok
     auto provider = std::make_shared<MicrosoftCalendarProvider>([identity] { return identity->token(); }, std::move(get), options);
     return impl_->connect(context, {profile.subject, "microsoft", profile.name}, std::move(provider), initialWindow, profile.email);
 }
+CalendarAccount CalendarAccountManager::connectGoogleForSubject(std::string expectedSubject, CalendarAccessToken token,
+    CalendarHttpGet get, GoogleCalendarOptions options, std::optional<TimeRange> initialWindow) {
+    validateWindow(initialWindow);
+    if (!validText(expectedSubject)) throw std::invalid_argument("expected provider subject is required");
+    const auto context = impl_->capture();
+    auto identity = std::make_shared<IdentityToken>("google", std::move(token), get, std::move(expectedSubject));
+    const auto profile = identity->profile();
+    auto provider = std::make_shared<GoogleCalendarProvider>([identity] { return identity->token(); }, std::move(get), options);
+    return impl_->connect(context, {profile.subject, "google", profile.name}, std::move(provider), initialWindow, profile.email);
+}
+CalendarAccount CalendarAccountManager::connectMicrosoftForSubject(std::string expectedSubject, CalendarAccessToken token,
+    CalendarHttpGet get, MicrosoftCalendarOptions options, std::optional<TimeRange> initialWindow) {
+    validateWindow(initialWindow);
+    if (!validText(expectedSubject)) throw std::invalid_argument("expected provider subject is required");
+    const auto context = impl_->capture();
+    auto identity = std::make_shared<IdentityToken>("microsoft", std::move(token), get, std::move(expectedSubject));
+    const auto profile = identity->profile();
+    auto provider = std::make_shared<MicrosoftCalendarProvider>([identity] { return identity->token(); }, std::move(get), options);
+    return impl_->connect(context, {profile.subject, "microsoft", profile.name}, std::move(provider), initialWindow, profile.email);
+}
 CalendarAccount CalendarAccountManager::connectApple(AppleCalendarOptions options, std::optional<TimeRange> initialWindow) {
     validateWindow(initialWindow);
     const auto context = impl_->capture();
@@ -308,6 +330,63 @@ void CalendarAccountManager::loadEvents(const std::string &accountId, const std:
         if (!bound) objects.login({value.id, value.providerId, value.displayName}, provider);
         objects.loadEvents(value.id, calendarId, window);
     });
+}
+Event CalendarAccountManager::createEvent(const std::string &accountId, const std::string &calendarId, Event draft) {
+    const auto context = impl_->capture();
+    Event result;
+    std::string subject;
+    impl_->run(context, accountId, [&](CalendarObjectManager &objects, const CalendarAccount &value, const auto &, bool bound) {
+        if (!bound) fail(Code::AuthenticationRequired, "calendar connection must be reattached before writing");
+        result = objects.createEvent(value.id, calendarId, std::move(draft));
+        subject = value.subject;
+    }, {}, true);
+    result.ownerId = context->workspace.ownerId;
+    if (context->session) result.properties["iisacc.subject"] = context->session->subject;
+    result.properties["external.subject"] = std::move(subject);
+    return result;
+}
+Event CalendarAccountManager::updateOccurrence(const std::string &accountId, const std::string &calendarId,
+                                               const std::string &eventId, const EventOccurrenceUpdate &change) {
+    const auto context = impl_->capture();
+    Event result; std::string subject;
+    impl_->run(context, accountId, [&](CalendarObjectManager &objects, const CalendarAccount &value, const auto &, bool bound) {
+        if (!bound) fail(Code::AuthenticationRequired, "calendar connection must be reattached before writing");
+        result = objects.updateOccurrence(value.id, calendarId, eventId, change); subject = value.subject;
+    }, {}, true);
+    result.ownerId = context->workspace.ownerId;
+    if (context->session) result.properties["iisacc.subject"] = context->session->subject;
+    result.properties["external.subject"] = std::move(subject);
+    return result;
+}
+std::vector<RemoteTaskList> CalendarAccountManager::taskLists(const std::string &accountId) {
+    std::vector<RemoteTaskList> result;
+    impl_->run(impl_->capture(), accountId, [&](CalendarObjectManager &objects, const CalendarAccount &value, const auto &, bool bound) {
+        if (!bound) fail(Code::AuthenticationRequired, "calendar connection must be reattached before listing tasks");
+        result = objects.taskLists(value.id);
+    }, {}, true);
+    return result;
+}
+std::vector<RemoteTask> CalendarAccountManager::readTasks(const std::string &accountId) {
+    std::vector<RemoteTask> result;
+    impl_->run(impl_->capture(), accountId, [&](CalendarObjectManager &objects, const CalendarAccount &value, const auto &, bool bound) {
+        if (!bound) fail(Code::AuthenticationRequired, "calendar connection must be reattached before reading tasks");
+        result = objects.readTasks(value.id);
+    }, {}, true);
+    return result;
+}
+Event CalendarAccountManager::createTask(const std::string &accountId, const std::string &calendarId,
+                                         const std::string &taskListId, Event draft, bool confirmUnverifiedSource) {
+    const auto context = impl_->capture();
+    Event result; std::string subject;
+    impl_->run(context, accountId, [&](CalendarObjectManager &objects, const CalendarAccount &value, const auto &, bool bound) {
+        if (!bound) fail(Code::AuthenticationRequired, "calendar connection must be reattached before writing");
+        result = objects.createTask(value.id, calendarId, taskListId, std::move(draft), confirmUnverifiedSource);
+        subject = value.subject;
+    }, {}, true);
+    result.ownerId = context->workspace.ownerId;
+    if (context->session) result.properties["iisacc.subject"] = context->session->subject;
+    result.properties["external.subject"] = std::move(subject);
+    return result;
 }
 void CalendarAccountManager::setEnabled(const std::string &accountId, bool enabled) {
     std::lock_guard lock(impl_->mutex); const auto context = impl_->get(); const auto connection = impl_->find(context, accountId);

@@ -59,6 +59,12 @@ public:
                                   std::optional<TimeRange> initialWindow = {});
     CalendarAccount connectMicrosoft(CalendarAccessToken token, CalendarHttpGet get = {}, MicrosoftCalendarOptions options = {},
                                      std::optional<TimeRange> initialWindow = {});
+    // Restore only the previously saved provider subject. Identity is checked
+    // before calendar data can be requested with the refreshed credential.
+    CalendarAccount connectGoogleForSubject(std::string expectedSubject, CalendarAccessToken token, CalendarHttpGet get = {},
+                                            GoogleCalendarOptions options = {}, std::optional<TimeRange> initialWindow = {});
+    CalendarAccount connectMicrosoftForSubject(std::string expectedSubject, CalendarAccessToken token, CalendarHttpGet get = {},
+                                               MicrosoftCalendarOptions options = {}, std::optional<TimeRange> initialWindow = {});
     // Device-managed EventKit source; OS authorization is an explicit host action.
     CalendarAccount connectApple(AppleCalendarOptions options = {}, std::optional<TimeRange> initialWindow = {});
     void refresh(const std::string &accountId);
@@ -66,6 +72,19 @@ public:
     // Transient failures preserve the previous committed account snapshot.
     void synchronize(const std::string &accountId, TimeRange window);
     void loadEvents(const std::string &accountId, const std::string &calendarId, TimeRange window);
+    // Create one non-recurring event in an attached account on an application worker.
+    // The returned event is account-scoped; no calendar list reload is performed.
+    [[nodiscard]] Event createEvent(const std::string &accountId, const std::string &calendarId, Event draft);
+    // Edit only one loaded occurrence on the worker; failures preserve the snapshot.
+    [[nodiscard]] Event updateOccurrence(const std::string &accountId, const std::string &calendarId,
+                                         const std::string &eventId, const EventOccurrenceUpdate &change);
+    // Resolve task lists for a connected account without exposing credentials.
+    [[nodiscard]] std::vector<RemoteTaskList> taskLists(const std::string &accountId);
+    // Read a complete account-scoped task snapshot without publishing partial results.
+    [[nodiscard]] std::vector<RemoteTask> readTasks(const std::string &accountId);
+    // Create in a previously resolved list of that account; no event snapshot reload occurs.
+    [[nodiscard]] Event createTask(const std::string &accountId, const std::string &calendarId,
+                                   const std::string &taskListId, Event draft, bool confirmUnverifiedSource = false);
     void setEnabled(const std::string &accountId, bool enabled);
     bool disconnect(const std::string &accountId);
     [[nodiscard]] std::vector<CalendarObject> calendars(const std::optional<std::string> &accountId = {}) const;

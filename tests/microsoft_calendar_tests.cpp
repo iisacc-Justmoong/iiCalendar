@@ -25,6 +25,14 @@ void tests() {
         requests.push_back(request);
         CHECK(request.headers.at("Authorization") == "Bearer fixture-token");
         CHECK(request.headers.at("Prefer").find("ImmutableId") != std::string::npos);
+        if (request.url.find("/todo/lists") != std::string::npos) {
+            if (request.method == "POST") return CalendarHttpResponse{201, Json{{"id", "task-id"}, {"title", "Meeting"},
+                {"startDateTime", {{"dateTime", "2026-10-02T00:00:00"}, {"timeZone", "UTC"}}},
+                {"dueDateTime", {{"dateTime", "2026-10-02T01:00:00"}, {"timeZone", "UTC"}}}}.dump()};
+            return response({{"value", Json::array({{{"id", "tasks/id"}, {"displayName", "Tasks"}, {"wellknownListName", "defaultList"}}})}});
+        }
+        if (request.method == "PATCH") { auto saved = event(); saved["subject"] = "Changed"; return response(saved); }
+        if (request.method == "POST") return CalendarHttpResponse{201, event("created").dump()};
         if (request.url.find("calendarView") == std::string::npos) {
             if (request.url.find("skiptoken") != std::string::npos) return response({{"value", Json::array({{{"id", "second"}, {"name", "Personal"}}})}});
             return response({{"value", Json::array({{{"id", "a/b ?"}, {"name", "Work"}, {"isDefaultCalendar", true}, {"canEdit", true}}})},
@@ -38,8 +46,43 @@ void tests() {
     MicrosoftCalendarProvider provider([] { return "fixture-token"; }, get);
     const auto calendars = provider.calendars(); CHECK(calendars.size() == 2 && calendars[0].primary && !calendars[0].readOnly);
     const TimeRange window{Instant::parse("2026-10-01T00:00:00Z"), Instant::parse("2026-10-04T00:00:00Z")};
+    Event draft; draft.id = "draft"; draft.title = "Meeting"; draft.description = "Notes";
+    draft.schedule = TimedSchedule{{Instant::parse("2026-10-02T00:00:00Z"), Instant::parse("2026-10-02T01:00:00Z")}, "UTC"};
+    requests.clear(); const auto created = provider.createEvent(calendars[0], draft);
+    CHECK(requests.size() == 1 && requests[0].method == "POST" && created.id == "created");
+    CHECK(requests[0].url == "https://graph.microsoft.com/v1.0/me/calendars/a%2Fb%20%3F/events");
+    const auto sent = Json::parse(requests[0].body);
+    CHECK(sent.at("subject") == "Meeting" && sent.at("body").at("content") == "Notes");
+    CHECK(sent.at("start").at("dateTime") == "2026-10-02T00:00:00" && sent.at("start").at("timeZone") == "UTC");
+    draft.schedule = TimedSchedule{{Instant::parse("2026-10-02T00:00:00Z"), Instant::parse("2026-10-02T01:00:00Z")}, "Asia/Seoul"};
+    requests.clear(); (void)provider.createEvent(calendars[0], draft);
+    const auto zoned = Json::parse(requests[0].body);
+    CHECK(zoned.at("start").at("dateTime") == "2026-10-02T09:00:00");
+    CHECK(zoned.at("start").at("timeZone") == "Korea Standard Time");
+    requests.clear();
+    draft.schedule = TimedSchedule{{Instant::parse("2026-11-01T05:30:00Z"), Instant::parse("2026-11-01T06:30:00Z")}, "America/New_York"};
+    fails(ExternalCalendarErrorCode::Unsupported, [&] { (void)provider.createEvent(calendars[0], draft); });
+    CHECK(requests.empty());
+    draft.schedule = TimedSchedule{{Instant::parse("2026-10-02T00:00:00Z"), Instant::parse("2026-10-02T01:00:00Z")}, "UTC"};
+    requests.clear(); auto lists = provider.taskLists();
+    CHECK(requests.size() == 1 && lists.size() == 1 && lists[0].isDefault);
+    draft.kind = EventKind::Task; requests.clear();
+    const auto createdTask = provider.createTask(lists[0], draft);
+    CHECK(requests.size() == 1 && requests[0].method == "POST" && createdTask.kind == EventKind::Task);
+    CHECK(requests[0].url == "https://graph.microsoft.com/v1.0/me/todo/lists/tasks%2Fid/tasks");
+    CHECK(Json::parse(requests[0].body).at("dueDateTime").at("dateTime") == "2026-10-02T01:00:00");
     const auto events = provider.events(calendars[0], window); CHECK(events.size() == 2);
     CHECK(requests.back().url.find("a%2Fb%20%3F/calendarView") != std::string::npos);
+    auto instance = events[0]; instance.properties["microsoft.@odata.etag"] = "version-1";
+    EventOccurrenceUpdate change{"Changed", instance.schedule};
+    requests.clear();
+    CHECK(provider.updateOccurrence(calendars[0], instance, change).title == "Changed");
+    CHECK(requests.size() == 1 && requests[0].method == "PATCH" && requests[0].url.ends_with("/events/event"));
+    CHECK(requests[0].headers.at("If-Match") == "version-1");
+    const auto patch = Json::parse(requests[0].body);
+    CHECK(patch.size() == 1 && patch.contains("subject"));
+    MicrosoftCalendarProvider conflict([] { return "fixture-token"; }, [](const auto &) { return CalendarHttpResponse{412, ""}; });
+    fails(ExternalCalendarErrorCode::Conflict, [&] { conflict.updateOccurrence(calendars[0], instance, change); });
     CHECK(events[0].zone() == "Asia/Seoul" && events[0].status == EventStatus::Tentative);
     CHECK(events[0].range()->start.fraction() == 123456700000000000ULL);
     CHECK(events[0].alarms[0].beforeStart == Duration(900));

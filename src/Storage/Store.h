@@ -21,6 +21,11 @@ struct EventQuery {
     std::size_t limit = 100;
     std::size_t offset = 0;
 };
+// One optimistic write in a single Store transaction. Revision zero means create only.
+struct EventWrite {
+    Event event;
+    std::optional<std::uint64_t> expectedRevision;
+};
 struct ScheduledEvent {
     Event event;
     Occurrence occurrence;
@@ -41,6 +46,9 @@ class Store {
     Store &operator=(const Store &) = delete;
     // expectedRevision=0 means create-only. No value means unconditional upsert.
     Event put(Event event, std::optional<std::uint64_t> expectedRevision = std::nullopt);
+    // Commit all event/index changes together, or roll back the entire batch.
+    // A repeated ID is rejected; the caller supplies the lifetime and order.
+    std::vector<Event> putBatch(std::vector<EventWrite> writes);
     std::optional<Event> get(const std::string &id) const;
     bool erase(const std::string &id, std::optional<std::uint64_t> expectedRevision = std::nullopt);
     std::vector<Event> query(const EventQuery &query = {}) const;

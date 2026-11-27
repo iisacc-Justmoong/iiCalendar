@@ -119,7 +119,7 @@ GoogleCalendarProvider::GoogleCalendarProvider(CalendarAccessToken token, Calend
     if (!token_ || options.maximumPages == 0 || options.maximumCalendars == 0 || options.maximumEvents == 0)
         throw std::invalid_argument("Google Calendar requires a token supplier and positive limits");
 }
-CalendarHttpResponse GoogleCalendarProvider::request(const std::string &url) {
+CalendarHttpResponse GoogleCalendarProvider::request(const std::string &url, const std::string &method, const std::string &body, const std::string &etag) {
     std::string token;
     try { token = token_(); }
     catch (const ExternalCalendarError &e) { throw ExternalCalendarError(e.code(), "Google Calendar credential is unavailable"); }
@@ -128,7 +128,13 @@ CalendarHttpResponse GoogleCalendarProvider::request(const std::string &url) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~+/=") != std::string::npos)
         throw ExternalCalendarError(ExternalCalendarErrorCode::AuthenticationRequired, "Google Calendar token is invalid or expired");
     CalendarHttpResponse response;
-    try { response = get_({url, {{"Authorization", "Bearer " + token}, {"Accept", "application/json"}}}); }
+    auto headers = std::map<std::string, std::string>{{"Authorization", "Bearer " + token}, {"Accept", "application/json"}};
+    if (method == "POST" || method == "PATCH") headers.emplace("Content-Type", "application/json");
+    if (!etag.empty()) {
+        if (etag.size() > 4096 || etag.find_first_of("\r\n") != std::string::npos) throw std::invalid_argument("invalid calendar version");
+        headers.emplace("If-Match", etag);
+    }
+    try { response = get_({url, std::move(headers), method, body}); }
     catch (const ExternalCalendarError &) { throw; }
     catch (...) { throw ExternalCalendarError(ExternalCalendarErrorCode::Transport, "Google Calendar request failed"); }
     if (response.body.size() > maximumBody)
@@ -153,11 +159,151 @@ CalendarHttpResponse GoogleCalendarProvider::request(const std::string &url) {
             throw ExternalCalendarError(ExternalCalendarErrorCode::RateLimited, "Google Calendar request quota exceeded");
         throw ExternalCalendarError(ExternalCalendarErrorCode::PermissionDenied, "Google Calendar read access is denied");
     }
+    if (response.status == 412) throw ExternalCalendarError(ExternalCalendarErrorCode::Conflict, "Google Calendar event changed");
     if (response.status == 404)
         throw ExternalCalendarError(ExternalCalendarErrorCode::NotFound, "Google Calendar was not found");
-    if (response.status != 200)
+    if (response.status != 200 && !(method == "POST" && response.status == 201))
         throw ExternalCalendarError(ExternalCalendarErrorCode::Transport, "Google Calendar HTTP request was rejected");
     return response;
+}
+Event GoogleCalendarProvider::createEvent(const RemoteCalendar &calendar, const Event &draft) {
+    if (calendar.id.empty()) throw std::invalid_argument("calendar id is required");
+    if (calendar.readOnly) throw ExternalCalendarError(ExternalCalendarErrorCode::PermissionDenied, "Google Calendar is read-only");
+    if (draft.kind != EventKind::Event || draft.recurrence != RecurrenceRule{} || !draft.participants.empty() ||
+        !draft.attachments.empty() || !draft.alarms.empty() || !draft.url.empty() || !draft.tags.empty() ||
+        !draft.links.empty() || !draft.properties.empty() || !draft.location.address.empty() || !draft.location.uri.empty() ||
+        draft.location.latitude || draft.location.longitude || draft.status != EventStatus::Confirmed || draft.priority ||
+        draft.percentComplete || draft.due || draft.completed || draft.created != Instant{} || draft.updated != Instant{} ||
+        !draft.color.empty() || draft.calendarSystem != "gregorian")
+        throw ExternalCalendarError(ExternalCalendarErrorCode::Unsupported, "Google Calendar event contains unsupported fields");
+    draft.validate(CalendarRegistry());
+    Json body{{"summary", draft.title}, {"description", draft.description}, {"location", draft.location.name},
+              {"transparency", draft.busy ? "opaque" : "transparent"},
+              {"visibility", draft.visibility == Visibility::Public ? "public" : draft.visibility == Visibility::Confidential ? "confidential" : "private"},
+              {"reminders", {{"useDefault", false}}}};
+    if (const auto *timed = std::get_if<TimedSchedule>(&draft.schedule)) {
+        body["start"] = {{"dateTime", timed->range.start.toString()}, {"timeZone", timed->zone}};
+        body["end"] = {{"dateTime", timed->range.end.toString()}, {"timeZone", timed->zone}};
+    } else if (const auto *allDay = std::get_if<AllDaySchedule>(&draft.schedule)) {
+        body["start"] = {{"date", allDay->start.toString()}};
+        body["end"] = {{"date", allDay->end.toString()}};
+    } else throw std::invalid_argument("event schedule is required");
+    const auto response = request(endpoint + "/calendars/" + encode(calendar.id) + "/events", "POST", body.dump());
+    return responseObjects([&] { return readEvent(decode(response.body), calendar, calendar.zone); });
+}
+Event GoogleCalendarProvider::updateOccurrence(const RemoteCalendar &calendar, const Event &original, const EventOccurrenceUpdate &change) {
+    if (calendar.id.empty() || original.id.empty()) throw std::invalid_argument("calendar and occurrence are required");
+    if (calendar.readOnly) throw ExternalCalendarError(ExternalCalendarErrorCode::PermissionDenied, "Google Calendar is read-only");
+    auto candidate = original; candidate.title = change.title; candidate.schedule = change.schedule;
+    if (candidate.schedule.index() != original.schedule.index()) throw ExternalCalendarError(ExternalCalendarErrorCode::Unsupported, "changing all-day type is not supported");
+    candidate.validate(CalendarRegistry());
+    Json body = Json::object();
+    if (change.title != original.title) body["summary"] = change.title;
+    if (change.schedule != original.schedule) {
+        if (const auto *timed = std::get_if<TimedSchedule>(&change.schedule)) {
+            body["start"] = {{"dateTime", timed->range.start.toString()}, {"timeZone", timed->zone}};
+            body["end"] = {{"dateTime", timed->range.end.toString()}, {"timeZone", timed->zone}};
+        } else if (const auto *allDay = std::get_if<AllDaySchedule>(&change.schedule)) {
+            body["start"] = {{"date", allDay->start.toString()}}; body["end"] = {{"date", allDay->end.toString()}};
+        } else throw std::invalid_argument("event schedule is required");
+    }
+    if (body.empty()) return original;
+    const auto version = original.properties.find("external.etag");
+    const auto response = request(endpoint + "/calendars/" + encode(calendar.id) + "/events/" + encode(original.id),
+                                  "PATCH", body.dump(), version == original.properties.end() ? "" : version->second);
+    auto saved = responseObjects([&] { return readEvent(decode(response.body), calendar, calendar.zone); });
+    if (saved.id != original.id) throw ExternalCalendarError(ExternalCalendarErrorCode::InvalidResponse, "Google Calendar returned a different occurrence");
+    return saved;
+}
+std::vector<RemoteTaskList> GoogleCalendarProvider::taskLists() {
+    // Google's reserved list identifier resolves the authenticated user's default without a list request.
+    return {{"@default", "Google Tasks", true}};
+}
+std::vector<RemoteTaskList> GoogleCalendarProvider::allTaskLists() {
+    return responseObjects([&] {
+        std::vector<RemoteTaskList> result;
+        std::set<std::string> pages, ids;
+        std::string token;
+        for (std::size_t page = 0; page < options_.maximumPages; ++page) {
+            auto url = std::string("https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=1000");
+            if (!token.empty()) url += "&pageToken=" + encode(token);
+            const auto data = decode(request(url).body);
+            for (const auto &item : items(data)) {
+                if (result.size() >= options_.maximumCalendars)
+                    throw ExternalCalendarError(ExternalCalendarErrorCode::LimitExceeded, "Google task list limit exceeded");
+                const auto id = item.at("id").get<std::string>();
+                if (id.empty() || !ids.insert(id).second) throw std::invalid_argument("task list identity");
+                result.push_back({id, item.value("title", std::string()), false});
+            }
+            token = data.value("nextPageToken", std::string());
+            if (token.empty()) return result;
+            nextPage(token, pages);
+        }
+        throw ExternalCalendarError(ExternalCalendarErrorCode::LimitExceeded, "Google task list page limit exceeded");
+    });
+}
+std::vector<RemoteTask> GoogleCalendarProvider::tasks(const RemoteTaskList &list) {
+    if (list.id.empty()) throw std::invalid_argument("task list id is required");
+    return responseObjects([&] {
+        std::vector<RemoteTask> result;
+        std::set<std::string> pages, ids;
+        std::string token; std::size_t count = 0;
+        for (std::size_t page = 0; page < options_.maximumPages; ++page) {
+            auto url = std::string("https://tasks.googleapis.com/tasks/v1/lists/") + encode(list.id)
+                + "/tasks?maxResults=100&showCompleted=true&showHidden=true&showDeleted=false&showAssigned=true";
+            if (!token.empty()) url += "&pageToken=" + encode(token);
+            const auto data = decode(request(url).body);
+            for (const auto &item : items(data)) {
+                if (++count > options_.maximumEvents)
+                    throw ExternalCalendarError(ExternalCalendarErrorCode::LimitExceeded, "Google task count limit exceeded");
+                if (item.value("deleted", false)) continue;
+                RemoteTask task; task.id = item.at("id").get<std::string>();
+                if (task.id.empty() || !ids.insert(task.id).second) throw std::invalid_argument("task identity");
+                task.title = item.value("title", std::string()); task.description = item.value("notes", std::string());
+                const auto status = item.value("status", std::string("needsAction"));
+                if (status != "needsAction" && status != "completed") throw std::invalid_argument("task status");
+                task.completed = status == "completed";
+                if (item.contains("due") && !item.at("due").is_null()) {
+                    const auto value = item.at("due").get<std::string>();
+                    (void)Instant::parse(value);
+                    task.dueDate = Date::parse(value.substr(0, 10));
+                }
+                result.push_back(std::move(task));
+            }
+            token = data.value("nextPageToken", std::string());
+            if (token.empty()) return result;
+            nextPage(token, pages);
+        }
+        throw ExternalCalendarError(ExternalCalendarErrorCode::LimitExceeded, "Google task page limit exceeded");
+    });
+}
+Event GoogleCalendarProvider::createTask(const RemoteTaskList &list, const Event &draft, bool) {
+    if (list.id != "@default") throw ExternalCalendarError(ExternalCalendarErrorCode::NotFound, "Google default task list is required");
+    if (draft.kind != EventKind::Task || draft.recurrence != RecurrenceRule{} || !draft.participants.empty() ||
+        !draft.attachments.empty() || !draft.alarms.empty() || !draft.url.empty() || !draft.tags.empty() ||
+        !draft.links.empty() || !draft.properties.empty() || !draft.location.name.empty() ||
+        !draft.location.address.empty() || !draft.location.uri.empty() || draft.location.latitude || draft.location.longitude ||
+        draft.status != EventStatus::Confirmed || draft.priority || draft.percentComplete || draft.due || draft.completed ||
+        draft.created != Instant{} || draft.updated != Instant{} || !draft.color.empty() || draft.calendarSystem != "gregorian")
+        throw ExternalCalendarError(ExternalCalendarErrorCode::Unsupported, "Google Tasks supports only title, notes and a scheduled date here");
+    draft.validate(CalendarRegistry());
+    Date due;
+    if (const auto *timed = std::get_if<TimedSchedule>(&draft.schedule)) due = TimeZone(timed->zone).at(timed->range.end).local.date;
+    else if (const auto *allDay = std::get_if<AllDaySchedule>(&draft.schedule)) due = allDay->end.addDays(-1);
+    else throw std::invalid_argument("task schedule is required");
+    const Json body{{"title", draft.title}, {"notes", draft.description}, {"due", due.toString() + "T00:00:00Z"}};
+    const auto response = request("https://tasks.googleapis.com/tasks/v1/lists/@default/tasks", "POST", body.dump());
+    return responseObjects([&] {
+        const auto item = decode(response.body);
+        Event saved; saved.id = item.at("id").get<std::string>(); saved.title = item.at("title").get<std::string>();
+        saved.description = item.value("notes", std::string{}); saved.kind = EventKind::Task;
+        const auto value = item.at("due").get<std::string>();
+        if (saved.id.empty() || value.size() < 10) throw std::invalid_argument("task response");
+        const auto date = Date::parse(value.substr(0, 10));
+        saved.schedule = AllDaySchedule{date, date.addDays(1), draft.zone()};
+        saved.validate(CalendarRegistry());
+        return saved;
+    });
 }
 std::vector<RemoteCalendar> GoogleCalendarProvider::calendars() {
     return responseObjects([&] {

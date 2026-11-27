@@ -12,15 +12,37 @@ namespace {
 class CallbackProvider final : public ExternalCalendarProvider {
 public:
     CallbackProvider(std::string id, std::function<std::vector<RemoteCalendar>()> calendars,
-                     std::function<std::vector<Event>(const RemoteCalendar &, TimeRange)> events)
-        : id_(std::move(id)), calendars_(std::move(calendars)), events_(std::move(events)) {}
+                     std::function<std::vector<Event>(const RemoteCalendar &, TimeRange)> events,
+                     std::function<Event(const RemoteCalendar &, const Event &)> createEvent,
+                     std::function<std::vector<RemoteTaskList>()> taskLists,
+                     std::function<Event(const RemoteTaskList &, const Event &)> createTask,
+                     std::function<Event(const RemoteCalendar &, const Event &, const EventOccurrenceUpdate &)> updateOccurrence)
+        : id_(std::move(id)), calendars_(std::move(calendars)), events_(std::move(events)),
+          createEvent_(std::move(createEvent)), taskLists_(std::move(taskLists)), createTask_(std::move(createTask)),
+          updateOccurrence_(std::move(updateOccurrence)) {}
     std::string id() const override { return id_; }
     std::vector<RemoteCalendar> calendars() override { return calendars_(); }
     std::vector<Event> events(const RemoteCalendar &calendar, TimeRange window) override { return events_(calendar, window); }
+    Event createEvent(const RemoteCalendar &calendar, const Event &draft) override {
+        return createEvent_ ? createEvent_(calendar, draft) : ExternalCalendarProvider::createEvent(calendar, draft);
+    }
+    Event updateOccurrence(const RemoteCalendar &calendar, const Event &original, const EventOccurrenceUpdate &change) override {
+        return updateOccurrence_ ? updateOccurrence_(calendar, original, change) : ExternalCalendarProvider::updateOccurrence(calendar, original, change);
+    }
+    std::vector<RemoteTaskList> taskLists() override {
+        return taskLists_ ? taskLists_() : ExternalCalendarProvider::taskLists();
+    }
+    Event createTask(const RemoteTaskList &list, const Event &draft, bool confirmed) override {
+        return createTask_ ? createTask_(list, draft) : ExternalCalendarProvider::createTask(list, draft, confirmed);
+    }
 private:
     std::string id_;
     std::function<std::vector<RemoteCalendar>()> calendars_;
     std::function<std::vector<Event>(const RemoteCalendar &, TimeRange)> events_;
+    std::function<Event(const RemoteCalendar &, const Event &)> createEvent_;
+    std::function<std::vector<RemoteTaskList>()> taskLists_;
+    std::function<Event(const RemoteTaskList &, const Event &)> createTask_;
+    std::function<Event(const RemoteCalendar &, const Event &, const EventOccurrenceUpdate &)> updateOccurrence_;
 };
 // CPython owns this exception type for the lifetime of the imported module.
 PyObject *calendarErrorType = nullptr;
@@ -38,7 +60,7 @@ PYBIND11_MODULE(iicalendarintegration, m) {
         .value("LimitExceeded", ExternalCalendarErrorCode::LimitExceeded)
         .value("Busy", ExternalCalendarErrorCode::Busy)
         .value("StaleSession", ExternalCalendarErrorCode::StaleSession)
-        .value("Unsupported", ExternalCalendarErrorCode::Unsupported);
+        .value("Unsupported", ExternalCalendarErrorCode::Unsupported).value("Conflict", ExternalCalendarErrorCode::Conflict);
     calendarErrorType = PyErr_NewException("iicalendarintegration.CalendarError", PyExc_RuntimeError, nullptr);
     if (!calendarErrorType) throw py::error_already_set();
     m.add_object("CalendarError", py::reinterpret_steal<py::object>(calendarErrorType));
@@ -94,6 +116,8 @@ PYBIND11_MODULE(iicalendarintegration, m) {
         .def_readwrite("participants", &Event::participants).def_readwrite("attachments", &Event::attachments).def_readwrite("alarms", &Event::alarms).def_readwrite("recurrence", &Event::recurrence)
         .def_readwrite("tags", &Event::tags).def_readwrite("properties", &Event::properties).def_readwrite("links", &Event::links)
         .def_property_readonly("revision", [](const Event &e) { return e.revision; });
+    py::class_<EventOccurrenceUpdate>(m, "EventOccurrenceUpdate").def(py::init<>())
+        .def_readwrite("title", &EventOccurrenceUpdate::title).def_readwrite("schedule", &EventOccurrenceUpdate::schedule);
     py::class_<ExternalAccount>(m, "ExternalAccount").def(py::init<std::string, std::string, std::string>())
         .def_readwrite("id", &ExternalAccount::id).def_readwrite("provider_id", &ExternalAccount::providerId).def_readwrite("display_name", &ExternalAccount::displayName);
     py::class_<RemoteCalendar>(m, "RemoteCalendar").def(py::init<>()).def_readwrite("id", &RemoteCalendar::id)
@@ -101,6 +125,16 @@ PYBIND11_MODULE(iicalendarintegration, m) {
         .def_readwrite("color", &RemoteCalendar::color).def_readwrite("zone", &RemoteCalendar::zone)
         .def_readwrite("source_id", &RemoteCalendar::sourceId).def_readwrite("source_name", &RemoteCalendar::sourceName)
         .def_readwrite("primary", &RemoteCalendar::primary).def_readwrite("read_only", &RemoteCalendar::readOnly);
+    py::class_<RemoteTaskList>(m, "RemoteTaskList").def(py::init<>()).def_readwrite("id", &RemoteTaskList::id)
+        .def_readwrite("title", &RemoteTaskList::title).def_readwrite("is_default", &RemoteTaskList::isDefault)
+        .def_readwrite("source_id", &RemoteTaskList::sourceId).def_readwrite("source_name", &RemoteTaskList::sourceName)
+        .def_readwrite("requires_confirmation", &RemoteTaskList::requiresConfirmation);
+    py::class_<RemoteTask>(m, "RemoteTask").def(py::init<>()).def_readwrite("id", &RemoteTask::id)
+        .def_readwrite("remote_id", &RemoteTask::remoteId).def_readwrite("account_id", &RemoteTask::accountId)
+        .def_readwrite("list_id", &RemoteTask::listId).def_readwrite("list_title", &RemoteTask::listTitle)
+        .def_readwrite("title", &RemoteTask::title).def_readwrite("description", &RemoteTask::description)
+        .def_readwrite("completed", &RemoteTask::completed).def_readwrite("due_date", &RemoteTask::dueDate)
+        .def_readwrite("start", &RemoteTask::start).def_readwrite("due", &RemoteTask::due);
     py::class_<CalendarObject>(m, "CalendarObject").def_readonly("id", &CalendarObject::id).def_readonly("account_id", &CalendarObject::accountId)
         .def_readonly("provider_id", &CalendarObject::providerId).def_readonly("remote", &CalendarObject::remote)
         .def_readonly("events", &CalendarObject::events).def_readonly("loaded_window", &CalendarObject::loadedWindow);
@@ -109,7 +143,8 @@ PYBIND11_MODULE(iicalendarintegration, m) {
         .def_readonly("display_name", &CalendarAccount::displayName).def_readonly("email", &CalendarAccount::email)
         .def_readonly("primary", &CalendarAccount::primary).def_readonly("enabled", &CalendarAccount::enabled)
         .def_readonly("state", &CalendarAccount::state).def_readonly("error", &CalendarAccount::error);
-    py::class_<CalendarHttpRequest>(m, "CalendarHttpRequest").def_readonly("url", &CalendarHttpRequest::url).def_readonly("headers", &CalendarHttpRequest::headers);
+    py::class_<CalendarHttpRequest>(m, "CalendarHttpRequest").def_readonly("url", &CalendarHttpRequest::url).def_readonly("headers", &CalendarHttpRequest::headers)
+        .def_readonly("method", &CalendarHttpRequest::method).def_readonly("body", &CalendarHttpRequest::body);
     py::class_<CalendarHttpResponse>(m, "CalendarHttpResponse").def(py::init<int, std::string>()).def_readwrite("status", &CalendarHttpResponse::status).def_readwrite("body", &CalendarHttpResponse::body);
     py::class_<GoogleCalendarOptions>(m, "GoogleCalendarOptions").def(py::init<>())
         .def_readwrite("maximum_pages", &GoogleCalendarOptions::maximumPages).def_readwrite("maximum_calendars", &GoogleCalendarOptions::maximumCalendars).def_readwrite("maximum_events", &GoogleCalendarOptions::maximumEvents);
@@ -127,6 +162,7 @@ PYBIND11_MODULE(iicalendarintegration, m) {
         .def(py::init<AppleCalendarOptions>(), py::arg("options") = AppleCalendarOptions{})
         .def_static("available", &AppleCalendarProvider::available)
         .def_static("authorization", &AppleCalendarProvider::authorization, py::call_guard<py::gil_scoped_release>())
+        .def_static("reminders_authorization", &AppleCalendarProvider::remindersAuthorization, py::call_guard<py::gil_scoped_release>())
         .def("request_access", [](AppleCalendarProvider &provider, std::function<void(bool)> completion) {
             if (!completion) throw std::invalid_argument("Apple Calendar access callback required");
             provider.requestAccess([completion = std::move(completion)](bool granted) {
@@ -134,6 +170,16 @@ PYBIND11_MODULE(iicalendarintegration, m) {
                 catch (py::error_already_set &error) {
                     py::gil_scoped_acquire lock;
                     error.discard_as_unraisable("Apple Calendar authorization callback");
+                }
+            });
+        }, py::call_guard<py::gil_scoped_release>())
+        .def("request_reminders_access", [](AppleCalendarProvider &provider, std::function<void(bool)> completion) {
+            if (!completion) throw std::invalid_argument("Apple Reminders access callback required");
+            provider.requestRemindersAccess([completion = std::move(completion)](bool granted) {
+                try { completion(granted); }
+                catch (py::error_already_set &error) {
+                    py::gil_scoped_acquire lock;
+                    error.discard_as_unraisable("Apple Reminders authorization callback");
                 }
             });
         }, py::call_guard<py::gil_scoped_release>())
@@ -145,15 +191,34 @@ PYBIND11_MODULE(iicalendarintegration, m) {
              py::arg("options") = GoogleCalendarOptions{}, py::arg("initial_window") = std::nullopt, py::call_guard<py::gil_scoped_release>())
         .def("connect_microsoft", &CalendarAccountManager::connectMicrosoft, py::arg("token"), py::arg("get") = CalendarHttpGet{},
              py::arg("options") = MicrosoftCalendarOptions{}, py::arg("initial_window") = std::nullopt, py::call_guard<py::gil_scoped_release>())
+        .def("connect_google_for_subject", &CalendarAccountManager::connectGoogleForSubject, py::arg("expected_subject"), py::arg("token"),
+             py::arg("get") = CalendarHttpGet{}, py::arg("options") = GoogleCalendarOptions{}, py::arg("initial_window") = std::nullopt,
+             py::call_guard<py::gil_scoped_release>())
+        .def("connect_microsoft_for_subject", &CalendarAccountManager::connectMicrosoftForSubject, py::arg("expected_subject"), py::arg("token"),
+             py::arg("get") = CalendarHttpGet{}, py::arg("options") = MicrosoftCalendarOptions{}, py::arg("initial_window") = std::nullopt,
+             py::call_guard<py::gil_scoped_release>())
         .def("connect_apple", &CalendarAccountManager::connectApple, py::arg("options") = AppleCalendarOptions{},
              py::arg("initial_window") = std::nullopt, py::call_guard<py::gil_scoped_release>())
         .def("connect_custom", [](CalendarAccountManager &self, ExternalAccount account, std::function<std::vector<RemoteCalendar>()> calendars,
-                                   std::function<std::vector<Event>(const RemoteCalendar &, TimeRange)> events, std::optional<TimeRange> window) {
-            auto provider = std::make_shared<CallbackProvider>(account.providerId, std::move(calendars), std::move(events));
+                                   std::function<std::vector<Event>(const RemoteCalendar &, TimeRange)> events, std::optional<TimeRange> window,
+                                   std::function<Event(const RemoteCalendar &, const Event &)> createEvent,
+                                   std::function<std::vector<RemoteTaskList>()> taskLists,
+                                   std::function<Event(const RemoteTaskList &, const Event &)> createTask,
+                                   std::function<Event(const RemoteCalendar &, const Event &, const EventOccurrenceUpdate &)> updateOccurrence) {
+            auto provider = std::make_shared<CallbackProvider>(account.providerId, std::move(calendars), std::move(events),
+                std::move(createEvent), std::move(taskLists), std::move(createTask), std::move(updateOccurrence));
             return self.connect(std::move(account), std::move(provider), window);
-        }, py::arg("account"), py::arg("calendars"), py::arg("events"), py::arg("initial_window") = std::nullopt, py::call_guard<py::gil_scoped_release>())
+        }, py::arg("account"), py::arg("calendars"), py::arg("events"), py::arg("initial_window") = std::nullopt,
+           py::arg("create_event") = nullptr, py::arg("task_lists") = nullptr, py::arg("create_task") = nullptr, py::arg("update_occurrence") = nullptr, py::call_guard<py::gil_scoped_release>())
         .def("refresh", &CalendarAccountManager::refresh, py::call_guard<py::gil_scoped_release>()).def("load_events", &CalendarAccountManager::loadEvents, py::call_guard<py::gil_scoped_release>())
         .def("synchronize", &CalendarAccountManager::synchronize, py::call_guard<py::gil_scoped_release>())
+        .def("create_event", &CalendarAccountManager::createEvent, py::call_guard<py::gil_scoped_release>())
+        .def("update_occurrence", &CalendarAccountManager::updateOccurrence, py::call_guard<py::gil_scoped_release>())
+        .def("task_lists", &CalendarAccountManager::taskLists, py::call_guard<py::gil_scoped_release>())
+        .def("read_tasks", &CalendarAccountManager::readTasks, py::call_guard<py::gil_scoped_release>())
+        .def("create_task", &CalendarAccountManager::createTask, py::arg("account_id"), py::arg("calendar_id"),
+             py::arg("task_list_id"), py::arg("draft"), py::arg("confirm_unverified_source") = false,
+             py::call_guard<py::gil_scoped_release>())
         .def("set_enabled", &CalendarAccountManager::setEnabled, py::call_guard<py::gil_scoped_release>()).def("disconnect", &CalendarAccountManager::disconnect, py::call_guard<py::gil_scoped_release>())
         .def("calendars", &CalendarAccountManager::calendars, py::arg("account_id") = std::nullopt, py::call_guard<py::gil_scoped_release>())
         .def("calendar", &CalendarAccountManager::calendar, py::call_guard<py::gil_scoped_release>()).def("connection_document", &CalendarAccountManager::connectionDocument, py::call_guard<py::gil_scoped_release>())

@@ -13,17 +13,15 @@
 
 ## 날짜·시각·정밀도
 
-| 객체 | 의미 |
-|---|---|
-|Date| 선행 그레고리력, 천문학적 연도 -999999..999999, 연도 0 포함 |
-| CalendarDate | 역법의 확장 연도·월·일·윤월·시대·시대 내 연도 |
-| WeekDate | ISO 주차 연도·주차·요일, 월요일 1부터 일요일 7 |
-|Time| 하루 내 초 0..86399 및 소수 18자리 |
-|Instant| Unix epoch 기준 signed 64-bit 초 + 소수부 0..10¹⁸−1 |
-|지속 시간| 동일한 정수 쌍으로 표현한 경과 시간 |
-| LocalDateTime | 시간대가 결합되지 않은 지역 날짜·시각 |
-| ZonedDateTime | 지역 날짜·시각, UTC 오프셋, DST 여부, 시간대 ID |
-| TimeRange | 시작 포함·종료 제외. 양끝이 같으면 단일 시점 이벤트 |
+- 객체: Date; 의미: 선행 그레고리력, 천문학적 연도 -999999..999999, 연도 0 포함
+- 객체: CalendarDate; 의미: 역법의 확장 연도·월·일·윤월·시대·시대 내 연도
+- 객체: WeekDate; 의미: ISO 주차 연도·주차·요일, 월요일 1부터 일요일 7
+- 객체: Time; 의미: 하루 내 초 0..86399 및 소수 18자리
+- 객체: Instant; 의미: Unix epoch 기준 signed 64-bit 초 + 소수부 0..10¹⁸−1
+- 객체: 지속 시간; 의미: 동일한 정수 쌍으로 표현한 경과 시간
+- 객체: LocalDateTime; 의미: 시간대가 결합되지 않은 지역 날짜·시각
+- 객체: ZonedDateTime; 의미: 지역 날짜·시각, UTC 오프셋, DST 여부, 시간대 ID
+- 객체: TimeRange; 의미: 시작 포함·종료 제외. 양끝이 같으면 단일 시점 이벤트
 
 `Instant(-1, 999999999999999999)`는 epoch 직전 1 attosecond이다. 정밀 연산과 저장에
 부동소수점을 사용하지 않는다. 정규화 후 표현 범위를 넘으면 `std::overflow_error`를 발생시킨다.
@@ -120,15 +118,13 @@ events에는 절대 시작·종료의 정수 `(seconds, attoseconds)`, 지역 �
 각 텍스트 1 MiB, 개별 컬렉션 10,000개이다. 읽을 때 길이·타입·객체 불변조건과 ID/revision을 검사한다.
 쓰기 도중에도 누적 payload 상한을 검사해 과대 입력을 끝까지 할당하지 않는다.
 
-| 인덱스 | 목적 |
-|---|---|
-|idx_events_start / end| 정밀 시간 구간 |
-| idx_events_calendar_start | 컬렉션별 시간순 |
-| idx_events_date_time / calendar_date | 저장된 지역 시작 날짜·시각 |
-| idx_events_kind_status | 유형·진행 상태 |
-| idx_events_due | 마감 시각 |
-| idx_events_recurring | 반복 후보 |
-| idx_tags_lookup | 태그 → 이벤트 |
+- 인덱스: idx_events_start / end; 목적: 정밀 시간 구간
+- 인덱스: idx_events_calendar_start; 목적: 컬렉션별 시간순
+- 인덱스: idx_events_date_time / calendar_date; 목적: 저장된 지역 시작 날짜·시각
+- 인덱스: idx_events_kind_status; 목적: 유형·진행 상태
+- 인덱스: idx_events_due; 목적: 마감 시각
+- 인덱스: idx_events_recurring; 목적: 반복 후보
+- 인덱스: idx_tags_lookup; 목적: 태그 → 이벤트
 
 SQLite REAL·julianday()·날짜 함수로 소수초를 변환하지 않는다. 정수 쌍의 사전식 비교를 사용한다.
 put()은 payload·시간 인덱스·태그를 BEGIN IMMEDIATE 트랜잭션에서 갱신한다. 실패하면 전체
@@ -168,3 +164,10 @@ Google의 비공개 JSON 변환과 libcurl 전송, Apple의 비공개 Objective-
 
 ICU의 Unicode 라이선스 원문은 bootstrap 소스의 resources/dependencies/icu/LICENSE에 포함된다.
 ICU 재배포 시 관련 고지를 유지해야 한다. SQLite는 공급 배포본의 고지를 확인한다.
+
+## Atomic event batches
+
+`Store::putBatch` commits a caller-supplied list of event writes and their
+expected revisions in one transaction. Validation, duplicate identifiers, a
+revision conflict or a storage failure roll back every write. This permits a
+recurrence exception and its replacement event to be saved together.
